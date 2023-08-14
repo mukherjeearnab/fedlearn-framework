@@ -1,12 +1,14 @@
 '''
 This is the Commandline interface for managing the server
 '''
-from server import start_server, stop_server
+from commands import server, clients
 
 
 WELCOME_PROMPT = '''Welcome to the FedLearn Server.
 To get started, enter 'help' in the command prompt below.
 '''
+
+SINGLE_COMMANDS = ['exit']
 
 
 if __name__ == '__main__':
@@ -14,12 +16,18 @@ if __name__ == '__main__':
     while True:
         print('> ', end='')
         command = input()
+        args = command.split(' ')
+        if len(args) <= 1 and args[0] not in SINGLE_COMMANDS:
+            continue
 
-        if command == 'start server':
-            start_server()
+        if args[0] == 'server':
+            server.handle_command(args[1:])
 
-        elif command == 'exit':
-            stop_server()
+        elif args[0] == 'client':
+            clients.handle_command(args[1:])
+
+        elif args[0] == 'exit':
+            server.stop()
             print('Exiting...')
             exit()
 

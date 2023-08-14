@@ -2,12 +2,20 @@
 Main entry point for the server application.
 This hosts all the server routes and invokes the main function.
 '''
+import os
+from routes.client_manager import blueprint as client_manager
 from multiprocessing import Process
 from flask import Flask, jsonify
+from dotenv import load_dotenv
 
+
+# import environment variables
+load_dotenv()
+
+SERVER_PORT = int(os.getenv('SERVER_PORT'))
+print(type(SERVER_PORT))
 
 # import the routers for different routes
-from routes.client_manager import blueprint as client_manager
 
 app = Flask(__name__)
 
@@ -30,7 +38,7 @@ def run_server():
     '''
     Method to create a thread for the server process
     '''
-    app.run(debug=False, threaded=True)
+    app.run(port=SERVER_PORT, debug=False, threaded=True)
 
 
 server = Process(target=run_server)
@@ -49,5 +57,6 @@ def stop_server():
     Method to stop the server, it joins it, and then exit will be called
     '''
     print('Stopping server...')
-    server.terminate()
-    server.join()
+    if server.is_alive():
+        server.terminate()
+        server.join()
