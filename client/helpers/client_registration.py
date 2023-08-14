@@ -6,6 +6,7 @@ from helpers.http import post
 from helpers.configuration import get_system_info
 from helpers.logging import logger
 
+
 def register_client(mme_server_url: str) -> dict:
     '''
     Client Registration Method

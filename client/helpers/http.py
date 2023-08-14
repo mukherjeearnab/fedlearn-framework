@@ -3,6 +3,7 @@ HTTP comms module, with simplified syntax to avoid code repetition
 '''
 import requests
 
+
 def get(url: str, params: dict) -> dict:
     '''
     GET request method
@@ -21,5 +22,3 @@ def post(url: str, params: dict) -> dict:
     data = req.json()
 
     return data
-
-

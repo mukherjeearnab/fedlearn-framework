@@ -61,7 +61,8 @@ def register():
     '''
     REGISTER_LOCK.acquire()
 
-    data = {'id': CLIENT_TALLY.register_client(request.get_json(), request.remote_addr)}
+    data = {'id': CLIENT_TALLY.register_client(
+        request.get_json(), request.remote_addr)}
 
     REGISTER_LOCK.release()
     return jsonify(data)

@@ -1,30 +1,27 @@
 '''
-Main entry point for the server application.
-This hosts all the server routes and invokes the main function.
+This is the Commandline interface for managing the server
 '''
-from flask import Flask, jsonify
+from server import start_server, stop_server
 
 
-# import the routers for different routes
-from routes.client_manager import blueprint as client_manager
-
-app = Flask(__name__)
-
-
-@app.route('/')
-def root():
-    '''
-    server root route, provides a brief description of the server,
-    with some additional information.
-    '''
-    data = {'message': 'This is the fedlrn-framework server.'}
-    return jsonify(data)
-
-
-# register the blueprint routes
-app.register_blueprint(client_manager, url_prefix='/client-manager')
+WELCOME_PROMPT = '''Welcome to the FedLearn Server.
+To get started, enter 'help' in the command prompt below.
+'''
 
 
 if __name__ == '__main__':
-    print(app.url_map)
-    app.run(debug=False)
+    print(WELCOME_PROMPT)
+    while True:
+        print('> ', end='')
+        command = input()
+
+        if command == 'start server':
+            start_server()
+
+        elif command == 'exit':
+            stop_server()
+            print('Exiting...')
+            exit()
+
+        else:
+            print('Unknown command: ', command)
