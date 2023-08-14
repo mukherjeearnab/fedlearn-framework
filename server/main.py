@@ -27,4 +27,4 @@ app.register_blueprint(client_manager, url_prefix='/client-manager')
 
 if __name__ == '__main__':
     print(app.url_map)
-    app.run(debug=True)
+    app.run(debug=False)
