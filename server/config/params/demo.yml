@@ -1,0 +1,20 @@
+client_params:
+  num_clients: 1
+
+dataset_params:
+  ratio:
+    train: 0.8
+    test: 0.1
+    validation: 0.1
+
+model_params:
+  model_file: simple_nn.py
+  dataset_preprocess_file: mnist_def.py
+  training_loop_file: simple_loop.py
+  test_file: simple_test.py
+
+train_params:
+  learning_rate: 0.001
+  rounds: 10
+  batch_size: 50
+  local_epochs: 5
