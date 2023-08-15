@@ -9,10 +9,13 @@ import torch.optim as optim
 def train_loop(num_epochs: int, learning_rate: float,
                train_loader: torch.utils.data.dataloader.DataLoader,
                val_loader: torch.utils.data.dataloader.DataLoader,
-               model) -> None:
+               model, device='cpu') -> None:
     '''
     The Training Loop Function. It trains the model of num_epochs.
     '''
+
+    # move the model to the device, cpu or gpu
+    model = model.to(device)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
@@ -24,6 +27,10 @@ def train_loop(num_epochs: int, learning_rate: float,
         # Training loop
         model.train()
         for _, (inputs, labels) in enumerate(train_loader, 0):
+
+            # move tensors to the device, cpu or gpu
+            inputs, labels = inputs.to(device), labels.to(device)
+
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs, labels)
@@ -42,6 +49,10 @@ def train_loop(num_epochs: int, learning_rate: float,
         val_total = 0
         with torch.no_grad():
             for inputs, labels in val_loader:
+
+                # move tensors to the device, cpu or gpu
+                inputs, labels = inputs.to(device), labels.to(device)
+
                 outputs = model(inputs)
                 _, predicted = torch.max(outputs.data, 1)
                 val_total += labels.size(0)
