@@ -2,6 +2,7 @@
 The Logging Module
 '''
 import logging
+import datetime
 
 # create logger
 logger = logging.getLogger(__name__)
@@ -22,7 +23,8 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 # add file handler
-fh = logging.FileHandler(r'./logs/client.log', mode='w')
+fh = logging.FileHandler(
+    r'./logs/{date:%Y-%m-%d_%H:%M:%S}.log'.format(date=datetime.datetime.now()), mode='w')
 fh.setFormatter(formatter)
 logger.addHandler(fh)
 
