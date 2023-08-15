@@ -35,4 +35,8 @@ def register():
         request.get_json(), request.remote_addr)}
 
     REGISTER_LOCK.release()
+
+    if data['id'] is None:
+        return jsonify({'message': 'Registration is Locked!'}), 403
+
     return jsonify(data)

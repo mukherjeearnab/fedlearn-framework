@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 SERVER_PORT = int(os.getenv('SERVER_PORT'))
-print(type(SERVER_PORT))
+# print(type(SERVER_PORT))
 
 # import the routers for different routes
 

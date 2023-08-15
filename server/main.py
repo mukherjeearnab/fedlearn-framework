@@ -1,7 +1,8 @@
 '''
 This is the Commandline interface for managing the server
 '''
-from commands import server, clients
+from commands import server, client
+from helpers.logging import logger
 
 
 WELCOME_PROMPT = '''Welcome to the FedLearn Server.
@@ -24,10 +25,11 @@ if __name__ == '__main__':
             server.handle_command(args[1:])
 
         elif args[0] == 'client':
-            clients.handle_command(args[1:])
+            client.handle_command(args[1:])
 
         elif args[0] == 'exit':
             server.stop()
+            logger.info('Exiting...')
             print('Exiting...')
             exit()
 
