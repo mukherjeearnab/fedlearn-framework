@@ -49,7 +49,7 @@ class TrainingJobManager:
             'local_epochs': local_epochs
         }
 
-        self.job_params = {
+        self.job_status = {
             'client_stage': 0,
             'download_jobsheet': False,
             'download_dataset': False,
@@ -80,7 +80,7 @@ class TrainingJobManager:
             self.dataset_params = payload['dataset_params']
             self.model_params = payload['model_params']
             self.train_params = payload['train_params']
-            self.job_params = payload['job_params']
+            self.job_status = payload['job_status']
             self.exec_params = payload['exec_params']
 
     def _update_state(self):
@@ -89,7 +89,7 @@ class TrainingJobManager:
             'dataset_params': self.dataset_params,
             'model_params': self.model_params,
             'train_params': self.train_params,
-            'job_params': self.job_params,
+            'job_status': self.job_status,
             'exec_params': self.exec_params
         }
         kv_set(self.project_name, data)
@@ -97,7 +97,7 @@ class TrainingJobManager:
     def allow_jobsheet_download(self) -> bool:
         '''
         Allows to download Jobsheet for clients to prepare themselves.
-        Basically modifies the job_params.download_jobsheet from False to True.
+        Basically modifies the job_status.download_jobsheet from False to True.
         Only work if process_phase is 0, client_stage is 0, download_jobsheet is False and download_dataset is False. 
         '''
         # method prefixed with locking and reading state
@@ -106,8 +106,8 @@ class TrainingJobManager:
         exec_status = True
 
         # method logic
-        if self.job_params['process_phase'] == 0 and self.job_params['client_stage'] == 0 and self.job_params['download_jobsheet'] is False and self.job_params['download_dataset'] is False:
-            self.job_params['download_jobsheet'] = True
+        if self.job_status['process_phase'] == 0 and self.job_status['client_stage'] == 0 and self.job_status['download_jobsheet'] is False and self.job_status['download_dataset'] is False:
+            self.job_status['download_jobsheet'] = True
 
             # method suffixed with update state and lock release
             self._update_state()
@@ -115,10 +115,10 @@ class TrainingJobManager:
             # log output and set execution status to False
             logger.warning(
                 f'''Cannot ALLOW JobSheet Download! 
-                job_params.process_phase is {self.job_params["process_phase"]}, 
-                job_params.client_stage is {self.job_params["client_stage"]},
-                job_params.download_jobsheet is {self.job_params["download_jobsheet"]}, 
-                job_params.download_dataset is {self.job_params["download_dataset"]}.''')
+                job_status.process_phase is {self.job_status["process_phase"]}, 
+                job_status.client_stage is {self.job_status["client_stage"]},
+                job_status.download_jobsheet is {self.job_status["download_jobsheet"]}, 
+                job_status.download_dataset is {self.job_status["download_dataset"]}.''')
             exec_status = False
 
         # method suffixed with update state and lock release
@@ -128,7 +128,7 @@ class TrainingJobManager:
     def allow_dataset_download(self) -> bool:
         '''
         Allows to download dataset for clients to prepare themselves from the data-distributor.
-        Basically modifies the job_params.download_dataset from False to True.
+        Basically modifies the job_status.download_dataset from False to True.
         Only work if process_phase is 0, client_stage is 1, download_jobsheet is True and download_dataset is False.
         '''
         # method prefixed with locking and reading state
@@ -137,8 +137,8 @@ class TrainingJobManager:
         exec_status = True
 
         # method logic
-        if self.job_params['process_phase'] == 0 and self.job_params['client_stage'] == 1 and self.job_params['download_jobsheet'] is True and self.job_params['download_dataset'] is False:
-            self.job_params['download_dataset'] = True
+        if self.job_status['process_phase'] == 0 and self.job_status['client_stage'] == 1 and self.job_status['download_jobsheet'] is True and self.job_status['download_dataset'] is False:
+            self.job_status['download_dataset'] = True
 
             # method suffixed with update state and lock release
             self._update_state()
@@ -146,10 +146,10 @@ class TrainingJobManager:
             # log output and set execution status to False
             logger.warning(
                 f'''Cannot ALLOW Dataset Download! 
-                job_params.process_phase is {self.job_params["process_phase"]}, 
-                job_params.client_stage is {self.job_params["client_stage"]},
-                job_params.download_jobsheet is {self.job_params["download_jobsheet"]}, 
-                job_params.download_dataset is {self.job_params["download_dataset"]}.''')
+                job_status.process_phase is {self.job_status["process_phase"]}, 
+                job_status.client_stage is {self.job_status["client_stage"]},
+                job_status.download_jobsheet is {self.job_status["download_jobsheet"]}, 
+                job_status.download_dataset is {self.job_status["download_dataset"]}.''')
             exec_status = False
 
         # method suffixed with update state and lock release
@@ -158,7 +158,7 @@ class TrainingJobManager:
 
     def add_client(self, client_id: str) -> bool:
         '''
-        Adds a Client to the list of clients for the current job, only if job_params.process_phase is 0.
+        Adds a Client to the list of clients for the current job, only if job_status.process_phase is 0.
         '''
         # method prefixed with locking and reading state
         self.modification_lock.acquire()
@@ -166,7 +166,7 @@ class TrainingJobManager:
         exec_status = True
 
         # method logic
-        if self.job_params['process_phase'] == 0:
+        if self.job_status['process_phase'] == 0:
             self.exec_params['client_info'].append({
                 'client_id': client_id,
                 'status': 0
@@ -178,7 +178,7 @@ class TrainingJobManager:
             # log output and set execution status to False
             logger.warning(
                 f'''Cannot ADD Client! 
-                job_params.process_phase is {self.job_params["process_phase"]}.''')
+                job_status.process_phase is {self.job_status["process_phase"]}.''')
             exec_status = False
 
         # method suffixed with update state and lock release
@@ -188,7 +188,7 @@ class TrainingJobManager:
     def update_client_status(self, client_id: str, client_status: int) -> bool:
         '''
         Updates the status of a client, based on their client_id and 
-        if all clients have the same status, the global status, i.e., job_params.client_stage is set as the status of the clients
+        if all clients have the same status, the global status, i.e., job_status.client_stage is set as the status of the clients
         '''
         # method prefixed with locking and reading state
         self.modification_lock.acquire()
@@ -208,7 +208,7 @@ class TrainingJobManager:
                 self.exec_params['client_info'][i]['status'])
 
         if len(all_client_status) == 1:
-            self.job_params['client_stage'] = list(all_client_status)[0]
+            self.job_status['client_stage'] = list(all_client_status)[0]
 
         # method suffixed with update state and lock release
         self._update_state()
@@ -226,14 +226,14 @@ class TrainingJobManager:
         exec_status = True
 
         # method logic
-        if self.job_params['process_phase'] == 0 or self.job_params['process_phase'] == 2:
+        if self.job_status['process_phase'] == 0 or self.job_status['process_phase'] == 2:
             self.exec_params['central_model_param'] = params
 
             # method suffixed with update state and lock release
             self._update_state()
         else:
             logger.warning(
-                f'Central model parameters NOT SET! job_params.process_phase is {self.job_params["process_phase"]}.')
+                f'Central model parameters NOT SET! job_status.process_phase is {self.job_status["process_phase"]}.')
             exec_status = False
 
         # method suffixed with update state and lock release
@@ -242,8 +242,8 @@ class TrainingJobManager:
 
     def allow_start_training(self) -> bool:
         '''
-        Signal clients to start training by setting job_params.process_phase to 1.
-        Only works if job_params.client_stage=2 and job_params.process_phase=0
+        Signal clients to start training by setting job_status.process_phase to 1.
+        Only works if job_status.client_stage=2 and job_status.process_phase=0
         '''
         # method prefixed with locking and reading state
         self.modification_lock.acquire()
@@ -251,14 +251,14 @@ class TrainingJobManager:
         exec_status = True
 
         # method logic
-        if self.job_params['process_phase'] == 0 and self.job_params['client_stage'] == 2:
-            self.job_params['process_phase'] = 1
+        if self.job_status['process_phase'] == 0 and self.job_status['client_stage'] == 2:
+            self.job_status['process_phase'] = 1
 
             # method suffixed with update state and lock release
             self._update_state()
         else:
             logger.warning(
-                f'Cannot SET process_phase to 1 (InLocalTraining)! job_params.process_phase is {self.job_params["process_phase"]}, job_params.client_stage is {self.job_params["client_stage"]}.')
+                f'Cannot SET process_phase to 1 (InLocalTraining)! job_status.process_phase is {self.job_status["process_phase"]}, job_status.client_stage is {self.job_status["client_stage"]}.')
             exec_status = False
 
         # method suffixed with update state and lock release
@@ -268,7 +268,7 @@ class TrainingJobManager:
     def append_client_params(self, client_params: dict) -> bool:
         '''
         Append Trained Model Params from Clients to the exec_params.client_model_params[].
-        Only works if job_params.client_stage=3 and job_params.process_phase=1.
+        Only works if job_status.client_stage=3 and job_status.process_phase=1.
         '''
         # method prefixed with locking and reading state
         self.modification_lock.acquire()
@@ -276,19 +276,19 @@ class TrainingJobManager:
         exec_status = True
 
         # method logic
-        if self.job_params['process_phase'] == 1 and self.job_params['client_stage'] == 3:
+        if self.job_status['process_phase'] == 1 and self.job_status['client_stage'] == 3:
             # add client submitted parameters
             self.exec_params['client_model_params'].append(client_params)
 
             # if all the client's parameters are submitted, set process_phase to 2, i.e., InCentralAggregation
             if len(self.exec_params['client_model_params']) == self.dataset_params['num_clients']:
-                self.job_params['process_phase'] = 2
+                self.job_status['process_phase'] = 2
 
             # method suffixed with update state and lock release
             self._update_state()
         else:
             logger.warning(
-                f'Cannot APPEND client model params! job_params.process_phase is {self.job_params["process_phase"]}, job_params.client_stage is {self.job_params["client_stage"]}.')
+                f'Cannot APPEND client model params! job_status.process_phase is {self.job_status["process_phase"]}, job_status.client_stage is {self.job_status["client_stage"]}.')
             exec_status = False
 
         # method suffixed with update state and lock release
@@ -307,14 +307,14 @@ class TrainingJobManager:
         exec_status = True
 
         # method logic
-        if self.job_params['process_phase'] == 2 and self.job_params['client_stage'] == 4:
-            self.job_params['process_phase'] = 3
+        if self.job_status['process_phase'] == 2 and self.job_status['client_stage'] == 4:
+            self.job_status['process_phase'] = 3
 
             # method suffixed with update state and lock release
             self._update_state()
         else:
             logger.warning(
-                f'Cannot Terminate Training Process! job_params.process_phase is {self.job_params["process_phase"]}, job_params.client_stage is {self.job_params["client_stage"]}.')
+                f'Cannot Terminate Training Process! job_status.process_phase is {self.job_status["process_phase"]}, job_status.client_stage is {self.job_status["client_stage"]}.')
             exec_status = False
 
         # method suffixed with update state and lock release
