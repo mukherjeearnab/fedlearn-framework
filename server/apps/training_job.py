@@ -11,11 +11,7 @@ class TrainingJobManager:
     Training Job Manager Class
     '''
 
-    def __init__(self, project_name: str, num_clients=1, dataset_dist_file='def_1c.py',
-                 dataset_id='mnist_def', train_ratio=0.8, test_ratio=0.2, val_ratio=0.0,
-                 model_file='simple_nn', dataset_preprocess_file='mnist_def',
-                 training_loop_file='simple_loop', test_file='simple_test',
-                 learning_rate=0.01, rounds=10, batch_size=64, local_epochs=1):
+    def __init__(self, project_name: str, client_params: dict, server_params: dict, dataset_params: dict):
         '''
         constructor
         '''
@@ -24,30 +20,11 @@ class TrainingJobManager:
 
         self.project_name = project_name
 
-        self.dataset_params = {
-            'num_clients': num_clients,
-            'dataset_dist_file': dataset_dist_file,
-            'dataset_id': dataset_id,
-            'ratio': {
-                'train': train_ratio,
-                'test': test_ratio,
-                'validation': val_ratio
-            }
-        }
+        self.dataset_params = dataset_params
 
-        self.model_params = {
-            'model_file': model_file,
-            'dataset_preprocess_file': dataset_preprocess_file,
-            'training_loop_file': training_loop_file,
-            'test_file': test_file
-        }
+        self.client_params = client_params
 
-        self.train_params = {
-            'learning_rate': learning_rate,
-            'rounds': rounds,
-            'batch_size': batch_size,
-            'local_epochs': local_epochs
-        }
+        self.server_params = server_params
 
         self.job_status = {
             'client_stage': 0,
@@ -78,8 +55,8 @@ class TrainingJobManager:
         else:
             self.project_name = payload['project_name']
             self.dataset_params = payload['dataset_params']
-            self.model_params = payload['model_params']
-            self.train_params = payload['train_params']
+            self.client_params = payload['client_params']
+            self.server_params = payload['server_params']
             self.job_status = payload['job_status']
             self.exec_params = payload['exec_params']
 
@@ -87,8 +64,8 @@ class TrainingJobManager:
         data = {
             'project_name': self.project_name,
             'dataset_params': self.dataset_params,
-            'model_params': self.model_params,
-            'train_params': self.train_params,
+            'client_params': self.client_params,
+            'server_params': self.server_params,
             'job_status': self.job_status,
             'exec_params': self.exec_params
         }
