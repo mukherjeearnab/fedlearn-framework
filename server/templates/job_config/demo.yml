@@ -17,6 +17,7 @@ client_params:
   
   model_params: # model and training files and configs
     model_file: simple_nn.py
+    parameter_mixer: default.py
     training_loop_file: simple_loop.py
     test_file: simple_test.py
 
