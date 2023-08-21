@@ -13,3 +13,14 @@ def read_yaml_file(filename: str) -> dict:
         yaml_dict = yaml.safe_load(file)
 
     return yaml_dict
+
+
+def read_py_module(filename: str) -> str:
+    '''
+    Function to read a python module from disk and return it as string.
+    '''
+
+    with open(filename, 'r', encoding='utf8') as file:
+        module = file.read()
+
+    return module

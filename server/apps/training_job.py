@@ -5,6 +5,15 @@ from helpers.kvstore import kv_get, kv_set
 from helpers.semaphore import Semaphore
 from helpers.logging import logger
 
+CLIENT_STAGE = {
+    0: 'Client Online',
+    1: 'Client Ready With Jobsheet',
+    2: 'Client Ready With Dataset',
+    3: 'Client Busy In Training',
+    4: 'Client Waiting For Params',
+    5: 'Client Terminated'
+}
+
 
 class TrainingJobManager:
     '''
@@ -186,6 +195,8 @@ class TrainingJobManager:
 
         if len(all_client_status) == 1:
             self.job_status['client_stage'] = list(all_client_status)[0]
+            logger.info(
+                f"All clients are at Stage: [{CLIENT_STAGE[self.job_status['client_stage']]}]")
 
         # method suffixed with update state and lock release
         self._update_state()
@@ -196,6 +207,9 @@ class TrainingJobManager:
         '''
         Set or Update the Central Mode Parameters, for initial time, or aggregated update time.
         Only set, if Provess Phase is 0 or 2, i.e., TrainingNotStarted or InCentralAggregation.
+
+        Remember to call allow_start_training() to update the Process Phase to 1,
+        to signal Clients to download params and start training.
         '''
         # method prefixed with locking and reading state
         self.modification_lock.acquire()
@@ -205,6 +219,9 @@ class TrainingJobManager:
         # method logic
         if self.job_status['process_phase'] == 0 or self.job_status['process_phase'] == 2:
             self.exec_params['central_model_param'] = params
+
+            logger.info(
+                'Central Model Parameters are Set. Waiting for Process Phase to be in [1] Local Training.')
 
             # method suffixed with update state and lock release
             self._update_state()
@@ -242,7 +259,7 @@ class TrainingJobManager:
         self.modification_lock.release()
         return exec_status
 
-    def append_client_params(self, client_params: dict) -> bool:
+    def append_client_params(self, client_id: str, client_params: dict) -> bool:
         '''
         Append Trained Model Params from Clients to the exec_params.client_model_params[].
         Only works if job_status.client_stage=3 and job_status.process_phase=1.
@@ -255,11 +272,14 @@ class TrainingJobManager:
         # method logic
         if self.job_status['process_phase'] == 1 and self.job_status['client_stage'] == 3:
             # add client submitted parameters
-            self.exec_params['client_model_params'].append(client_params)
+            self.exec_params['client_model_params'].append({'client_id': client_id,
+                                                            'client_params': client_params})
 
             # if all the client's parameters are submitted, set process_phase to 2, i.e., InCentralAggregation
             if len(self.exec_params['client_model_params']) == self.dataset_params['num_clients']:
                 self.job_status['process_phase'] = 2
+                logger.info(
+                    'All clients params are submitted, starting Federated Aggregation.')
 
             # method suffixed with update state and lock release
             self._update_state()

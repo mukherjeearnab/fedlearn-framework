@@ -2,7 +2,10 @@
 Application Logic for Client Management
 '''
 from helpers.kvstore import kv_get, kv_set
+from helpers.semaphore import Semaphore
+
 CLIENT_MAN_KEY = 'client_man_db'
+UPDATE_LOCK = Semaphore()
 
 
 class ClientManager:
@@ -16,7 +19,6 @@ class ClientManager:
         '''
         # self.client_count
         # self.clients_info
-        # self.reg_lock
 
         self._read_state()
 
@@ -26,38 +28,34 @@ class ClientManager:
         if payload is None:
             self.client_count = 0
             self.clients_info = []
-            self.reg_lock = False
 
             self._update_state()
         else:
             self.client_count = payload['client_count']
             self.clients_info = payload['clients_info']
-            self.reg_lock = payload['reg_lock']
 
     def _update_state(self):
         data = {
             'clients_info': self.clients_info,
             'client_count': self.client_count,
-            'reg_lock': self.reg_lock
         }
         kv_set(CLIENT_MAN_KEY, data)
 
-    def show_clients(self,) -> None:
+    def get_clients(self,) -> list:
         '''
         Print all the clients and their details
         '''
+        UPDATE_LOCK.wait()
         self._read_state()
 
-        print(self.clients_info)
+        return self.clients_info
 
     def register_client(self, client_info: dict, ip_address: str) -> str:
         '''
         register function, increments the counter and returns id
         '''
+        UPDATE_LOCK.acquire()
         self._read_state()
-
-        if self.reg_lock:
-            return None
 
         self.client_count += 1
 
@@ -70,5 +68,6 @@ class ClientManager:
         self.clients_info.append(client)
 
         self._update_state()
+        UPDATE_LOCK.release()
 
         return client['name']

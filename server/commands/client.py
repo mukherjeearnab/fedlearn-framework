@@ -13,7 +13,7 @@ def handle_command(args: List[str]) -> None:
     Handle the Forwarded Commands
     '''
     if args[0] == 'list':
-        client_manager.show_clients()
+        print(client_manager.get_clients())
 
     elif args[0] == 'help':
         _help()

@@ -6,7 +6,7 @@ client_params:
     test: 0.2
 
   dataset: # dataset hyperparameters and configs
-    preprocess: default.py
+    preprocessor: default.py
     distribution:
       distributor: random_dist.py
       iid: True # if IID is true, it will skip the clients distribution ration in the next variable
