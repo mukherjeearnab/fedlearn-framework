@@ -20,7 +20,7 @@ class TrainingJobManager:
     Training Job Manager Class
     '''
 
-    def __init__(self, project_name: str, client_params: dict, server_params: dict, dataset_params: dict):
+    def __init__(self, project_name: str, client_params: dict, server_params: dict, dataset_params: dict, load_from_db=False):
         '''
         constructor
         '''
@@ -54,13 +54,17 @@ class TrainingJobManager:
             'central_model_param': None,  # state_dict(),
         }
 
-        self._update_state()
+        if load_from_db:
+            self._read_state()
+        else:
+            self._update_state()
 
     def _read_state(self):
         payload = kv_get(self.project_name)
 
         if payload is None:
-            self.__init__()
+            logger.error(
+                f'No such FedLearn Project named [{self.project_name}] exists!')
         else:
             self.project_name = payload['project_name']
             self.dataset_params = payload['dataset_params']
@@ -188,6 +192,9 @@ class TrainingJobManager:
             # find the client and update their status
             if self.exec_params['client_info'][i]['client_id'] == client_id:
                 self.exec_params['client_info'][i]['status'] = client_status
+
+            logger.info(
+                f"Client [{client_id}] is at stage [{CLIENT_STAGE[client_status]}].")
 
             # collect the status of all the clients
             all_client_status.add(

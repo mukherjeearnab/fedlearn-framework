@@ -3,9 +3,11 @@ This is the Job Leader Module,
 which is responsible for handling all training job 
 related functionality.
 '''
+import importlib
 from apps.training_job import TrainingJobManager
-from helpers.file import read_yaml_file, read_py_module
+from helpers.file import read_yaml_file, read_py_module, torch_write, set_OK_file, check_OK_file
 from helpers.logging import logger
+from helpers.dynamod import load_module
 from apps.client_manager import ClientManager
 
 # the client manager
@@ -15,10 +17,11 @@ client_manager = ClientManager()
 JOBS = dict()
 
 
-def create_job(job_name: str, job_filename: str) -> None:
+def init_job(job_name: str, job_filename: str) -> None:
     '''
     Load a Job specification and create the job, and start initialization.
     '''
+    # load the job config file
     config = read_yaml_file(f'./templates/job_config/{job_filename}')
 
     logger.info(f'Reading Job Config: \n{config}')
@@ -49,8 +52,18 @@ def create_job(job_name: str, job_filename: str) -> None:
         logger.info(f'Assigning client to job {client_list[i]}')
     logger.info('Successfully assigned clients to job.')
 
-    # TODO: send request to data warehouse to start preparing the datasets and shards
+    # allow clients to download jobsheet
+    JOBS[job_name].allow_jobsheet_download()
+    logger.info(
+        'Job sheet download set, waiting for clients to download and acknowledge.')
 
+    # prepare dataset for clients to download
+    logger.info(f'Starting Dataset Preperation for Job {job_name}')
+    prepare_dataset_for_deployment(config)
+    logger.info(f'Dataset Preperation Complete for Job {job_name}')
+    
+    # set dataset download for clients
+    JOBS[job_name].allow_dataset_download()
 
 def load_module_files(config: dict) -> dict:
     '''
@@ -115,3 +128,67 @@ def load_module_files(config: dict) -> dict:
     }
 
     return config
+
+
+def prepare_dataset_for_deployment(config: dict):
+    '''Prepares dataset for deployment
+    1. run dataset_preperation and save to file in ./datasets/deploy/[dataset_prep file name]/root/dataset.tuple and OK file
+    2. run dataset_distribution and save to file in ./datasets/deploy/[dataset_prep file name]/chunks/client-n-[client_weight].pt and OK file
+    '''
+
+    CHUNK_DIR_NAME = 'dist'
+    for chunk in config['client_params']['dataset']['distribution']['clients']:
+        CHUNK_DIR_NAME += f'-{chunk}'
+
+    DATASET_ROOT_PATH = f"./datasets/deploy/{config['dataset_params']['prep']['content']}/root"
+    DATASET_CHUNK_PATH = f"./datasets/deploy/{config['dataset_params']['prep']['content']}/chunks/{CHUNK_DIR_NAME}"
+
+    # Step 1
+    # if root dataset is not already present, prepare it
+    if not check_OK_file(DATASET_ROOT_PATH):
+        # load the dataset prep module
+        dataset_prep_module = load_module(
+            'dataset_prep', config['dataset_params']['prep']['content'])
+
+        # obtain the dataset as data and labels
+        data, labels = dataset_prep_module.prepare_dataset()
+
+        # saving dataset file to disk
+        try:
+            # save the dataset to disk
+            torch_write('dataset.tuple',
+                        DATASET_ROOT_PATH,
+                        (data, labels))
+
+            # set the OK file
+            set_OK_file(DATASET_ROOT_PATH)
+            logger.info('Prepared Dataset Saved Successfully!')
+        except:
+            logger.warning('Error Saving Prepared Dataset to disk!')
+
+    # Step 2
+    # if chunk datasets are already not prepared, then prepare them
+    if not check_OK_file(DATASET_CHUNK_PATH):
+        # load the dataset prep module
+        distributor_module = load_module(
+            'distributor', config['client_params']['dataset']['distribution']['distributor']['content'])
+
+        # obtain the dataset as data and labels
+        chunks = distributor_module.distribute_into_client_chunks((data, labels), 
+                                                                  config['client_params']['dataset']['distribution']['clients'])
+
+        # saving chunks to disk
+        try:
+            for i in range(config['client_params']['n_clients']):
+                client = f'client-{i+1}'
+                # save the dataset to disk
+                torch_write(f'{client}.tuple',
+                            DATASET_CHUNK_PATH,
+                            chunks[i])
+
+            # set the OK file
+            set_OK_file(DATASET_CHUNK_PATH)
+            logger.info('Dataset Client Chunks Saved Successfully!')
+        except:
+            logger.warning('Error Saving Chunked Dataset to disk!')
+    

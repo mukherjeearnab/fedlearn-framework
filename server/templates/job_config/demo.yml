@@ -6,20 +6,18 @@ client_params:
     test: 0.2
 
   dataset: # dataset hyperparameters and configs
-    preprocessor: default.py
+    preprocessor: default
     distribution:
-      distributor: random_dist.py
+      distributor: random_dist
       iid: True # if IID is true, it will skip the clients distribution ration in the next variable
       clients: # example client dataset distribution for 3 clients
-        - 0.5
-        - 0.3
-        - 0.2
+        - 1.0
   
   model_params: # model and training files and configs
-    model_file: simple_nn.py
-    parameter_mixer: default.py
-    training_loop_file: simple_loop.py
-    test_file: simple_test.py
+    model_file: simple_nn
+    parameter_mixer: default
+    training_loop_file: simple_loop
+    test_file: simple_test
 
 
   train_params: # training parameters
@@ -34,7 +32,7 @@ client_params:
   
 
 server_params:
-  aggregator: fed_avg.py
+  aggregator: fed_avg
 
   train_params: # training parameters
     rounds: 10
@@ -44,5 +42,5 @@ server_params:
     
 
 dataset_params:
-  prep: mnist_def.py
+  prep: mnist_def
 

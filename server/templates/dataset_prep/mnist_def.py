@@ -32,4 +32,8 @@ def prepare_dataset():
     train_data, train_labels = next(iter(train_loader))
     test_data, test_labels = next(iter(test_loader))
 
-    return (train_data, train_labels), (test_data, test_labels)
+    # join train set and test set together
+    data = torch.cat((train_data, test_data), 0)
+    labels = torch.cat((train_labels, test_labels), 0)
+
+    return (data, labels)
