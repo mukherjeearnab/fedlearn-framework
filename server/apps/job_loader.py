@@ -194,6 +194,7 @@ def prepare_dataset_for_deployment(config: dict):
         except:
             logger.warning('Error Saving Prepared Dataset to disk!')
     else:
+        logger.info('Root Dataset already present. Loading it from disk.')
         data, labels = torch_read('dataset.tuple', DATASET_ROOT_PATH)
 
     # Step 2
@@ -215,6 +216,9 @@ def prepare_dataset_for_deployment(config: dict):
                 torch_write(f'{client}.tuple',
                             DATASET_CHUNK_PATH,
                             chunks[i])
+
+                logger.info(
+                    f'Saved Chunk for {client} with size {len(chunks[i][1])}')
 
             # set the OK file
             set_OK_file(DATASET_CHUNK_PATH)
