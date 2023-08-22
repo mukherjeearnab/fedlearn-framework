@@ -3,9 +3,9 @@ This is the Job Leader Module,
 which is responsible for handling all training job 
 related functionality.
 '''
-import importlib
+import json
 from apps.training_job import TrainingJobManager
-from helpers.file import read_yaml_file, read_py_module, torch_write, set_OK_file, check_OK_file
+from helpers.file import read_yaml_file, read_py_module, torch_write, torch_read, set_OK_file, check_OK_file, create_dir_struct
 from helpers.logging import logger
 from helpers.dynamod import load_module
 from apps.client_manager import ClientManager
@@ -15,16 +15,21 @@ client_manager = ClientManager()
 
 # the job management dictionary
 JOBS = dict()
+CONFIGS = dict()
 
 
-def init_job(job_name: str, job_filename: str) -> None:
+def load_job(job_name: str):
     '''
-    Load a Job specification and create the job, and start initialization.
+    Load the Job Config and perform some preliminary validation.
     '''
     # load the job config file
-    config = read_yaml_file(f'./templates/job_config/{job_filename}')
+    config = read_yaml_file(f'./templates/job_config/{job_name}.yaml')
 
-    logger.info(f'Reading Job Config: \n{config}')
+    logger.info(f'Reading Job Config: \n{job_name}')
+
+    CONFIGS[job_name] = config
+
+    print('Job Config: ', json.dumps(config, sort_keys=True, indent=4))
 
     # get available clients from the server registry
     client_list = client_manager.get_clients()
@@ -33,11 +38,27 @@ def init_job(job_name: str, job_filename: str) -> None:
     if len(client_list) < config['client_params']['num_clients']:
         logger.error(f'''Not Enough Clients available on register. Please register more clients.
                      Required: {config['client_params']['num_clients']} Available: {len(client_list)}''')
+
+    print('Job Config Loaded.')
+
+
+def start_job(job_name: str) -> None:
+    '''
+    Load a Job specification and create the job, and start initialization.
+    '''
+    print('Starting Job.')
+
+    if job_name not in CONFIGS.keys():
+        logger.error(f'Job Name: {job_name} is not loaded.')
         return
+    config = CONFIGS[job_name]
 
     # load the python module files for the configuration
     config = load_module_files(config)
     logger.info('Loaded Py Modules from Job Config')
+
+    # get available clients from the server registry
+    client_list = client_manager.get_clients()
 
     # create a new job instance
     JOBS[job_name] = TrainingJobManager(project_name=job_name,
@@ -61,9 +82,12 @@ def init_job(job_name: str, job_filename: str) -> None:
     logger.info(f'Starting Dataset Preperation for Job {job_name}')
     prepare_dataset_for_deployment(config)
     logger.info(f'Dataset Preperation Complete for Job {job_name}')
-    
+
     # set dataset download for clients
     JOBS[job_name].allow_dataset_download()
+
+    logger.info('Allowing Clients to Download Dataset.')
+
 
 def load_module_files(config: dict) -> dict:
     '''
@@ -86,31 +110,31 @@ def load_module_files(config: dict) -> dict:
     }
 
     # read model_params.model_file
-    config['model_params']['model_file'] = {
-        'file': config['model_params']['model_file'],
+    config['client_params']['model_params']['model_file'] = {
+        'file': config['client_params']['model_params']['model_file'],
         'content': read_py_module(
-            f"./templates/models/{config['model_params']['model_file']}")
+            f"./templates/models/{config['client_params']['model_params']['model_file']}")
     }
 
     # read model_params.parameter_mixer
-    config['model_params']['parameter_mixer'] = {
-        'file': config['model_params']['parameter_mixer'],
+    config['client_params']['model_params']['parameter_mixer'] = {
+        'file': config['client_params']['model_params']['parameter_mixer'],
         'content': read_py_module(
-            f"./templates/param_mixer/{config['model_params']['parameter_mixer']}")
+            f"./templates/param_mixer/{config['client_params']['model_params']['parameter_mixer']}")
     }
 
     # read model_params.training_loop_file
-    config['model_params']['training_loop_file'] = {
-        'file': config['model_params']['training_loop_file'],
+    config['client_params']['model_params']['training_loop_file'] = {
+        'file': config['client_params']['model_params']['training_loop_file'],
         'content': read_py_module(
-            f"./templates/training/{config['model_params']['training_loop_file']}")
+            f"./templates/training/{config['client_params']['model_params']['training_loop_file']}")
     }
 
     # read model_params.test_file
-    config['model_params']['test_file'] = {
-        'file': config['model_params']['test_file'],
+    config['client_params']['model_params']['test_file'] = {
+        'file': config['client_params']['model_params']['test_file'],
         'content': read_py_module(
-            f"./templates/testing/{config['model_params']['test_file']}")
+            f"./templates/testing/{config['client_params']['model_params']['test_file']}")
     }
 
     # read server_params.aggregator
@@ -140,8 +164,12 @@ def prepare_dataset_for_deployment(config: dict):
     for chunk in config['client_params']['dataset']['distribution']['clients']:
         CHUNK_DIR_NAME += f'-{chunk}'
 
-    DATASET_ROOT_PATH = f"./datasets/deploy/{config['dataset_params']['prep']['content']}/root"
-    DATASET_CHUNK_PATH = f"./datasets/deploy/{config['dataset_params']['prep']['content']}/chunks/{CHUNK_DIR_NAME}"
+    DATASET_ROOT_PATH = f"./datasets/deploy/{config['dataset_params']['prep']['file']}/root"
+    DATASET_CHUNK_PATH = f"./datasets/deploy/{config['dataset_params']['prep']['file']}/chunks/{CHUNK_DIR_NAME}"
+
+    # create the directory structures
+    create_dir_struct(DATASET_ROOT_PATH)
+    create_dir_struct(DATASET_CHUNK_PATH)
 
     # Step 1
     # if root dataset is not already present, prepare it
@@ -165,6 +193,8 @@ def prepare_dataset_for_deployment(config: dict):
             logger.info('Prepared Dataset Saved Successfully!')
         except:
             logger.warning('Error Saving Prepared Dataset to disk!')
+    else:
+        data, labels = torch_read('dataset.tuple', DATASET_ROOT_PATH)
 
     # Step 2
     # if chunk datasets are already not prepared, then prepare them
@@ -174,12 +204,12 @@ def prepare_dataset_for_deployment(config: dict):
             'distributor', config['client_params']['dataset']['distribution']['distributor']['content'])
 
         # obtain the dataset as data and labels
-        chunks = distributor_module.distribute_into_client_chunks((data, labels), 
+        chunks = distributor_module.distribute_into_client_chunks((data, labels),
                                                                   config['client_params']['dataset']['distribution']['clients'])
 
         # saving chunks to disk
         try:
-            for i in range(config['client_params']['n_clients']):
+            for i in range(config['client_params']['num_clients']):
                 client = f'client-{i+1}'
                 # save the dataset to disk
                 torch_write(f'{client}.tuple',
@@ -189,6 +219,5 @@ def prepare_dataset_for_deployment(config: dict):
             # set the OK file
             set_OK_file(DATASET_CHUNK_PATH)
             logger.info('Dataset Client Chunks Saved Successfully!')
-        except:
-            logger.warning('Error Saving Chunked Dataset to disk!')
-    
+        except Exception as e:
+            logger.error('Error Saving Chunked Dataset to disk!', e)

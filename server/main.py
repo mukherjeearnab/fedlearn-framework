@@ -1,7 +1,7 @@
 '''
 This is the Commandline interface for managing the server
 '''
-from commands import server, client
+from commands import server, client, job
 from helpers.logging import logger
 
 
@@ -26,6 +26,9 @@ if __name__ == '__main__':
 
         elif args[0] == 'client':
             client.handle_command(args[1:])
+
+        elif args[0] == 'job':
+            job.handle_command(args[1:])
 
         elif args[0] == 'exit':
             server.stop()

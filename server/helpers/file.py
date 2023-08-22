@@ -5,6 +5,7 @@ import yaml
 import torch
 from typing import Any
 from os.path import exists
+from os import makedirs
 from helpers.logging import logger
 
 
@@ -64,3 +65,12 @@ def check_OK_file(path: str) -> bool:
         return True
     else:
         return False
+
+
+def create_dir_struct(path: str) -> None:
+    '''
+    Creates a directory structure, if it does not exist
+    '''
+
+    if not exists(path):
+        makedirs(path)

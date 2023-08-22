@@ -127,7 +127,7 @@ class TrainingJobManager:
         exec_status = True
 
         # method logic
-        if self.job_status['process_phase'] == 0 and self.job_status['client_stage'] == 1 and self.job_status['download_jobsheet'] is True and self.job_status['download_dataset'] is False:
+        if self.job_status['process_phase'] == 0 and self.job_status['client_stage'] == 0 and self.job_status['download_jobsheet'] is True and self.job_status['download_dataset'] is False:
             self.job_status['download_dataset'] = True
 
             # method suffixed with update state and lock release
