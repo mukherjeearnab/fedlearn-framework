@@ -11,7 +11,7 @@ def register_client(mme_server_url: str) -> dict:
     '''
     Client Registration Method
     '''
-    url = f'{mme_server_url}/client-manager/register'
+    url = f'{mme_server_url}/client_manager/register'
 
     body = {
         'sysinfo': get_system_info()
