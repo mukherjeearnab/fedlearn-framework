@@ -40,3 +40,22 @@ def register():
         return jsonify({'message': 'Registration is Locked!'}), 403
 
     return jsonify(data)
+
+
+@blueprint.route('/ping', methods=['POST'])
+def ping():
+    '''
+    register route, for clients to register on the server and obtain IDs.
+    '''
+    REGISTER_LOCK.acquire()
+
+    req = request.get_json()
+
+    resp = client_manager.alive_ping(req['client_id'])
+
+    REGISTER_LOCK.release()
+
+    if not resp:
+        return jsonify({'message': 'Client is not register or NOT Found.'}), 404
+
+    return jsonify({'message': 'Client ping updated.'})

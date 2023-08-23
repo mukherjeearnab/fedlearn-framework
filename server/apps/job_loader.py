@@ -45,7 +45,7 @@ def load_job(job_name: str):
     print('Job Config: ', json.dumps(config, sort_keys=True, indent=4))
 
     # get available clients from the server registry
-    client_list = client_manager.get_clients()
+    client_list = client_manager.get_alive_clients()
 
     # check if sufficient clients are available or not, else return
     if len(client_list) < config['client_params']['num_clients']:
@@ -72,7 +72,7 @@ def start_job(job_name: str) -> None:
     logger.info('Loaded Py Modules from Job Config')
 
     # get available clients from the server registry
-    client_list = client_manager.get_clients()
+    client_list = client_manager.get_alive_clients()
 
     # create a new job instance
     JOBS[job_name] = TrainingJobManager(project_name=job_name,
@@ -83,7 +83,7 @@ def start_job(job_name: str) -> None:
 
     # assign the required number of clients to the job
     for i in range(config['client_params']['num_clients']):
-        JOBS[job_name].add_client(client_list[i]['name'])
+        JOBS[job_name].add_client(client_list[i]['id'])
         logger.info(f'Assigning client to job {client_list[i]}')
     logger.info('Successfully assigned clients to job.')
 
@@ -117,6 +117,11 @@ def start_job(job_name: str) -> None:
     JOBS[job_name].allow_dataset_download()
 
     logger.info('Allowing Clients to Download Dataset.')
+
+    ##########################################
+    # TODO: The logic below should run in a separate thread, since dataset pre times can be huge,
+    # and may block the terminal main thread
+    ##########################################
 
     ######################################################################################
     # wait for clients to ACK dataset, i.e., wait until client stage becomes 2
