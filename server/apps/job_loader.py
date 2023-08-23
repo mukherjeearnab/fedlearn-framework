@@ -96,7 +96,16 @@ def start_job(job_name: str) -> None:
         'Job sheet download set, waiting for clients to download and acknowledge.')
 
     ######################################################################################
-    # TODO: wait for clients to ACK job sheet, i.e., wait until client stage becomes 1
+    # wait for clients to ACK job sheet, i.e., wait until client stage becomes 1
+    while True:
+        logger.info(
+            'Waiting for ClientStage to be [1] ClientReadyWithJobSheet')
+        state = JOBS[job_name].get_state()
+
+        if state['job_status']['client_stage'] == 1:
+            break
+
+        sleep(5)
     ######################################################################################
 
     # prepare dataset for clients to download
@@ -110,7 +119,15 @@ def start_job(job_name: str) -> None:
     logger.info('Allowing Clients to Download Dataset.')
 
     ######################################################################################
-    # TODO: wait for clients to ACK dataset, i.e., wait until client stage becomes 2
+    # wait for clients to ACK dataset, i.e., wait until client stage becomes 2
+    while True:
+        logger.info('Waiting for ClientStage to be [2] ClientReadyWithDataset')
+        state = JOBS[job_name].get_state()
+
+        if state['job_status']['client_stage'] == 2:
+            break
+
+        sleep(5)
     ######################################################################################
 
     # get the initial model parameters
@@ -315,7 +332,7 @@ def aggregator_process(job_name: str):
         state = job.get_state()
 
         # if the process phase turns 2
-        if state['job_status']['process_phase'] == 2:
+        if state['job_status']['process_phase'] == 2 and state['job_status']['client_stage'] == 4:
             # log that aggregation is starting
             logger.info(f'Starting Aggregation Process for job [{job_name}]')
 
