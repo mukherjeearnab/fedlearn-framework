@@ -88,12 +88,16 @@ def start_job(job_name: str) -> None:
     logger.info('Successfully assigned clients to job.')
 
     # init calling the job manager route handler
-    get(f'http://localhost:{SERVER_PORT}/jobs/init', {'job': job_name})
+    get(f'http://localhost:{SERVER_PORT}/job_manager/init', {'job': job_name})
 
     # allow clients to download jobsheet
     JOBS[job_name].allow_jobsheet_download()
     logger.info(
         'Job sheet download set, waiting for clients to download and acknowledge.')
+
+    ######################################################################################
+    # TODO: wait for clients to ACK job sheet, i.e., wait until client stage becomes 1
+    ######################################################################################
 
     # prepare dataset for clients to download
     logger.info(f'Starting Dataset Preperation for Job {job_name}')
@@ -104,6 +108,10 @@ def start_job(job_name: str) -> None:
     JOBS[job_name].allow_dataset_download()
 
     logger.info('Allowing Clients to Download Dataset.')
+
+    ######################################################################################
+    # TODO: wait for clients to ACK dataset, i.e., wait until client stage becomes 2
+    ######################################################################################
 
     # get the initial model parameters
     params = load_model_and_get_params(config)
