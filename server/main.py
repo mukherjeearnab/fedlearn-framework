@@ -32,6 +32,7 @@ if __name__ == '__main__':
 
         elif args[0] == 'exit':
             server.stop()
+            job.stop()
             logger.info('Exiting...')
             print('Exiting...')
             exit()

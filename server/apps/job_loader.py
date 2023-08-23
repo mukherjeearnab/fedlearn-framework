@@ -3,12 +3,19 @@ This is the Job Leader Module,
 which is responsible for handling all training job 
 related functionality.
 '''
+from dotenv import load_dotenv
 import json
+import os
+from time import sleep
+from multiprocessing import Process
 from apps.training_job import TrainingJobManager
 from helpers.file import read_yaml_file, read_py_module, torch_write, torch_read, set_OK_file, check_OK_file, create_dir_struct
 from helpers.logging import logger
+from helpers.http import get
 from helpers.dynamod import load_module
+from helpers.converters import get_state_dict
 from apps.client_manager import ClientManager
+
 
 # the client manager
 client_manager = ClientManager()
@@ -16,6 +23,12 @@ client_manager = ClientManager()
 # the job management dictionary
 JOBS = dict()
 CONFIGS = dict()
+
+
+# import environment variables
+load_dotenv()
+
+SERVER_PORT = int(os.getenv('SERVER_PORT'))
 
 
 def load_job(job_name: str):
@@ -45,6 +58,7 @@ def load_job(job_name: str):
 def start_job(job_name: str) -> None:
     '''
     Load a Job specification and create the job, and start initialization.
+    return the dict containing the dict of additional information, which includes, the thread running the aggregator
     '''
     print('Starting Job.')
 
@@ -73,6 +87,9 @@ def start_job(job_name: str) -> None:
         logger.info(f'Assigning client to job {client_list[i]}')
     logger.info('Successfully assigned clients to job.')
 
+    # init calling the job manager route handler
+    get(f'http://localhost:{SERVER_PORT}/jobs/init', {'job': job_name})
+
     # allow clients to download jobsheet
     JOBS[job_name].allow_jobsheet_download()
     logger.info(
@@ -87,6 +104,27 @@ def start_job(job_name: str) -> None:
     JOBS[job_name].allow_dataset_download()
 
     logger.info('Allowing Clients to Download Dataset.')
+
+    # get the initial model parameters
+    params = load_model_and_get_params(config)
+
+    # set the initial model parameters
+    JOBS[job_name].set_central_model_params(params)
+
+    # add process to listen to model process phase to change to 2 and start aggregation
+    aggregator_proc = Process(target=aggregator_process,
+                              args=(job_name,), name=f'aggregator_{job_name}')
+
+    # start aggregation process
+    aggregator_proc.start()
+
+    # signal to start the training
+    JOBS[job_name].allow_start_training()
+
+    # NOTE: CLIENTS WAIT FOR PROCESS PHASE TO CHANGE TO 2 AND THEN TO 1 AND THEN DOWNLOAD PARAMS
+    return {
+        'aggregator_proc': aggregator_proc
+    }
 
 
 def load_module_files(config: dict) -> dict:
@@ -225,3 +263,82 @@ def prepare_dataset_for_deployment(config: dict):
             logger.info('Dataset Client Chunks Saved Successfully!')
         except Exception as e:
             logger.error('Error Saving Chunked Dataset to disk!', e)
+
+
+def load_model_and_get_params(config: dict):
+    '''
+    Method to load the model and get initial parameters
+    '''
+
+    # load the model module
+    model_module = load_module(
+        'model_module', config['client_params']['model_params']['model_file']['content'])
+
+    # create an instance of the model
+    model = model_module.ModelClass()
+
+    # obtain the list form of model parameters
+    params = get_state_dict(model)
+
+    return params
+
+
+def aggregator_process(job_name: str):
+    '''
+    The aggregator process, running in background, and checking if ProcessPhase turns 2.
+    If ProcessPhase is 2, run the aggregator function, and update the central model params,
+    and set ProcessPhase to 1, by executing allow_start_training()
+    '''
+
+    # retrieve the job instance
+    job = TrainingJobManager(project_name=job_name,
+                             client_params=dict(),
+                             server_params=dict(),
+                             dataset_params=dict(),
+                             load_from_db=True)
+    logger.info(f'Retrieved Job Instance for Job {job_name}.')
+
+    # keep listening to process_phase
+    while True:
+        # sleep for 5 seconds
+        sleep(5)
+
+        # get the current job state
+        state = job.get_state()
+
+        # if the process phase turns 2
+        if state['job_status']['process_phase'] == 2:
+            # log that aggregation is starting
+            logger.info(f'Starting Aggregation Process for job [{job_name}]')
+
+            # load the model module
+            aggregator_module = load_module(
+                'agg_module', state['server_params']['aggregator']['content'])
+
+            # prepare the client params based on index
+            client_params_ = state['exec_params']['client_model_params']
+            client_params = [dict() for _ in client_params_]
+            for client_param in client_params_:
+                # retrieve the client params
+                param = client_param['client_params']
+
+                # retrieve the client index
+                index = int(client_param['client_id'].split('-')[1])
+
+                client_params[index] = param
+
+            # run the aggregator function and obtain new global model
+            model = aggregator_module.aggregator(
+                client_params, state['client_params']['dataset']['distribution']['clients'])
+
+            # obtain the list form of model parameters
+            params = get_state_dict(model)
+
+            # update the central model params
+            job.set_central_model_params(params)
+
+            # set process phase to 1 to resume local training
+            job.allow_start_training()
+
+            # log that aggregation is complete
+            logger.info(f'Aggregation Process Complete for job [{job_name}]')

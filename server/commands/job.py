@@ -4,6 +4,9 @@ Commands for Server
 
 from typing import List
 from apps.job_loader import load_job, start_job
+from helpers.logging import logger
+
+JOB_PROPS = []
 
 
 def handle_command(args: List[str]) -> None:
@@ -14,7 +17,8 @@ def handle_command(args: List[str]) -> None:
         load_job(job_name=args[1])
 
     elif args[0] == 'start':
-        start_job(job_name=args[1])
+        job_prop = start_job(job_name=args[1])
+        JOB_PROPS.append(job_prop)
 
     elif args[0] == 'help':
         _help()
@@ -34,3 +38,17 @@ load [job name]\tLoad the config of a job with name [job name].
 start [job name]\tStart the job with [job name].
 stop\tStop the server.
 ''')
+
+
+def stop() -> None:
+    '''
+    Stop Method to call and stop all running aggregator threads
+    '''
+    for i, job in enumerate(JOB_PROPS):
+        proc = job['aggregator_proc']
+        if proc.is_alive():
+            proc.terminate()
+            proc.join()
+
+        logger.info(
+            f'Terminated Aggregator Process {i+1} out of {len(JOB_PROPS)}')

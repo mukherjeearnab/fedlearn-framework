@@ -4,6 +4,7 @@ This hosts all the server routes and invokes the main function.
 '''
 import os
 from routes.client_manager import blueprint as client_manager
+from routes.job_manager import blueprint as job_manager
 from multiprocessing import Process
 from flask import Flask, jsonify
 from dotenv import load_dotenv
@@ -31,7 +32,8 @@ def root():
 
 
 # register the blueprint routes
-app.register_blueprint(client_manager, url_prefix='/client-manager')
+app.register_blueprint(client_manager, url_prefix='/client_manager')
+app.register_blueprint(job_manager, url_prefix='/job_manager')
 
 
 def run_server():
