@@ -18,8 +18,8 @@ CLIENT_STATE = {
 
 # global variables
 JOBS = {
-    'job_ids': set(),
-    'jobs': dict()
+    'job_ids': [],
+    'jobs': {}
 }
 
 # register client machine on mme server

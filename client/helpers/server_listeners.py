@@ -148,7 +148,7 @@ def upload_client_params(params: dict, client_id: str, job_id: str, server_url: 
         url = f'{server_url}/job_manager/append_client_params'
 
         logger.info(
-            f'Fetching Job Manifest for [{job_id}] from Server at {url}')
+            f'Uploading Client Params for [{job_id}] from Server at {url}')
 
         post(url, {'client_id': client_id,
                    'client_params': params,

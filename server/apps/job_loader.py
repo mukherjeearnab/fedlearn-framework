@@ -7,12 +7,14 @@ from dotenv import load_dotenv
 import json
 import os
 from time import sleep
+from copy import deepcopy
 from multiprocessing import Process
 from apps.training_job import TrainingJobManager
 from helpers.file import read_yaml_file, read_py_module, torch_write, torch_read, set_OK_file, check_OK_file, create_dir_struct
 from helpers.logging import logger
 from helpers.http import get
 from helpers.dynamod import load_module
+from helpers.converters import convert_list_to_tensor
 from helpers.converters import get_state_dict
 from apps.client_manager import ClientManager
 
@@ -137,14 +139,14 @@ def start_job(job_name: str) -> None:
     ######################################################################################
 
     # get the initial model parameters
-    params = load_model_and_get_params(config)
+    params, model = load_model_and_get_params(config)
 
     # set the initial model parameters
     JOBS[job_name].set_central_model_params(params)
 
     # add process to listen to model process phase to change to 2 and start aggregation
     aggregator_proc = Process(target=aggregator_process,
-                              args=(job_name,), name=f'aggregator_{job_name}')
+                              args=(job_name, model), name=f'aggregator_{job_name}')
 
     # start aggregation process
     aggregator_proc.start()
@@ -311,15 +313,17 @@ def load_model_and_get_params(config: dict):
     # obtain the list form of model parameters
     params = get_state_dict(model)
 
-    return params
+    return params, model
 
 
-def aggregator_process(job_name: str):
+def aggregator_process(job_name: str, model):
     '''
     The aggregator process, running in background, and checking if ProcessPhase turns 2.
     If ProcessPhase is 2, run the aggregator function, and update the central model params,
     and set ProcessPhase to 1, by executing allow_start_training()
     '''
+
+    curr_model = deepcopy(model)
 
     # retrieve the job instance
     job = TrainingJobManager(project_name=job_name,
@@ -354,13 +358,13 @@ def aggregator_process(job_name: str):
                 param = client_param['client_params']
 
                 # retrieve the client index
-                index = int(client_param['client_id'].split('-')[1])
+                index = int(client_param['client_id'].split('-')[1]) - 1
 
-                client_params[index] = param
+                client_params[index] = convert_list_to_tensor(param)
 
             # run the aggregator function and obtain new global model
-            model = aggregator_module.aggregator(
-                client_params, state['client_params']['dataset']['distribution']['clients'])
+            curr_model = aggregator_module.aggregator(curr_model, client_params,
+                                                      state['client_params']['dataset']['distribution']['clients'])
 
             # obtain the list form of model parameters
             params = get_state_dict(model)

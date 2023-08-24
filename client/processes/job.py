@@ -107,8 +107,9 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
         print(metrics)
 
         # Step 9: Send back locally trained model parameters
-        # this will update client status to 4 on the server automatically.
+        # and update client status to 4 on the server automatically.
         upload_client_params(curr_params, client_id, job_id, server_url)
+        update_client_status(client_id, job_id, 4, server_url)
 
         # Step 10: Listen to check when process phase change to 2.
         listen_for_central_aggregation(job_id, server_url)
@@ -127,8 +128,6 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
             # Step 6: Download global parameters from server.
             global_params = download_global_params(job_id, server_url)
 
-            continue
-
         # Step 12: else if process phase is 3 terminate process.
         if process_phase == 3:
             break
@@ -145,11 +144,15 @@ def get_jobs_from_server(client_id: str, jobs_registry: dict, server_url: str):
 
     jobs = get(url, dict())
 
+    print('JOBLISTGET', jobs)
+
     for job_id in jobs:
+        print('JOBLISTSET', jobs_registry['job_ids'])
         if job_id not in jobs_registry['job_ids']:
-            job_proc = get_job_manifest(client_id, job_id, server_url)
+            print('JOBLISTSETIF', jobs_registry['job_ids'])
+            jobs_registry['job_ids'].append(job_id)
+            get_job_manifest(client_id, job_id, server_url)
             jobs_registry['jobs'][job_id]['process'] = job_proc
-            jobs_registry['job_ids'].add(job_id)
 
 
 def get_job_manifest(client_id: str, job_id: str, server_url: str) -> dict:
@@ -175,4 +178,4 @@ def get_job_manifest(client_id: str, job_id: str, server_url: str) -> dict:
             job_proc.start()
 
             # return the job process
-            return job_proc
+            # return job_proc

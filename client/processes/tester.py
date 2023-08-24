@@ -45,20 +45,20 @@ def get_metrics(actuals: list, preds: list) -> dict:
     '''
 
     accuracy = metrics.accuracy_score(actuals, preds)
-    precision = metrics.precision_score(actuals, preds)
-    recall = metrics.recall_score(actuals, preds)
-    f1_macro = metrics.f1_score(actuals, preds, average='macro')
-    f1_micro = metrics.f1_score(actuals, preds, average='micro')
-    f1_weighted = metrics.f1_score(actuals, preds, average='weighted')
+    # precision = metrics.precision_score(actuals, preds)
+    # recall = metrics.recall_score(actuals, preds)
+    # f1_macro = metrics.f1_score(actuals, preds, average='macro')
+    # f1_micro = metrics.f1_score(actuals, preds, average='micro')
+    # f1_weighted = metrics.f1_score(actuals, preds, average='weighted')
     confusion_matrix = metrics.confusion_matrix(actuals, preds)
 
     results = {
         'accuracy': accuracy,
-        'precision': precision,
-        'recall': recall,
-        'f1_macro': f1_macro,
-        'f1_micro': f1_micro,
-        'f1_weighted': f1_weighted,
+        # 'precision': precision,
+        # 'recall': recall,
+        # 'f1_macro': f1_macro,
+        # 'f1_micro': f1_micro,
+        # 'f1_weighted': f1_weighted,
         'confusion_matrix': confusion_matrix
     }
 

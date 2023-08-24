@@ -143,7 +143,7 @@ class TrainingJobManager:
         exec_status = True
 
         # method logic
-        if self.job_status['process_phase'] == 0 and self.job_status['client_stage'] == 0 and self.job_status['download_jobsheet'] is True and self.job_status['download_dataset'] is False:
+        if self.job_status['process_phase'] == 0 and self.job_status['client_stage'] == 1 and self.job_status['download_jobsheet'] is True and self.job_status['download_dataset'] is False:
             self.job_status['download_dataset'] = True
 
             # method suffixed with update state and lock release
@@ -268,7 +268,7 @@ class TrainingJobManager:
         exec_status = True
 
         # method logic
-        if self.job_status['process_phase'] == 0 and self.job_status['client_stage'] == 2:
+        if (self.job_status['process_phase'] == 0 or self.job_status['process_phase'] == 2) and (self.job_status['client_stage'] == 2 or self.job_status['client_stage'] == 4):
             self.job_status['process_phase'] = 1
 
             # method suffixed with update state and lock release
@@ -298,11 +298,11 @@ class TrainingJobManager:
             self.exec_params['client_model_params'].append({'client_id': client_id,
                                                             'client_params': client_params})
 
-            # update client status to 4, ClientWaitingForParams
-            self.update_client_status(client_id, client_status=4)
+            # # update client status to 4, ClientWaitingForParams
+            # self.update_client_status(client_id, client_status=4)
 
             # if all the client's parameters are submitted, set process_phase to 2, i.e., InCentralAggregation
-            if len(self.exec_params['client_model_params']) == self.dataset_params['num_clients']:
+            if len(self.exec_params['client_model_params']) == self.client_params['num_clients']:
                 self.job_status['process_phase'] = 2
                 logger.info(
                     'All clients params are submitted, starting Federated Aggregation.')

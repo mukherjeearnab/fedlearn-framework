@@ -18,17 +18,19 @@ def aggregator(model, client_params: list, client_weights: list, kwargs=dict()):
     # zero out the model parameters weights
     set_to_zero_model_weights(new_model)
 
+    model_params = new_model.state_dict()
+
     # enumerate over the clients
     for k, client_param in enumerate(client_params):
 
         # enumerate over the layers of the model
-        for param_index, layer_weights in enumerate(new_model.parameters()):
+        for layer_key in model_params:
 
             # calculate the weighted contribution from the client k
-            contribution = client_param[param_index].data * client_weights[k]
+            contribution = client_param[layer_key].data * client_weights[k]
 
             # add the contribution
-            layer_weights.data.add_(contribution)
+            model_params[layer_key].data.add_(contribution)
 
     return new_model
 
