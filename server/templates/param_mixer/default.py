@@ -4,7 +4,7 @@ Global+Local Parameter Mixer Module
 from copy import deepcopy
 
 
-def param_mixer(current_global_params: dict, previous_local_params: dict):
+def param_mixer(current_global_params: dict, previous_local_params: dict) -> dict:
     '''
     This Param Mixer will do nothing and replace the previous local parameters
     with the current global parameters.

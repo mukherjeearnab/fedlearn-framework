@@ -43,3 +43,16 @@ def convert_tensor_to_list(params: dict) -> dict:
         params_[key] = params[key].tolist()
 
     return params_
+
+
+def tensor_to_data_loader(dataset: tuple, batch_size: int):
+    '''
+    convert dataset tensor to data loader object
+    '''
+
+    data, labels = dataset
+
+    train = data_utils.TensorDataset(data, labels)
+    train_loader = data_utils.DataLoader(train, batch_size, shuffle=True)
+
+    return train_loader

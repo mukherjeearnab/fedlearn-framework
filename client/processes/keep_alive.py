@@ -4,8 +4,9 @@ Here we host the methods to keep alive the client,
 and periodically checking the server stats for jobs.
 '''
 from time import sleep
-from helpers.http import get, post
+from helpers.http import post
 from helpers.logging import logger
+from processes.job import get_jobs_from_server
 
 
 def keep_alive_process(jobs_registry: dict, client_state: dict):
@@ -22,16 +23,15 @@ def keep_alive_process(jobs_registry: dict, client_state: dict):
             # ping the server
             send_keep_alive(client_state['reginfo']['id'],
                             client_state['server_url'])
-        except Exception as e:
-            logger.warning(
-                f'Failed to ping server for keep alive function.')
+        except:
+            logger.warning('Failed to ping server for keep alive function.')
 
         # job check logic
         try:
-            
-        except Exception as e:
-            logger.warning(
-                f'Failed to ping server for keep alive function.')
+            get_jobs_from_server(client_state['reginfo']['id'],
+                                 jobs_registry, client_state['server_url'])
+        except:
+            logger.warning('Failed to ping server for keep alive function.')
 
         sleep(5)
 
@@ -50,6 +50,3 @@ def send_keep_alive(client_id: str, server_url: str):
     logger.info(f'Sending client ping request to Server at {url}')
 
     post(url, body)
-
-
-

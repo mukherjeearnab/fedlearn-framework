@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 from helpers.client_registration import register_client
 from helpers.logging import logger
+from processes.keep_alive import keep_alive_process
 
 
 # import environment variables
@@ -31,5 +32,4 @@ while True:  # loop through and wait for the server to be available for registra
         logger.warning(f'Failed to register client.')
         sleep(60)
 
-# TODO: start process to keep alive and check for jobs
-# TODO: for job found, will start a process to train and all
+keep_alive_process(JOBS, CLIENT_STATE)
