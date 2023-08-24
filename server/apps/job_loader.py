@@ -88,7 +88,8 @@ def start_job(job_name: str) -> None:
     logger.info('Successfully assigned clients to job.')
 
     # init calling the job manager route handler
-    get(f'http://localhost:{SERVER_PORT}/job_manager/init', {'job': job_name})
+    get(f'http://localhost:{SERVER_PORT}/job_manager/init',
+        {'job_id': job_name})
 
     # allow clients to download jobsheet
     JOBS[job_name].allow_jobsheet_download()

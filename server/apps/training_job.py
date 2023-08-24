@@ -298,6 +298,9 @@ class TrainingJobManager:
             self.exec_params['client_model_params'].append({'client_id': client_id,
                                                             'client_params': client_params})
 
+            # update client status to 4, ClientWaitingForParams
+            self.update_client_status(client_id, client_status=4)
+
             # if all the client's parameters are submitted, set process_phase to 2, i.e., InCentralAggregation
             if len(self.exec_params['client_model_params']) == self.dataset_params['num_clients']:
                 self.job_status['process_phase'] = 2
