@@ -341,6 +341,9 @@ def aggregator_process(job_name: str, model):
         # get the current job state
         state = job.get_state()
 
+        logger.info(
+            f"Checking for Aggregation Process for job [{job_name}] [{state['job_status']['process_phase']}] [{state['job_status']['client_stage']}]")
+
         # if the process phase turns 2
         if state['job_status']['process_phase'] == 2 and state['job_status']['client_stage'] == 4:
             # log that aggregation is starting

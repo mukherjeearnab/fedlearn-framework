@@ -243,6 +243,9 @@ class TrainingJobManager:
         if self.job_status['process_phase'] == 0 or self.job_status['process_phase'] == 2:
             self.exec_params['central_model_param'] = params
 
+            # empty out client params
+            self.exec_params['client_model_params'] = []
+
             logger.info(
                 'Central Model Parameters are Set. Waiting for Process Phase to be in [1] Local Training.')
 

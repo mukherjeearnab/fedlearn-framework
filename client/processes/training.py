@@ -4,6 +4,7 @@ The Training Processes Module
 import torch
 from helpers.file import torch_read
 from helpers.dynamod import load_module
+from helpers.logging import logger
 
 
 def data_preprocessing(dataset_path: str, preprocessing_module_str: str, split_weights: list) -> tuple:
@@ -89,6 +90,8 @@ def train_model(job_manifest: dict, train_loader, model, device) -> dict:
     Execute the Training Loop
     '''
 
+    logger.info('Starting Local Trainin with epochs')
+
     # load the train loop module
     train_loop_module = load_module('train_loop_module',
                                     job_manifest['client_params']['model_params']['training_loop_file']['content'])
@@ -96,6 +99,8 @@ def train_model(job_manifest: dict, train_loader, model, device) -> dict:
     # assemble the hyperparameters
     num_epochs = job_manifest['client_params']['train_params']['local_epochs']
     learning_rate = job_manifest['client_params']['train_params']['learning_rate']
+
+    logger.info(f'Set Epochs {num_epochs} and Learning Rate {learning_rate}')
 
     # train the model
     train_loop_module.train_loop(num_epochs, learning_rate, train_loader, [],
