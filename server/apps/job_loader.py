@@ -32,6 +32,7 @@ CONFIGS = {}
 load_dotenv()
 
 SERVER_PORT = int(os.getenv('SERVER_PORT'))
+DELAY = int(os.getenv('DELAY'))
 
 
 def load_job(job_name: str):
@@ -109,7 +110,7 @@ def start_job(job_name: str) -> dict:
         if state['job_status']['client_stage'] == 1:
             break
 
-        sleep(5)
+        sleep(DELAY)
     ######################################################################################
 
     # prepare dataset for clients to download
@@ -136,7 +137,7 @@ def start_job(job_name: str) -> dict:
         if state['job_status']['client_stage'] == 2:
             break
 
-        sleep(5)
+        sleep(DELAY)
     ######################################################################################
 
     # get the initial model parameters
@@ -339,8 +340,8 @@ def aggregator_process(job_name: str, model):
 
     # keep listening to process_phase
     while True:
-        # sleep for 5 seconds
-        sleep(5)
+        # sleep for DELAY seconds
+        sleep(DELAY)
 
         # get the current job state
         state = job.get_state()
@@ -379,7 +380,7 @@ def aggregator_process(job_name: str, model):
             # update the central model params
             job.set_central_model_params(params)
 
-            sleep(15)
+            sleep(DELAY*3)
 
             # set process phase to 1 to resume local training
             job.allow_start_training()

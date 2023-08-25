@@ -2,8 +2,15 @@
 Module Containing Server Listeners for Flags and Signals
 '''
 from time import sleep
+import os
 from helpers.logging import logger
 from helpers.http import get, post
+from dotenv import load_dotenv
+
+# import environment variables
+load_dotenv()
+
+DELAY = int(os.getenv('DELAY'))
 
 
 def listen_to_dataset_download_flag(job_id: str, server_url: str):
@@ -29,7 +36,7 @@ def listen_to_dataset_download_flag(job_id: str, server_url: str):
         except Exception as e:
             logger.error(f'Failed to fetch Dataset Download Flag. {e}')
 
-        sleep(5)
+        sleep(DELAY)
 
 
 def listen_to_start_training(job_id: str, server_url: str):
@@ -55,7 +62,7 @@ def listen_to_start_training(job_id: str, server_url: str):
         except Exception as e:
             logger.error(f'Failed to fetch Process Phase. {e}')
 
-        sleep(5)
+        sleep(DELAY)
 
 
 def listen_for_central_aggregation(job_id: str, server_url: str):
@@ -81,7 +88,7 @@ def listen_for_central_aggregation(job_id: str, server_url: str):
         except Exception as e:
             logger.error(f'Failed to Process Phase. {e}')
 
-        sleep(5)
+        sleep(DELAY)
 
 
 def listen_to_client_stage(client_stage: int, job_id: str, server_url: str):
@@ -106,7 +113,7 @@ def listen_to_client_stage(client_stage: int, job_id: str, server_url: str):
         except Exception as e:
             logger.error(f'Failed to Client Stage. {e}')
 
-        sleep(5)
+        sleep(DELAY)
 
 
 def listen_for_param_download_training(job_id: str, server_url: str) -> int:
@@ -132,7 +139,7 @@ def listen_for_param_download_training(job_id: str, server_url: str) -> int:
         except Exception as e:
             logger.error(f'Failed to fetch job status state. {e}')
 
-        sleep(5)
+        sleep(DELAY)
 
     return manifest['job_status']['process_phase']
 

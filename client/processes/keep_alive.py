@@ -4,9 +4,15 @@ Here we host the methods to keep alive the client,
 and periodically checking the server stats for jobs.
 '''
 from time import sleep
+import os
 from helpers.http import post
 from helpers.logging import logger
 from processes.job import get_jobs_from_server
+from dotenv import load_dotenv
+
+# import environment variables
+load_dotenv()
+DELAY = int(os.getenv('DELAY'))
 
 
 def keep_alive_process(jobs_registry: dict, client_state: dict):
@@ -34,7 +40,7 @@ def keep_alive_process(jobs_registry: dict, client_state: dict):
         except:
             # logger.warning('Failed to ping server for keep alive function.')
             pass
-        sleep(5)
+        sleep(DELAY)
 
 
 def send_keep_alive(client_id: str, server_url: str):

@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 KVS_URL = os.getenv('KVSTORE_URL')
+DELAY = int(os.getenv('DELAY'))
 
 
 def kv_get(key: str) -> Any:
@@ -25,7 +26,7 @@ def kv_get(key: str) -> Any:
         except Exception as e:
             logger.error(
                 f'KVStore Database Connection Error! Retrying in 30s. {e}')
-            sleep(30)
+            sleep(DELAY*6)
 
     if reply['res'] == 404:
         return None
@@ -44,4 +45,4 @@ def kv_set(key: str, value: Any) -> None:
         except Exception as e:
             logger.error(
                 f'KVStore Database Connection Error! Retrying in 30s. {e}')
-            sleep(30)
+            sleep(DELAY*6)

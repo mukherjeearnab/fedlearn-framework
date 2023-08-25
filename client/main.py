@@ -13,6 +13,8 @@ from processes.keep_alive import keep_alive_process
 # import environment variables
 load_dotenv()
 
+DELAY = int(os.getenv('DELAY'))
+
 # fetch mme server url
 CLIENT_STATE = {
     'server_url': os.getenv('MANAGEMENT_SERVER')
@@ -33,6 +35,6 @@ while True:  # loop through and wait for the server to be available for registra
         break
     except Exception as e:
         logger.warning(f'Failed to register client. {e}')
-        sleep(60)
+        sleep(DELAY*12)
 
 keep_alive_process(JOBS, CLIENT_STATE)
