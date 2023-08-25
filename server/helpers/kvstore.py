@@ -19,9 +19,9 @@ def kv_get(key: str) -> Any:
         try:
             reply = get(f'{KVS_URL}/get', {'key': key})
             break
-        except:
-            logger.warning(
-                'KVStore Database Connection Error! Retrying in 30s.')
+        except Exception as e:
+            logger.error(
+                f'KVStore Database Connection Error! Retrying in 30s. {e}')
             sleep(30)
 
     if reply['res'] == 404:
@@ -38,7 +38,7 @@ def kv_set(key: str, value: Any) -> None:
         try:
             post(f'{KVS_URL}/set', {'key': key, 'value': json.dumps(value)})
             break
-        except:
-            logger.warning(
-                'KVStore Database Connection Error! Retrying in 30s.')
+        except Exception as e:
+            logger.error(
+                f'KVStore Database Connection Error! Retrying in 30s. {e}')
             sleep(30)

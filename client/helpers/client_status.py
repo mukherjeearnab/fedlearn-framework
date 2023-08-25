@@ -10,7 +10,7 @@ def update_client_status(client_id: str, job_id: str, status: int, server_url: s
     Update client's status to server.
     '''
 
-    logger.info(f'Updating client status to [{status}] for Job [{job_id}]')
+    logger.info(f'Updating client [{client_id}] status to [{status}] for Job [{job_id}]')
     post(f'{server_url}/job_manager/update_client_status', {
         'client_id': client_id,
         'job_id': job_id,

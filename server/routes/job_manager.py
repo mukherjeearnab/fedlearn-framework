@@ -42,7 +42,7 @@ def init():
                                           load_from_db=True)
         logger.info(f'Created Job Instance for Job {job_id}.')
     except Exception as e:
-        logger.error(f'Failed to Retrieve Job Instance')
+        logger.error(f'Failed to Retrieve Job Instance {e}')
 
     job_state = JOBS[job_id].get_state()
     STATE_LOCK.release()

@@ -51,7 +51,7 @@ def load_job(job_name: str):
 
     # check if sufficient clients are available or not, else return
     if len(client_list) < config['client_params']['num_clients']:
-        logger.error(f'''Not Enough Clients available on register. Please register more clients.
+        logger.warning(f'''Not Enough Clients available on register. Please register more clients.
                      Required: {config['client_params']['num_clients']} Available: {len(client_list)}''')
 
     print('Job Config Loaded.')
@@ -262,8 +262,8 @@ def prepare_dataset_for_deployment(config: dict):
             # set the OK file
             set_OK_file(DATASET_ROOT_PATH)
             logger.info('Prepared Dataset Saved Successfully!')
-        except:
-            logger.warning('Error Saving Prepared Dataset to disk!')
+        except Exception as e:
+            logger.error(f'Error Saving Prepared Dataset to disk! {e}')
     else:
         logger.info('Root Dataset already present. Loading it from disk.')
         data, labels = torch_read('dataset.tuple', DATASET_ROOT_PATH)
@@ -295,7 +295,7 @@ def prepare_dataset_for_deployment(config: dict):
             set_OK_file(DATASET_CHUNK_PATH)
             logger.info('Dataset Client Chunks Saved Successfully!')
         except Exception as e:
-            logger.error('Error Saving Chunked Dataset to disk!', e)
+            logger.error(f'Error Saving Chunked Dataset to disk! {e}')
 
 
 def load_model_and_get_params(config: dict):
@@ -345,7 +345,7 @@ def aggregator_process(job_name: str, model):
         state = job.get_state()
 
         logger.info(
-            f"Checking for Aggregation Process for job [{job_name}] [{state['job_status']['process_phase']}] [{state['job_status']['client_stage']}]")
+            f"Checking for Aggregation Process for job [{job_name}] PS [{state['job_status']['process_phase']}] CS [{state['job_status']['client_stage']}]")
 
         # if the process phase turns 2
         if state['job_status']['process_phase'] == 2 and state['job_status']['client_stage'] == 4:

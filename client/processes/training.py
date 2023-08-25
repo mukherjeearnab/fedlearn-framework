@@ -7,7 +7,7 @@ from helpers.dynamod import load_module
 from helpers.logging import logger
 
 
-def data_preprocessing(file_name:str, dataset_path: str, preprocessing_module_str: str, split_weights: list) -> tuple:
+def data_preprocessing(file_name: str, dataset_path: str, preprocessing_module_str: str, split_weights: list) -> tuple:
     '''
     Dataset Preprocessing Method.
     Takes input as the raw dataset path, and the preprocessing module as string.
@@ -90,8 +90,6 @@ def train_model(job_manifest: dict, train_loader, model, device) -> dict:
     Execute the Training Loop
     '''
 
-    logger.info('Starting Local Trainin with epochs')
-
     # load the train loop module
     train_loop_module = load_module('train_loop_module',
                                     job_manifest['client_params']['model_params']['training_loop_file']['content'])
@@ -100,7 +98,7 @@ def train_model(job_manifest: dict, train_loader, model, device) -> dict:
     num_epochs = job_manifest['client_params']['train_params']['local_epochs']
     learning_rate = job_manifest['client_params']['train_params']['learning_rate']
 
-    logger.info(f'Set Epochs {num_epochs} and Learning Rate {learning_rate}')
+    logger.info(f'Starting Local Training with EPOCHS {num_epochs}')
 
     # train the model
     train_loop_module.train_loop(num_epochs, learning_rate, train_loader, [],

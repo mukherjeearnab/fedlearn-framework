@@ -154,8 +154,6 @@ def get_jobs_from_server(client_id: str, jobs_registry: dict, server_url: str):
 
     jobs = get(url, dict())
 
-    print('JOBLISTGET', jobs)
-
     for job_id in jobs:
         if job_id not in jobs_registry['job_ids']:
             # add job ID to jobs registry.

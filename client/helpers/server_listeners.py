@@ -18,17 +18,17 @@ def listen_to_dataset_download_flag(job_id: str, server_url: str):
             # listen to check if dataset flag is true or false
             url = f'{server_url}/job_manager/get'
 
-            logger.info(
-                f'Fetching Job Manifest for [{job_id}] from Server at {url}')
-
             manifest = get(url, {'job_id': job_id})
+
+            logger.info(
+                f"Got dataset download flag [{manifest['job_status']['download_dataset']}], Expecting[True] for [{job_id}] from Server at {url}")
 
             # if download dataset flag is true, break and exit
             if manifest['job_status']['download_dataset']:
                 break
 
-        except:
-            logger.warning('Failed to fetch job status state.')
+        except Exception as e:
+            logger.error(f'Failed to fetch Dataset Download Flag. {e}')
 
         sleep(5)
 
@@ -44,17 +44,17 @@ def listen_to_start_training(job_id: str, server_url: str):
             # listen to check if dataset flag is true or false
             url = f'{server_url}/job_manager/get'
 
-            logger.info(
-                f'Fetching Job Manifest for [{job_id}] from Server at {url}')
-
             manifest = get(url, {'job_id': job_id})
+
+            logger.info(
+                f"Got Process Phase [{manifest['job_status']['process_phase']}], Expecting [1] for [{job_id}] from Server at {url}")
 
             # if download dataset flag is true, break and exit
             if manifest['job_status']['process_phase'] == 1:
                 break
 
-        except:
-            logger.warning('Failed to fetch job status state.')
+        except Exception as e:
+            logger.error(f'Failed to fetch Process Phase. {e}')
 
         sleep(5)
 
@@ -70,17 +70,17 @@ def listen_for_central_aggregation(job_id: str, server_url: str):
             # listen to check if dataset flag is true or false
             url = f'{server_url}/job_manager/get'
 
-            logger.info(
-                f'Fetching Job Manifest for [{job_id}] from Server at {url}')
-
             manifest = get(url, {'job_id': job_id})
+
+            logger.info(
+                f"Got Process Phase [{manifest['job_status']['process_phase']}], Expecting [2] for [{job_id}] from Server at {url}")
 
             # if download dataset flag is true, break and exit
             if manifest['job_status']['process_phase'] == 2:
                 break
 
-        except:
-            logger.warning('Failed to fetch job status state.')
+        except Exception as e:
+            logger.error(f'Failed to Process Phase. {e}')
 
         sleep(5)
 
@@ -95,17 +95,17 @@ def listen_to_client_stage(client_stage: int, job_id: str, server_url: str):
             # listen to check if dataset flag is true or false
             url = f'{server_url}/job_manager/get'
 
-            logger.info(
-                f'Fetching client state for [{job_id}] from Server at {url}, expecting {client_stage}')
-
             manifest = get(url, {'job_id': job_id})
+
+            logger.info(
+                f"Got client Stage [{manifest['job_status']['client_stage']}], Expecting [{client_stage}] for [{job_id}] from Server at {url}")
 
             # if download dataset flag is true, break and exit
             if manifest['job_status']['client_stage'] == client_stage:
                 break
 
-        except:
-            logger.warning('Failed to fetch job status state.')
+        except Exception as e:
+            logger.error(f'Failed to Client Stage. {e}')
 
         sleep(5)
 
@@ -121,17 +121,17 @@ def listen_for_param_download_training(job_id: str, server_url: str) -> int:
             # listen to check if dataset flag is true or false
             url = f'{server_url}/job_manager/get'
 
-            logger.info(
-                f'Fetching Job Manifest for [{job_id}] from Server at {url}')
-
             manifest = get(url, {'job_id': job_id})
+
+            logger.info(
+                f"Got Process Phase [{manifest['job_status']['process_phase']}], Expecting [1,3] for [{job_id}] from Server at {url}")
 
             # if download dataset flag is true, break and exit
             if manifest['job_status']['process_phase'] == 1 or manifest['job_status']['process_phase'] == 3:
                 break
 
-        except:
-            logger.warning('Failed to fetch job status state.')
+        except Exception as e:
+            logger.error(f'Failed to fetch job status state. {e}')
 
         sleep(5)
 
@@ -150,15 +150,15 @@ def download_global_params(job_id: str, server_url: str):
         url = f'{server_url}/job_manager/get'
 
         logger.info(
-            f'Fetching Job Manifest for [{job_id}] from Server at {url}')
+            f'Downloading Global Params for [{job_id}] from Server at {url}')
 
         manifest = get(url, {'job_id': job_id})
 
         global_params_dict = manifest['exec_params']['central_model_param']
 
         global_params = global_params_dict
-    except:
-        logger.warning('Failed to fetch job status state.')
+    except Exception as e:
+        logger.error(f'Failed to fetch job status state. {e}')
 
     return global_params
 
@@ -179,5 +179,5 @@ def upload_client_params(params: dict, client_id: str, job_id: str, server_url: 
                    'client_params': params,
                    'job_id': job_id})
 
-    except:
-        logger.warning('Failed to fetch job status state.')
+    except Exception as e:
+        logger.error(f'Failed to fetch job status state. {e}')
