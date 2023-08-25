@@ -3,6 +3,7 @@ This is the Commandline interface for managing the server
 '''
 import sys
 import logging
+from time import sleep
 from commands import server, client, job
 from helpers.logging import logger
 
@@ -16,6 +17,9 @@ To get started, enter 'help' in the command prompt below.
 
 SINGLE_COMMANDS = ['exit']
 
+# start the server
+server.start_server()
+sleep(1)
 
 if __name__ == '__main__':
     print(WELCOME_PROMPT)

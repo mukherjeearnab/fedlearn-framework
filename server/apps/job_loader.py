@@ -10,7 +10,7 @@ from copy import deepcopy
 from multiprocessing import Process
 from dotenv import load_dotenv
 from apps.training_job import TrainingJobManager
-from helpers.file import read_yaml_file, read_py_module, torch_write, torch_read,
+from helpers.file import read_yaml_file, read_py_module, torch_write, torch_read
 from helpers.file import set_OK_file, check_OK_file, create_dir_struct
 from helpers.logging import logger
 from helpers.http import get
