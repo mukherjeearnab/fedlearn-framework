@@ -32,7 +32,7 @@ class ClientManager:
 
         if payload is None:
             self.client_count = 0
-            self.clients_info = dict()
+            self.clients_info = {}
 
             self._update_state()
         else:

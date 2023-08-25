@@ -152,7 +152,7 @@ def get_jobs_from_server(client_id: str, jobs_registry: dict, server_url: str):
 
     # logger.info(f'Fetching Job list from Server at {url}')
 
-    jobs = get(url, dict())
+    jobs = get(url, {})
 
     for job_id in jobs:
         if job_id not in jobs_registry['job_ids']:
@@ -166,7 +166,7 @@ def get_jobs_from_server(client_id: str, jobs_registry: dict, server_url: str):
             jobs_registry['jobs'][job_id]['process'] = job_proc
 
 
-def get_job_manifest(client_id: str, job_id: str, server_url: str) -> dict:
+def get_job_manifest(client_id: str, job_id: str, server_url: str):
     '''
     Download job manifest from server for [job_id]
     '''
@@ -190,3 +190,5 @@ def get_job_manifest(client_id: str, job_id: str, server_url: str) -> dict:
 
             # return the job process
             return job_proc
+
+    return None

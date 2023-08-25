@@ -1,5 +1,5 @@
 '''
-Client Management Routing Module
+Key Value Store Management Router
 '''
 
 from flask import Flask, jsonify, request

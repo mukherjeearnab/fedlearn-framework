@@ -2,8 +2,8 @@
 Client Management Routing Module
 '''
 
-from flask import Blueprint, jsonify, request
 from threading import Semaphore
+from flask import Blueprint, jsonify, request
 from apps.client_manager import ClientManager
 
 

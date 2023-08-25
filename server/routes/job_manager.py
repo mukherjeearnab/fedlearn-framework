@@ -13,7 +13,7 @@ blueprint = Blueprint(ROUTE_NAME, __name__)
 
 STATE_LOCK = Semaphore()
 
-JOBS = dict()
+JOBS = {}
 
 
 @blueprint.route('/')
@@ -36,9 +36,9 @@ def init():
     STATE_LOCK.acquire()
     try:
         JOBS[job_id] = TrainingJobManager(project_name=job_id,
-                                          client_params=dict(),
-                                          server_params=dict(),
-                                          dataset_params=dict(),
+                                          client_params={},
+                                          server_params={},
+                                          dataset_params={},
                                           load_from_db=True)
         logger.info(f'Created Job Instance for Job {job_id}.')
     except Exception as e:
@@ -51,12 +51,12 @@ def init():
 
 
 @blueprint.route('/list')
-def list():
+def list_jobs():
     '''
     get the list of all the jobs in the state machine
     '''
     STATE_LOCK.wait()
-    jobs = [job_id for job_id in JOBS.keys()]
+    jobs = list(JOBS.keys())
 
     return jsonify(jobs)
 
@@ -111,7 +111,7 @@ def append_client_params():
 
     STATE_LOCK.acquire()
 
-    if job_id in JOBS.keys():
+    if job_id in JOBS:
         JOBS[job_id].append_client_params(client_id, client_params)
     else:
         status = 404
@@ -129,10 +129,10 @@ def download_dataset():
     job_id = request.args['job_id']
     status = 200
 
-    if job_id in JOBS.keys():
+    if job_id in JOBS:
         CHUNK_DIR_NAME = 'dist'
         for chunk in JOBS[job_id].client_params['dataset']['distribution']['clients']:
-            CHUNK_DIR_NAME += f'-{chunk}'
+            CHUNK_DIR_NAME.join(f'-{chunk}')
 
         DATASET_CHUNK_PATH = f"../datasets/deploy/{JOBS[job_id].dataset_params['prep']['file']}/chunks/{CHUNK_DIR_NAME}"
 

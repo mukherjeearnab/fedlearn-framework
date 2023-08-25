@@ -1,7 +1,6 @@
 '''
 Module to load modules dynamically from strings.
 '''
-import sys
 import imp
 from helpers.logging import logger
 

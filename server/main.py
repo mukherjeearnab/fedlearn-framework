@@ -1,10 +1,11 @@
 '''
 This is the Commandline interface for managing the server
 '''
+import sys
+import logging
 from commands import server, client, job
 from helpers.logging import logger
 
-import logging
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
@@ -39,7 +40,7 @@ if __name__ == '__main__':
             job.stop()
             logger.info('Exiting...')
             print('Exiting...')
-            exit()
+            sys.exit()
 
         else:
             print('Unknown command: ', command)

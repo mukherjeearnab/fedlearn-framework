@@ -40,7 +40,7 @@ class TrainingJobManager:
             'download_jobsheet': False,
             'download_dataset': False,
             'process_phase': 0,
-            'extra_params': dict()
+            'extra_params': {}
         }
 
         self.exec_params = {

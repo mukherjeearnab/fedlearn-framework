@@ -1,8 +1,8 @@
 '''
 HTTP comms module, with simplified syntax to avoid code repetition
 '''
-import requests
 from urllib.request import urlretrieve
+import requests
 
 
 def get(url: str, params: dict) -> dict:

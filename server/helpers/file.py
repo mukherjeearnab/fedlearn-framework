@@ -1,11 +1,11 @@
 '''
 YAML file management module
 '''
-import yaml
-import torch
 from typing import Any
 from os.path import exists
 from os import makedirs
+import yaml
+import torch
 from helpers.logging import logger
 
 
@@ -61,10 +61,7 @@ def check_OK_file(path: str) -> bool:
     '''
     Checks if OK flag file is present in directory.
     '''
-    if exists(f'{path}/OK'):
-        return True
-    else:
-        return False
+    return exists(f'{path}/OK')
 
 
 def create_dir_struct(path: str) -> None:

@@ -4,6 +4,9 @@ Key Value Store Class
 
 
 class KeyValueStore:
+    '''
+    Key Val Store Class
+    '''
     def __init__(self):
         self.table = dict()
 
@@ -23,5 +26,5 @@ class KeyValueStore:
         '''
         Check if Key has been Set
         '''
-        return key in self.table.keys()
+        return key in self.table
             

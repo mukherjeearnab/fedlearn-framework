@@ -3,14 +3,15 @@ This is the Job Leader Module,
 which is responsible for handling all training job 
 related functionality.
 '''
-from dotenv import load_dotenv
 import json
 import os
 from time import sleep
 from copy import deepcopy
 from multiprocessing import Process
+from dotenv import load_dotenv
 from apps.training_job import TrainingJobManager
-from helpers.file import read_yaml_file, read_py_module, torch_write, torch_read, set_OK_file, check_OK_file, create_dir_struct
+from helpers.file import read_yaml_file, read_py_module, torch_write, torch_read,
+from helpers.file import set_OK_file, check_OK_file, create_dir_struct
 from helpers.logging import logger
 from helpers.http import get
 from helpers.dynamod import load_module
@@ -23,8 +24,8 @@ from apps.client_manager import ClientManager
 client_manager = ClientManager()
 
 # the job management dictionary
-JOBS = dict()
-CONFIGS = dict()
+JOBS = {}
+CONFIGS = {}
 
 
 # import environment variables
@@ -57,16 +58,16 @@ def load_job(job_name: str):
     print('Job Config Loaded.')
 
 
-def start_job(job_name: str) -> None:
+def start_job(job_name: str) -> dict:
     '''
     Load a Job specification and create the job, and start initialization.
     return the dict containing the dict of additional information, which includes, the thread running the aggregator
     '''
     print('Starting Job.')
 
-    if job_name not in CONFIGS.keys():
+    if job_name not in CONFIGS:
         logger.error(f'Job Name: {job_name} is not loaded.')
-        return
+        return {}
     config = CONFIGS[job_name]
 
     # load the python module files for the configuration
@@ -233,7 +234,7 @@ def prepare_dataset_for_deployment(config: dict):
 
     CHUNK_DIR_NAME = 'dist'
     for chunk in config['client_params']['dataset']['distribution']['clients']:
-        CHUNK_DIR_NAME += f'-{chunk}'
+        CHUNK_DIR_NAME.join(f'-{chunk}')
 
     DATASET_ROOT_PATH = f"./datasets/deploy/{config['dataset_params']['prep']['file']}/root"
     DATASET_CHUNK_PATH = f"./datasets/deploy/{config['dataset_params']['prep']['file']}/chunks/{CHUNK_DIR_NAME}"
@@ -327,9 +328,9 @@ def aggregator_process(job_name: str, model):
 
     # retrieve the job instance
     job = TrainingJobManager(project_name=job_name,
-                             client_params=dict(),
-                             server_params=dict(),
-                             dataset_params=dict(),
+                             client_params={},
+                             server_params={},
+                             dataset_params={},
                              load_from_db=True)
     logger.info(f'Retrieved Job Instance for Job {job_name}.')
 

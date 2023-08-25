@@ -4,7 +4,6 @@ Module Containing Server Listeners for Flags and Signals
 from time import sleep
 from helpers.logging import logger
 from helpers.http import get, post
-from helpers.converters import convert_list_to_tensor
 
 
 def listen_to_dataset_download_flag(job_id: str, server_url: str):
