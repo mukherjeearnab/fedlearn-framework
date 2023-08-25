@@ -7,7 +7,7 @@ from helpers.dynamod import load_module
 from helpers.logging import logger
 
 
-def data_preprocessing(dataset_path: str, preprocessing_module_str: str, split_weights: list) -> tuple:
+def data_preprocessing(file_name:str, dataset_path: str, preprocessing_module_str: str, split_weights: list) -> tuple:
     '''
     Dataset Preprocessing Method.
     Takes input as the raw dataset path, and the preprocessing module as string.
@@ -15,7 +15,7 @@ def data_preprocessing(dataset_path: str, preprocessing_module_str: str, split_w
     '''
 
     # load the dataset and preprocessing module
-    dataset = torch_read('dataset.tuple', dataset_path)
+    dataset = torch_read(file_name, dataset_path)
     preprocessor_module = load_module('preprocessor', preprocessing_module_str)
 
     # perform train and test split

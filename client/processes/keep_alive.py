@@ -24,15 +24,16 @@ def keep_alive_process(jobs_registry: dict, client_state: dict):
             send_keep_alive(client_state['reginfo']['id'],
                             client_state['server_url'])
         except:
-            logger.warning('Failed to ping server for keep alive function.')
+            # logger.warning('Failed to ping server for keep alive function.')
+            pass
 
         # job check logic
         try:
             get_jobs_from_server(client_state['reginfo']['id'],
                                  jobs_registry, client_state['server_url'])
         except:
-            logger.warning('Failed to ping server for keep alive function.')
-
+            # logger.warning('Failed to ping server for keep alive function.')
+            pass
         sleep(5)
 
 
@@ -47,6 +48,6 @@ def send_keep_alive(client_id: str, server_url: str):
         'client_id': client_id
     }
 
-    logger.info(f'Sending client ping request to Server at {url}')
+    # logger.info(f'Sending client ping request to Server at {url}')
 
     post(url, body)

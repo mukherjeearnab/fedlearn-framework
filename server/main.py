@@ -4,6 +4,10 @@ This is the Commandline interface for managing the server
 from commands import server, client, job
 from helpers.logging import logger
 
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
+
 
 WELCOME_PROMPT = '''Welcome to the FedLearn Server.
 To get started, enter 'help' in the command prompt below.

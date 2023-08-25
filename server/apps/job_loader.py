@@ -152,7 +152,7 @@ def start_job(job_name: str) -> None:
     aggregator_proc.start()
 
     # signal to start the training
-    JOBS[job_name].allow_start_training()
+    # JOBS[job_name].allow_start_training()
 
     # NOTE: CLIENTS WAIT FOR PROCESS PHASE TO CHANGE TO 2 AND THEN TO 1 AND THEN DOWNLOAD PARAMS
     return {
@@ -333,6 +333,9 @@ def aggregator_process(job_name: str, model):
                              load_from_db=True)
     logger.info(f'Retrieved Job Instance for Job {job_name}.')
 
+    # start training
+    job.allow_start_training()
+
     # keep listening to process_phase
     while True:
         # sleep for 5 seconds
@@ -374,6 +377,8 @@ def aggregator_process(job_name: str, model):
 
             # update the central model params
             job.set_central_model_params(params)
+
+            sleep(15)
 
             # set process phase to 1 to resume local training
             job.allow_start_training()

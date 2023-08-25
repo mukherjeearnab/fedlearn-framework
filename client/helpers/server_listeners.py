@@ -28,7 +28,7 @@ def listen_to_dataset_download_flag(job_id: str, server_url: str):
                 break
 
         except:
-            logger.warning(f'Failed to fetch job status state.')
+            logger.warning('Failed to fetch job status state.')
 
         sleep(5)
 
@@ -54,7 +54,7 @@ def listen_to_start_training(job_id: str, server_url: str):
                 break
 
         except:
-            logger.warning(f'Failed to fetch job status state.')
+            logger.warning('Failed to fetch job status state.')
 
         sleep(5)
 
@@ -80,7 +80,32 @@ def listen_for_central_aggregation(job_id: str, server_url: str):
                 break
 
         except:
-            logger.warning(f'Failed to fetch job status state.')
+            logger.warning('Failed to fetch job status state.')
+
+        sleep(5)
+
+
+def listen_to_client_stage(client_stage: int, job_id: str, server_url: str):
+    '''
+    Method to listen to client stage
+    '''
+
+    while True:
+        try:
+            # listen to check if dataset flag is true or false
+            url = f'{server_url}/job_manager/get'
+
+            logger.info(
+                f'Fetching client state for [{job_id}] from Server at {url}, expecting {client_stage}')
+
+            manifest = get(url, {'job_id': job_id})
+
+            # if download dataset flag is true, break and exit
+            if manifest['job_status']['client_stage'] == client_stage:
+                break
+
+        except:
+            logger.warning('Failed to fetch job status state.')
 
         sleep(5)
 
@@ -106,7 +131,7 @@ def listen_for_param_download_training(job_id: str, server_url: str) -> int:
                 break
 
         except:
-            logger.warning(f'Failed to fetch job status state.')
+            logger.warning('Failed to fetch job status state.')
 
         sleep(5)
 
@@ -133,7 +158,7 @@ def download_global_params(job_id: str, server_url: str):
 
         global_params = global_params_dict
     except:
-        logger.warning(f'Failed to fetch job status state.')
+        logger.warning('Failed to fetch job status state.')
 
     return global_params
 
@@ -155,4 +180,4 @@ def upload_client_params(params: dict, client_id: str, job_id: str, server_url: 
                    'job_id': job_id})
 
     except:
-        logger.warning(f'Failed to fetch job status state.')
+        logger.warning('Failed to fetch job status state.')
