@@ -44,7 +44,7 @@ def get_metrics(actuals: list, preds: list) -> dict:
     accuracy, precision, recall, f-1 score, f-1 macro, f-1 micro, confusion matrix
     '''
 
-    print(actuals, preds)
+    # print(actuals, preds)
 
     accuracy = metrics.accuracy_score(actuals, preds)
     # precision = metrics.precision_score(actuals, preds)

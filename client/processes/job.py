@@ -147,11 +147,14 @@ def get_jobs_from_server(client_id: str, jobs_registry: dict, server_url: str):
     print('JOBLISTGET', jobs)
 
     for job_id in jobs:
-        print('JOBLISTSET', jobs_registry['job_ids'])
         if job_id not in jobs_registry['job_ids']:
-            print('JOBLISTSETIF', jobs_registry['job_ids'])
+            # add job ID to jobs registry.
             jobs_registry['job_ids'].append(job_id)
-            get_job_manifest(client_id, job_id, server_url)
+
+            # start job process
+            job_proc = get_job_manifest(client_id, job_id, server_url)
+
+            # add job process to registry
             jobs_registry['jobs'][job_id]['process'] = job_proc
 
 
@@ -178,4 +181,4 @@ def get_job_manifest(client_id: str, job_id: str, server_url: str) -> dict:
             job_proc.start()
 
             # return the job process
-            # return job_proc
+            return job_proc

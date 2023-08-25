@@ -4,7 +4,7 @@ Implementation of FedAvg Aggregator for Server Aggregation.
 from copy import deepcopy
 
 
-def aggregator(model, client_params: list, client_weights: list, kwargs=dict()):
+def aggregator(model, client_params: list, client_weights: list, kwargs=None):
     """
     Performs weighted sum of the client parameters, and returns the new model. 
     """

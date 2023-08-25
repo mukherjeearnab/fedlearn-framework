@@ -370,7 +370,7 @@ def aggregator_process(job_name: str, model):
                                                       state['client_params']['dataset']['distribution']['clients'])
 
             # obtain the list form of model parameters
-            params = get_state_dict(model)
+            params = get_state_dict(curr_model)
 
             # update the central model params
             job.set_central_model_params(params)
