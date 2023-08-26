@@ -14,7 +14,7 @@ blueprint = Blueprint(ROUTE_NAME, __name__)
 STATE_LOCK = Semaphore()
 
 JOBS = {}
-CONFIGS={}
+CONFIGS = {}
 # JOB_THREADS = {}
 
 
@@ -62,7 +62,8 @@ def delete_job_route():
             del CONFIGS[job_id]
             logger.info(f'Job [{job_id}] deleted successfully!')
         else:
-            logger.error(f'Failed to Delete Job Instance {job_id}. Reason: Job Is not Terminated.')
+            logger.error(
+                f'Failed to Delete Job Instance {job_id}. Reason: Job Is not Terminated.')
             logger.info(f'Please Wait for Job [{job_id}] to terminate.')
     except Exception as e:
         logger.error(f'Failed to Delete Job Instance. {e}')
@@ -91,7 +92,6 @@ def start_job_route():
     # STATE_LOCK.release()
 
     return jsonify(job_state)
-
 
 
 @blueprint.route('/list')
@@ -180,7 +180,12 @@ def download_dataset():
 
         DATASET_CHUNK_PATH = f"../datasets/deploy/{JOBS[job_id].dataset_params['prep']['file']}/chunks/{CHUNK_DIR_NAME}"
 
-        file_name = f'{client_id}.tuple'
+        chunk_id = 0
+        for i, client in enumerate(JOBS[job_id].exec_params['client_info']):
+            if client['client_id'] == client_id:
+                chunk_id = i
+
+        file_name = f'{chunk_id}.tuple'
         file_path = f'{DATASET_CHUNK_PATH}/{file_name}'
 
         return send_file(file_path, mimetype='application/octet-stream',

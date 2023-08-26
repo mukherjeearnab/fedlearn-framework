@@ -288,14 +288,14 @@ def prepare_dataset_for_deployment(config: dict):
         # saving chunks to disk
         try:
             for i in range(config['client_params']['num_clients']):
-                client = f'client-{i+1}'
+                # client = f'client-{i+1}'
                 # save the dataset to disk
-                torch_write(f'{client}.tuple',
+                torch_write(f'{i}.tuple',
                             DATASET_CHUNK_PATH,
                             chunks[i])
 
                 logger.info(
-                    f'Saved Chunk for {client} with size {len(chunks[i][1])}')
+                    f'Saved Chunk for {i+1}th Client with size {len(chunks[i][1])}')
 
             # set the OK file
             set_OK_file(DATASET_CHUNK_PATH)
