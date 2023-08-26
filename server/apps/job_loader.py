@@ -48,6 +48,15 @@ def load_job(job_name: str, config_registry: dict):
 
     print('Job Config: ', json.dumps(config, sort_keys=True, indent=4))
 
+    # load the python module files for the configuration
+    config = load_module_files(config)
+    logger.info('Loaded Py Modules from Job Config')
+
+    # prepare dataset for clients to download
+    logger.info(f'Starting Dataset Preperation for Job {job_name}')
+    prepare_dataset_for_deployment(config)
+    logger.info(f'Dataset Preperation Complete for Job {job_name}')
+
     # get available clients from the server registry
     client_list = get_alive_clients()
 
@@ -71,10 +80,6 @@ def start_job(job_name: str, config_registry: dict, job_registry: dict) -> dict:
         return {'exec': False}
 
     config = config_registry[job_name]
-
-    # load the python module files for the configuration
-    config = load_module_files(config)
-    logger.info('Loaded Py Modules from Job Config')
 
     # get available clients from the server registry
     client_list = get_alive_clients()
@@ -113,11 +118,6 @@ def start_job(job_name: str, config_registry: dict, job_registry: dict) -> dict:
 
         sleep(DELAY)
     ######################################################################################
-
-    # prepare dataset for clients to download
-    logger.info(f'Starting Dataset Preperation for Job {job_name}')
-    prepare_dataset_for_deployment(config)
-    logger.info(f'Dataset Preperation Complete for Job {job_name}')
 
     # set dataset download for clients
     job_registry[job_name].allow_dataset_download()
@@ -390,7 +390,7 @@ def aggregator_process(job_name: str, job_registry: dict, model):
             # check if global_round >= server_params.train_params.rounds, then terminate,
             # else allow training
             if job.job_status['global_round'] > job.server_params['train_params']['rounds']:
-                logger.info('Completed Job [{job_name}]. Terminating...')
+                logger.info(f'Completed Job [{job_name}]. Terminating...')
                 job.terminate_training()
                 break
             else:
