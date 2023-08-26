@@ -72,4 +72,4 @@ def set_val():
 
 
 if __name__ == '__main__':
-    app.run(port=6666, debug=False)
+    app.run(port=6666, debug=False, host='0.0.0.0')
