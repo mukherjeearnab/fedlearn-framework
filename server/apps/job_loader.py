@@ -330,6 +330,8 @@ def aggregator_process(job_name: str, job_registry: dict, model):
     and set ProcessPhase to 1, by executing allow_start_training()
     '''
 
+    logger.info(f'Starting Aggregator Thread for job {job_name}')
+
     curr_model = deepcopy(model)
 
     # retrieve the job instance
@@ -366,10 +368,15 @@ def aggregator_process(job_name: str, job_registry: dict, model):
                 # retrieve the client params
                 param = client_param['client_params']
 
-                # retrieve the client index
-                index = int(client_param['client_id'].split('-')[1]) - 1
+                for i, client in enumerate(state['exec_params']['client_info']):
+                    if client['client_id'] == client_param['client_id']:
+                        client_params[i] = convert_list_to_tensor(param)
+                        break
 
-                client_params[index] = convert_list_to_tensor(param)
+                # # retrieve the client index
+                # index = int(client_param['client_id'].split('-')[1]) - 1
+
+                # client_params[index] = convert_list_to_tensor(param)
 
             # run the aggregator function and obtain new global model
             curr_model = aggregator_module.aggregator(curr_model, client_params,
