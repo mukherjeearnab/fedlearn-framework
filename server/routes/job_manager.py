@@ -39,7 +39,7 @@ def load_job_route():
     try:
         load_job(job_id, CONFIGS)
     except Exception as e:
-        logger.error(f'Failed to Load Job Instance {e}')
+        logger.error(f'Failed to Load Job Instance {e.with_traceback()}')
 
     # STATE_LOCK.release()
 

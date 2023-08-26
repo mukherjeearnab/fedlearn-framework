@@ -269,7 +269,8 @@ def prepare_dataset_for_deployment(config: dict):
             set_OK_file(DATASET_ROOT_PATH)
             logger.info('Prepared Dataset Saved Successfully!')
         except Exception as e:
-            logger.error(f'Error Saving Prepared Dataset to disk! {e}')
+            logger.error(
+                f'Error Saving Prepared Dataset to disk! {e.with_traceback()}')
     else:
         logger.info('Root Dataset already present. Loading it from disk.')
         data, labels = torch_read('dataset.tuple', DATASET_ROOT_PATH)
@@ -301,7 +302,8 @@ def prepare_dataset_for_deployment(config: dict):
             set_OK_file(DATASET_CHUNK_PATH)
             logger.info('Dataset Client Chunks Saved Successfully!')
         except Exception as e:
-            logger.error(f'Error Saving Chunked Dataset to disk! {e}')
+            logger.error(
+                f'Error Saving Chunked Dataset to disk! {e.with_traceback()}')
 
 
 def load_model_and_get_params(config: dict):

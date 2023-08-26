@@ -34,7 +34,7 @@ while True:  # loop through and wait for the server to be available for registra
         logger.info(f"Registered client with {CLIENT_STATE['reginfo']}")
         break
     except Exception as e:
-        logger.warning(f'Failed to register client. {e}')
+        logger.warning(f'Failed to register client. {e.with_traceback()}')
         sleep(DELAY*12)
 
 keep_alive_process(JOBS, CLIENT_STATE)
