@@ -11,8 +11,8 @@ client_params:
       distributor: random_dist
       iid: True # if IID is true, it will skip the clients distribution ration in the next variable
       clients: # example client dataset distribution for 3 clients
-        - 0.8
-        - 0.2
+        - 0.95
+        - 0.05
   
   model_params: # model and training files and configs
     model_file: simple_nn

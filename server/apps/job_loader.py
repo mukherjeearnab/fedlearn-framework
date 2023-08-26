@@ -237,9 +237,9 @@ def prepare_dataset_for_deployment(config: dict):
 
     CHUNK_DIR_NAME = 'dist'
     for chunk in config['client_params']['dataset']['distribution']['clients']:
-        CHUNK_DIR_NAME.join(f'-{chunk}')
+        CHUNK_DIR_NAME += f'-{chunk}'
 
-    print('CHUNK_DIR_NAME', CHUNK_DIR_NAME)
+    # print('CHUNK_DIR_NAME', CHUNK_DIR_NAME)
 
     DATASET_ROOT_PATH = f"./datasets/deploy/{config['dataset_params']['prep']['file']}/root"
     DATASET_CHUNK_PATH = f"./datasets/deploy/{config['dataset_params']['prep']['file']}/chunks/{CHUNK_DIR_NAME}"

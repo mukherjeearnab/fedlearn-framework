@@ -150,7 +150,7 @@ def download_dataset():
     if job_id in JOBS:
         CHUNK_DIR_NAME = 'dist'
         for chunk in JOBS[job_id].client_params['dataset']['distribution']['clients']:
-            CHUNK_DIR_NAME.join(f'-{chunk}')
+            CHUNK_DIR_NAME += f'-{chunk}'
 
         DATASET_CHUNK_PATH = f"../datasets/deploy/{JOBS[job_id].dataset_params['prep']['file']}/chunks/{CHUNK_DIR_NAME}"
 
