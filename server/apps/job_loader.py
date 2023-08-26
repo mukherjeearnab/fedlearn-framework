@@ -399,4 +399,4 @@ def aggregator_process(job_name: str, job_registry: dict, model):
             # log that aggregation is complete
             logger.info(f'Aggregation Process Complete for job [{job_name}]')
 
-        logger.info(f'Terminating Aggregation Process for Job [{job_name}]')
+    logger.info(f'Terminating Aggregation Process for Job [{job_name}]')

@@ -5,6 +5,7 @@ Client Management Routing Module
 from flask import Blueprint, jsonify, request, send_file
 from helpers.semaphore import Semaphore
 from helpers.logging import logger
+from helpers.kvstore import kv_delete
 from apps.job_loader import load_job, start_job
 
 ROUTE_NAME = 'job-manager'
@@ -43,6 +44,32 @@ def load_job_route():
     # STATE_LOCK.release()
 
     return jsonify({'message': 'Job instance loaded successfully!'})
+
+
+@blueprint.route('/delete')
+def delete_job_route():
+    '''
+    delete route, called by server to delete the job from the state machine
+    '''
+    job_id = request.args['job_id']
+
+    # STATE_LOCK.acquire()
+    try:
+        # if job is terminated, only then it can be deleted
+        if JOBS[job_id].job_status['process_phase'] == 3:
+            kv_delete(job_id)
+            del JOBS[job_id]
+            del CONFIGS[job_id]
+            logger.info(f'Job [{job_id}] deleted successfully!')
+        else:
+            logger.error(f'Failed to Delete Job Instance {job_id}. Reason: Job Is not Terminated.')
+            logger.info(f'Please Wait for Job [{job_id}] to terminate.')
+    except Exception as e:
+        logger.error(f'Failed to Delete Job Instance. {e}')
+
+    # STATE_LOCK.release()
+
+    return jsonify({'message': 'Job instance deleted successfully!'})
 
 
 @blueprint.route('/start')

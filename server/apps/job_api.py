@@ -18,6 +18,13 @@ def load_job(job_name: str):
     get(f'{SERVER_URL}/job_manager/load', {'job_id': job_name})
 
 
+def delete_job(job_name: str):
+    '''
+    Call the Job Delete Route and delete the job
+    '''
+    get(f'{SERVER_URL}/job_manager/delete', {'job_id': job_name})
+
+
 def start_job(job_name: str):
     '''
     Call the Job Start Route and start the job

@@ -22,6 +22,12 @@ class KeyValueStore:
         '''
         self.table[key] = value
 
+    def delete(self, key: str) -> None:
+        '''
+        Delete Value
+        '''
+        del self.table[key]
+
     def check(self, key: str) -> bool:
         '''
         Check if Key has been Set

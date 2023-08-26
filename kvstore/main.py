@@ -39,6 +39,23 @@ def get_val():
     return jsonify({'value': value, 'res': 200})
 
 
+@app.route('/delete', methods=['GET'])
+def delete_val():
+    '''
+    get value of key
+    '''
+    key = request.args['key']
+
+    WRITE_LOCK.wait()
+
+    if not keyValueStore.check(key):
+        return jsonify({'value': False, 'res': 404})
+
+    keyValueStore.delete(key)
+
+    return jsonify({'value': True, 'res': 200})
+
+
 @app.route('/set', methods=['POST'])
 def set_val():
     '''

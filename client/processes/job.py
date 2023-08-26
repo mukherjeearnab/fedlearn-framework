@@ -140,6 +140,7 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
 
         # Step 12: else if process phase is 3 terminate process.
         if process_phase == 3:
+            logger.info(f'Job [{job_id}] terminated. Exiting Process.')
             break
 
 
@@ -154,6 +155,13 @@ def get_jobs_from_server(client_id: str, jobs_registry: dict, server_url: str):
 
     jobs = get(url, {})
 
+    # remove deleted jobs
+    for job_id in jobs_registry['job_ids']:
+        if job_id not in jobs:
+            # remove job ID from jobs registry.
+            jobs_registry['job_ids'].remove(job_id)
+
+    # add newly added jobs
     for job_id in jobs:
         if job_id not in jobs_registry['job_ids']:
             # add job ID to jobs registry.

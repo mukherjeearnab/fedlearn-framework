@@ -36,7 +36,7 @@ server_params:
   aggregator: fed_avg
 
   train_params: # training parameters
-    rounds: 10
+    rounds: 3
 
     extra_params: # extra training parameters
       fed_avg_momentum: 0.1

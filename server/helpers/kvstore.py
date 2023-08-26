@@ -46,3 +46,22 @@ def kv_set(key: str, value: Any) -> None:
             logger.error(
                 f'KVStore Database Connection Error! Retrying in 30s. {e}')
             sleep(DELAY*6)
+
+
+def kv_delete(key: str) -> Any:
+    '''
+    Delete Value with Key
+    '''
+    while True:
+        try:
+            reply = get(f'{KVS_URL}/delete', {'key': key})
+            break
+        except Exception as e:
+            logger.error(
+                f'KVStore Database Connection Error! Retrying in 30s. {e}')
+            sleep(DELAY*6)
+
+    if reply['res'] == 404:
+        return None
+
+    return reply['value']
