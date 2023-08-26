@@ -5,7 +5,6 @@ Client Management Routing Module
 from flask import Blueprint, jsonify, request, send_file
 from helpers.semaphore import Semaphore
 from helpers.logging import logger
-from apps.training_job import TrainingJobManager
 from apps.job_loader import load_job, start_job
 
 ROUTE_NAME = 'job-manager'
@@ -39,7 +38,7 @@ def load_job_route():
     try:
         load_job(job_id, CONFIGS)
     except Exception as e:
-        logger.error(f'Failed to Load Job Instance {e.with_traceback()}')
+        logger.error(f'Failed to Load Job Instance {e}')
 
     # STATE_LOCK.release()
 
@@ -57,7 +56,7 @@ def start_job_route():
     try:
         start_job(job_id, CONFIGS, JOBS)
     except Exception as e:
-        logger.error(f'Failed to Load Job Instance {e.with_traceback()}')
+        logger.error(f'Failed to Load Job Instance {e}')
 
     job_state = JOBS[job_id].get_state()
     # JOB_THREADS[job_id] = resp

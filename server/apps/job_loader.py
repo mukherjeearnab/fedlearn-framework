@@ -14,7 +14,6 @@ from apps.client_api import get_alive_clients
 from helpers.file import read_yaml_file, read_py_module, torch_write, torch_read
 from helpers.file import set_OK_file, check_OK_file, create_dir_struct
 from helpers.logging import logger
-from helpers.http import get
 from helpers.dynamod import load_module
 from helpers.converters import convert_list_to_tensor
 from helpers.converters import get_state_dict
@@ -270,7 +269,7 @@ def prepare_dataset_for_deployment(config: dict):
             logger.info('Prepared Dataset Saved Successfully!')
         except Exception as e:
             logger.error(
-                f'Error Saving Prepared Dataset to disk! {e.with_traceback()}')
+                f'Error Saving Prepared Dataset to disk! {e}')
     else:
         logger.info('Root Dataset already present. Loading it from disk.')
         data, labels = torch_read('dataset.tuple', DATASET_ROOT_PATH)
@@ -303,7 +302,7 @@ def prepare_dataset_for_deployment(config: dict):
             logger.info('Dataset Client Chunks Saved Successfully!')
         except Exception as e:
             logger.error(
-                f'Error Saving Chunked Dataset to disk! {e.with_traceback()}')
+                f'Error Saving Chunked Dataset to disk! {e}')
 
 
 def load_model_and_get_params(config: dict):
@@ -382,10 +381,22 @@ def aggregator_process(job_name: str, job_registry: dict, model):
             # update the central model params
             job.set_central_model_params(params)
 
+            logger.info(
+                f"Completed Global Round {job.job_status['global_round']-1} out of {job.server_params['train_params']['rounds']}")
+
             sleep(DELAY*3)
 
             # set process phase to 1 to resume local training
-            job.allow_start_training()
+            # check if global_round >= server_params.train_params.rounds, then terminate,
+            # else allow training
+            if job.job_status['global_round'] > job.server_params['train_params']['rounds']:
+                logger.info('Completed Job [{job_name}]. Terminating...')
+                job.terminate_training()
+                break
+            else:
+                job.allow_start_training()
 
             # log that aggregation is complete
             logger.info(f'Aggregation Process Complete for job [{job_name}]')
+
+        logger.info(f'Terminating Aggregation Process for Job [{job_name}]')

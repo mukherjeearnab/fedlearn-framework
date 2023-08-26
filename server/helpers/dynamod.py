@@ -13,6 +13,6 @@ def load_module(module_name: str, module_content: str):
     try:
         exec(module_content, mymodule.__dict__)
     except Exception as e:
-        logger.error(f'Module Execution Failure! {e.with_traceback()}')
+        logger.error(f'Module Execution Failure! {e}')
 
     return mymodule

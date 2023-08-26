@@ -40,6 +40,7 @@ class TrainingJobManager:
             'download_jobsheet': False,
             'download_dataset': False,
             'process_phase': 0,
+            'global_round': 0,
             'extra_params': {}
         }
 
@@ -245,6 +246,8 @@ class TrainingJobManager:
 
             # empty out client params
             self.exec_params['client_model_params'] = []
+            # increment global round
+            self.job_status['global_round'] += 1
 
             logger.info(
                 'Central Model Parameters are Set. Waiting for Process Phase to be in [1] Local Training.')

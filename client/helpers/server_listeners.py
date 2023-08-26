@@ -35,7 +35,7 @@ def listen_to_dataset_download_flag(job_id: str, server_url: str):
 
         except Exception as e:
             logger.error(
-                f'Failed to fetch Dataset Download Flag. {e.with_traceback()}')
+                f'Failed to fetch Dataset Download Flag. {e}')
 
         sleep(DELAY)
 
@@ -62,7 +62,7 @@ def listen_to_start_training(job_id: str, server_url: str):
 
         except Exception as e:
             logger.error(
-                f'Failed to fetch Process Phase. {e.with_traceback()}')
+                f'Failed to fetch Process Phase. {e}')
 
         sleep(DELAY)
 
@@ -88,7 +88,7 @@ def listen_for_central_aggregation(job_id: str, server_url: str):
                 break
 
         except Exception as e:
-            logger.error(f'Failed to Process Phase. {e.with_traceback()}')
+            logger.error(f'Failed to Process Phase. {e}')
 
         sleep(DELAY)
 
@@ -113,7 +113,7 @@ def listen_to_client_stage(client_stage: int, job_id: str, server_url: str):
                 break
 
         except Exception as e:
-            logger.error(f'Failed to Client Stage. {e.with_traceback()}')
+            logger.error(f'Failed to Client Stage. {e}')
 
         sleep(DELAY)
 
@@ -140,7 +140,7 @@ def listen_for_param_download_training(job_id: str, server_url: str) -> int:
 
         except Exception as e:
             logger.error(
-                f'Failed to fetch job status state. {e.with_traceback()}')
+                f'Failed to fetch job status state. {e}')
 
         sleep(DELAY)
 
@@ -167,7 +167,7 @@ def download_global_params(job_id: str, server_url: str):
 
         global_params = global_params_dict
     except Exception as e:
-        logger.error(f'Failed to fetch job status state. {e.with_traceback()}')
+        logger.error(f'Failed to fetch job status state. {e}')
 
     return global_params
 
@@ -189,4 +189,4 @@ def upload_client_params(params: dict, client_id: str, job_id: str, server_url: 
                    'job_id': job_id})
 
     except Exception as e:
-        logger.error(f'Failed to fetch job status state. {e.with_traceback()}')
+        logger.error(f'Failed to fetch job status state. {e}')

@@ -25,7 +25,7 @@ def kv_get(key: str) -> Any:
             break
         except Exception as e:
             logger.error(
-                f'KVStore Database Connection Error! Retrying in 30s. {e.with_traceback()}')
+                f'KVStore Database Connection Error! Retrying in 30s. {e}')
             sleep(DELAY*6)
 
     if reply['res'] == 404:
@@ -44,5 +44,5 @@ def kv_set(key: str, value: Any) -> None:
             break
         except Exception as e:
             logger.error(
-                f'KVStore Database Connection Error! Retrying in 30s. {e.with_traceback()}')
+                f'KVStore Database Connection Error! Retrying in 30s. {e}')
             sleep(DELAY*6)
