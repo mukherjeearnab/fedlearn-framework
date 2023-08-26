@@ -24,6 +24,34 @@ def root():
     return jsonify(data)
 
 
+@blueprint.route('/get')
+def getall():
+    '''
+    route to get all registered clients
+    '''
+    REGISTER_LOCK.acquire()
+
+    data = client_manager.get_clients()
+
+    REGISTER_LOCK.release()
+
+    return jsonify(data)
+
+
+@blueprint.route('/get_alive')
+def getalive():
+    '''
+    route to get alive clients
+    '''
+    REGISTER_LOCK.acquire()
+
+    data = client_manager.get_alive_clients()
+
+    REGISTER_LOCK.release()
+
+    return jsonify(data)
+
+
 @blueprint.route('/register', methods=['POST'])
 def register():
     '''

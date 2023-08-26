@@ -10,6 +10,7 @@ from copy import deepcopy
 from multiprocessing import Process
 from dotenv import load_dotenv
 from apps.training_job import TrainingJobManager
+from apps.client_api import get_alive_clients
 from helpers.file import read_yaml_file, read_py_module, torch_write, torch_read
 from helpers.file import set_OK_file, check_OK_file, create_dir_struct
 from helpers.logging import logger
@@ -17,15 +18,15 @@ from helpers.http import get
 from helpers.dynamod import load_module
 from helpers.converters import convert_list_to_tensor
 from helpers.converters import get_state_dict
-from apps.client_manager import ClientManager
+# from apps.client_manager import ClientManager
 
 
 # the client manager
-client_manager = ClientManager()
+# client_manager = ClientManager()
 
-# the job management dictionary
-JOBS = {}
-CONFIGS = {}
+# # the job management dictionary
+# JOBS = {}
+# CONFIGS = {}
 
 
 # import environment variables
@@ -35,7 +36,7 @@ SERVER_PORT = int(os.getenv('SERVER_PORT'))
 DELAY = int(os.getenv('DELAY'))
 
 
-def load_job(job_name: str):
+def load_job(job_name: str, config_registry: dict):
     '''
     Load the Job Config and perform some preliminary validation.
     '''
@@ -44,12 +45,12 @@ def load_job(job_name: str):
 
     logger.info(f'Reading Job Config: \n{job_name}')
 
-    CONFIGS[job_name] = config
+    config_registry[job_name] = config
 
     print('Job Config: ', json.dumps(config, sort_keys=True, indent=4))
 
     # get available clients from the server registry
-    client_list = client_manager.get_alive_clients()
+    client_list = get_alive_clients()
 
     # check if sufficient clients are available or not, else return
     if len(client_list) < config['client_params']['num_clients']:
@@ -59,44 +60,45 @@ def load_job(job_name: str):
     print('Job Config Loaded.')
 
 
-def start_job(job_name: str) -> dict:
+def start_job(job_name: str, config_registry: dict, job_registry: dict) -> dict:
     '''
     Load a Job specification and create the job, and start initialization.
     return the dict containing the dict of additional information, which includes, the thread running the aggregator
     '''
     print('Starting Job.')
 
-    if job_name not in CONFIGS:
+    if job_name not in config_registry:
         logger.error(f'Job Name: {job_name} is not loaded.')
-        return {}
-    config = CONFIGS[job_name]
+        return {'exec': False}
+
+    config = config_registry[job_name]
 
     # load the python module files for the configuration
     config = load_module_files(config)
     logger.info('Loaded Py Modules from Job Config')
 
     # get available clients from the server registry
-    client_list = client_manager.get_alive_clients()
+    client_list = get_alive_clients()
 
     # create a new job instance
-    JOBS[job_name] = TrainingJobManager(project_name=job_name,
-                                        client_params=config['client_params'],
-                                        server_params=config['server_params'],
-                                        dataset_params=config['dataset_params'])
+    job_registry[job_name] = TrainingJobManager(project_name=job_name,
+                                                client_params=config['client_params'],
+                                                server_params=config['server_params'],
+                                                dataset_params=config['dataset_params'])
     logger.info(f'Created Job Instance for Job {job_name}.')
 
     # assign the required number of clients to the job
     for i in range(config['client_params']['num_clients']):
-        JOBS[job_name].add_client(client_list[i]['id'])
+        job_registry[job_name].add_client(client_list[i]['id'])
         logger.info(f'Assigning client to job {client_list[i]}')
     logger.info('Successfully assigned clients to job.')
 
-    # init calling the job manager route handler
-    get(f'http://localhost:{SERVER_PORT}/job_manager/init',
-        {'job_id': job_name})
+    # # init calling the job manager route handler
+    # get(f'http://localhost:{SERVER_PORT}/job_manager/init',
+    #     {'job_id': job_name})
 
     # allow clients to download jobsheet
-    JOBS[job_name].allow_jobsheet_download()
+    job_registry[job_name].allow_jobsheet_download()
     logger.info(
         'Job sheet download set, waiting for clients to download and acknowledge.')
 
@@ -105,7 +107,7 @@ def start_job(job_name: str) -> dict:
     while True:
         logger.info(
             'Waiting for ClientStage to be [1] ClientReadyWithJobSheet')
-        state = JOBS[job_name].get_state()
+        state = job_registry[job_name].get_state()
 
         if state['job_status']['client_stage'] == 1:
             break
@@ -119,7 +121,7 @@ def start_job(job_name: str) -> dict:
     logger.info(f'Dataset Preperation Complete for Job {job_name}')
 
     # set dataset download for clients
-    JOBS[job_name].allow_dataset_download()
+    job_registry[job_name].allow_dataset_download()
 
     logger.info('Allowing Clients to Download Dataset.')
 
@@ -132,7 +134,7 @@ def start_job(job_name: str) -> dict:
     # wait for clients to ACK dataset, i.e., wait until client stage becomes 2
     while True:
         logger.info('Waiting for ClientStage to be [2] ClientReadyWithDataset')
-        state = JOBS[job_name].get_state()
+        state = job_registry[job_name].get_state()
 
         if state['job_status']['client_stage'] == 2:
             break
@@ -144,11 +146,11 @@ def start_job(job_name: str) -> dict:
     params, model = load_model_and_get_params(config)
 
     # set the initial model parameters
-    JOBS[job_name].set_central_model_params(params)
+    job_registry[job_name].set_central_model_params(params)
 
     # add process to listen to model process phase to change to 2 and start aggregation
     aggregator_proc = Process(target=aggregator_process,
-                              args=(job_name, model), name=f'aggregator_{job_name}')
+                              args=(job_name, job_registry, model), name=f'aggregator_{job_name}')
 
     # start aggregation process
     aggregator_proc.start()
@@ -158,7 +160,7 @@ def start_job(job_name: str) -> dict:
 
     # NOTE: CLIENTS WAIT FOR PROCESS PHASE TO CHANGE TO 2 AND THEN TO 1 AND THEN DOWNLOAD PARAMS
     return {
-        'aggregator_proc': aggregator_proc
+        'aggregator_proc': aggregator_proc, 'exec': True
     }
 
 
@@ -236,6 +238,8 @@ def prepare_dataset_for_deployment(config: dict):
     CHUNK_DIR_NAME = 'dist'
     for chunk in config['client_params']['dataset']['distribution']['clients']:
         CHUNK_DIR_NAME.join(f'-{chunk}')
+
+    print('CHUNK_DIR_NAME', CHUNK_DIR_NAME)
 
     DATASET_ROOT_PATH = f"./datasets/deploy/{config['dataset_params']['prep']['file']}/root"
     DATASET_CHUNK_PATH = f"./datasets/deploy/{config['dataset_params']['prep']['file']}/chunks/{CHUNK_DIR_NAME}"
@@ -318,7 +322,7 @@ def load_model_and_get_params(config: dict):
     return params, model
 
 
-def aggregator_process(job_name: str, model):
+def aggregator_process(job_name: str, job_registry: dict, model):
     '''
     The aggregator process, running in background, and checking if ProcessPhase turns 2.
     If ProcessPhase is 2, run the aggregator function, and update the central model params,
@@ -328,11 +332,7 @@ def aggregator_process(job_name: str, model):
     curr_model = deepcopy(model)
 
     # retrieve the job instance
-    job = TrainingJobManager(project_name=job_name,
-                             client_params={},
-                             server_params={},
-                             dataset_params={},
-                             load_from_db=True)
+    job = job_registry[job_name]
     logger.info(f'Retrieved Job Instance for Job {job_name}.')
 
     # start training

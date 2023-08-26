@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, request, send_file
 from helpers.semaphore import Semaphore
 from helpers.logging import logger
 from apps.training_job import TrainingJobManager
-
+from apps.job_loader import load_job, start_job
 
 ROUTE_NAME = 'job-manager'
 blueprint = Blueprint(ROUTE_NAME, __name__)
@@ -14,6 +14,8 @@ blueprint = Blueprint(ROUTE_NAME, __name__)
 STATE_LOCK = Semaphore()
 
 JOBS = {}
+CONFIGS={}
+# JOB_THREADS = {}
 
 
 @blueprint.route('/')
@@ -26,28 +28,44 @@ def root():
     return jsonify(data)
 
 
-@blueprint.route('/init')
-def init():
+@blueprint.route('/load')
+def load_job_route():
     '''
     init route, called by server to initialize the job into the state machine
     '''
     job_id = request.args['job_id']
 
-    STATE_LOCK.acquire()
+    # STATE_LOCK.acquire()
     try:
-        JOBS[job_id] = TrainingJobManager(project_name=job_id,
-                                          client_params={},
-                                          server_params={},
-                                          dataset_params={},
-                                          load_from_db=True)
-        logger.info(f'Created Job Instance for Job {job_id}.')
+        load_job(job_id, CONFIGS)
     except Exception as e:
-        logger.error(f'Failed to Retrieve Job Instance {e}')
+        logger.error(f'Failed to Load Job Instance {e}')
+
+    # STATE_LOCK.release()
+
+    return jsonify({'message': 'Job instance loaded successfully!'})
+
+
+@blueprint.route('/start')
+def start_job_route():
+    '''
+    init route, called by server to initialize the job into the state machine
+    '''
+    job_id = request.args['job_id']
+
+    # STATE_LOCK.acquire()
+    try:
+        start_job(job_id, CONFIGS, JOBS)
+    except Exception as e:
+        logger.error(f'Failed to Load Job Instance {e.with_traceback()}')
 
     job_state = JOBS[job_id].get_state()
-    STATE_LOCK.release()
+    # JOB_THREADS[job_id] = resp
+
+    # STATE_LOCK.release()
 
     return jsonify(job_state)
+
 
 
 @blueprint.route('/list')
@@ -55,7 +73,7 @@ def list_jobs():
     '''
     get the list of all the jobs in the state machine
     '''
-    STATE_LOCK.wait()
+    # STATE_LOCK.wait()
     jobs = list(JOBS.keys())
 
     return jsonify(jobs)
@@ -68,7 +86,7 @@ def get():
     '''
     job_id = request.args['job_id']
 
-    STATE_LOCK.wait()
+    # STATE_LOCK.wait()
     job_state = JOBS[job_id].get_state()
 
     return jsonify(job_state)
@@ -86,13 +104,13 @@ def update_client_status():
     client_status = payload['client_status']
     job_id = payload['job_id']
 
-    STATE_LOCK.acquire()
+    # STATE_LOCK.acquire()
 
     if job_id in JOBS.keys():
         JOBS[job_id].update_client_status(client_id, client_status)
     else:
         status = 404
-    STATE_LOCK.release()
+    # STATE_LOCK.release()
 
     return jsonify({'message': 'Status updated!' if status == 200 else 'Update failed!'}), status
 
@@ -109,13 +127,13 @@ def append_client_params():
     client_params = payload['client_params']
     job_id = payload['job_id']
 
-    STATE_LOCK.acquire()
+    # STATE_LOCK.acquire()
 
     if job_id in JOBS:
         JOBS[job_id].append_client_params(client_id, client_params)
     else:
         status = 404
-    STATE_LOCK.release()
+    # STATE_LOCK.release()
 
     return jsonify({'message': 'Params Added!' if status == 200 else 'Method failed!'}), status
 
