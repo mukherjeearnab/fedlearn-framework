@@ -53,6 +53,7 @@ def get_metrics(actuals: list, preds: list) -> dict:
     # f1_micro = metrics.f1_score(actuals, preds, average='micro')
     # f1_weighted = metrics.f1_score(actuals, preds, average='weighted')
     confusion_matrix = metrics.confusion_matrix(actuals, preds)
+    report = metrics.classification_report(actuals, preds)
 
     results = {
         'accuracy': accuracy,
@@ -61,7 +62,8 @@ def get_metrics(actuals: list, preds: list) -> dict:
         # 'f1_macro': f1_macro,
         # 'f1_micro': f1_micro,
         # 'f1_weighted': f1_weighted,
-        'confusion_matrix': confusion_matrix
+        'confusion_matrix': confusion_matrix,
+        'classification_report': report
     }
 
     return results

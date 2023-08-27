@@ -109,7 +109,7 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
         # Step 8.5: Test the trained model parameters with test dataset
         metrics = test_model(model, test_loader, device)
         # as of now, only print the metrics
-        print(metrics)
+        logger.info(f"Training Report:\n{metrics['classification_report']}")
 
         # Step 9: Send back locally trained model parameters
         # and update client status to 4 on the server automatically.
