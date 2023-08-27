@@ -4,7 +4,7 @@ Commands for Server
 
 from typing import List
 import json
-from apps.client_manager import ClientManager
+from apps.client.manager import ClientManager
 
 client_manager = ClientManager()
 

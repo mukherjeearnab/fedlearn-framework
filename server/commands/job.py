@@ -4,7 +4,7 @@ Commands for Server
 
 from typing import List
 # from apps.job_loader import load_job, start_job
-from apps.job_api import load_job, start_job, delete_job
+from apps.job.api import load_job, start_job, delete_job
 # from helpers.logging import logger
 
 # JOB_PROPS = []

@@ -3,7 +3,7 @@ Commands for Server
 '''
 
 from typing import List
-from apps.server import start_server, stop_server
+from apps.server.controller import start_server, stop_server
 
 
 def handle_command(args: List[str]) -> None:

@@ -1,5 +1,5 @@
 client_params:
-  num_clients: 3
+  num_clients: 2
 
   train_test_split: # train test split config
     train: 0.8
@@ -11,9 +11,8 @@ client_params:
       distributor: random_dist
       iid: True # if IID is true, it will skip the clients distribution ration in the next variable
       clients: # example client dataset distribution for 3 clients
-        - 0.9
-        - 0.099
-        - 0.001
+        - 0.8
+        - 0.2
   
   model_params: # model and training files and configs
     model_file: simple_nn

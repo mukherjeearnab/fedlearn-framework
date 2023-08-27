@@ -6,7 +6,8 @@ from flask import Blueprint, jsonify, request, send_file
 from helpers.semaphore import Semaphore
 from helpers.logging import logger
 from helpers.kvstore import kv_delete
-from apps.job_loader import load_job, start_job
+from apps.job.management.loader import load_job
+from apps.job.management.starter import start_job
 
 ROUTE_NAME = 'job-manager'
 blueprint = Blueprint(ROUTE_NAME, __name__)
@@ -178,7 +179,7 @@ def download_dataset():
         for chunk in JOBS[job_id].client_params['dataset']['distribution']['clients']:
             CHUNK_DIR_NAME += f'-{chunk}'
 
-        DATASET_CHUNK_PATH = f"../datasets/deploy/{JOBS[job_id].dataset_params['prep']['file']}/chunks/{CHUNK_DIR_NAME}"
+        DATASET_CHUNK_PATH = f"../../datasets/deploy/{JOBS[job_id].dataset_params['prep']['file']}/chunks/{CHUNK_DIR_NAME}"
 
         chunk_id = 0
         for i, client in enumerate(JOBS[job_id].exec_params['client_info']):
