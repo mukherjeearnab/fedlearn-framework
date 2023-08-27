@@ -5,9 +5,9 @@ import os
 from time import sleep
 from dotenv import load_dotenv
 
-from helpers.client_registration import register_client
 from helpers.logging import logger
-from processes.keep_alive import keep_alive_process
+from apps.client.keep_alive import keep_alive_process
+from apps.client.registration import register_client
 
 
 # import environment variables

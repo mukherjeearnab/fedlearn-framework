@@ -1,19 +1,17 @@
 '''
-Job Process Management module
+Job Process Module
 '''
-from multiprocessing import Process
 from helpers.logging import logger
 from helpers.file import create_dir_struct
-from helpers.http import get, download_file
-from helpers.client_status import update_client_status
-from helpers.server_listeners import listen_to_dataset_download_flag, listen_to_start_training
-from helpers.server_listeners import download_global_params, upload_client_params, listen_to_client_stage
-from helpers.server_listeners import listen_for_central_aggregation, listen_for_param_download_training
+from helpers.http import download_file
 from helpers.converters import get_state_dict, set_state_dict, tensor_to_data_loader
 from helpers.torch import get_device
-from processes.training import data_preprocessing, init_model, parameter_mixing
-from processes.training import train_model
-from processes.tester import test_model
+from apps.client.status import update_client_status
+from apps.model.training import data_preprocessing, init_model, parameter_mixing, train_model
+from apps.model.tester import test_model
+from apps.server.listeners import listen_to_dataset_download_flag, listen_to_start_training, listen_to_client_stage
+from apps.server.communication import download_global_params, upload_client_params
+from apps.server.listeners import listen_for_central_aggregation, listen_for_param_download_training
 
 
 def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str):
@@ -142,61 +140,3 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
         if process_phase == 3:
             logger.info(f'Job [{job_id}] terminated. Exiting Process.')
             break
-
-
-def get_jobs_from_server(client_id: str, jobs_registry: dict, server_url: str):
-    '''
-    Job Checker method
-    '''
-
-    url = f'{server_url}/job_manager/list'
-
-    # logger.info(f'Fetching Job list from Server at {url}')
-
-    jobs = get(url, {})
-
-    # remove deleted jobs
-    for job_id in jobs_registry['job_ids']:
-        if job_id not in jobs:
-            # remove job ID from jobs registry.
-            jobs_registry['job_ids'].remove(job_id)
-
-    # add newly added jobs
-    for job_id in jobs:
-        if job_id not in jobs_registry['job_ids']:
-            # add job ID to jobs registry.
-            jobs_registry['job_ids'].append(job_id)
-
-            # start job process
-            job_proc = get_job_manifest(client_id, job_id, server_url)
-
-            # add job process to registry
-            jobs_registry['jobs'][job_id]['process'] = job_proc
-
-
-def get_job_manifest(client_id: str, job_id: str, server_url: str):
-    '''
-    Download job manifest from server for [job_id]
-    '''
-
-    url = f'{server_url}/job_manager/get'
-
-    logger.info(f'Fetching Job Manifest for [{job_id}] from Server at {url}')
-
-    manifest = get(url, {'job_id': job_id})
-
-    for client in manifest['exec_params']['client_info']:
-        if client['client_id'] == client_id:
-            logger.info(f'Starting Job Process for Job [{job_id}]')
-
-            # start new job thread
-            job_proc = Process(target=job_process,
-                               args=(client_id, job_id, manifest, server_url), name=f'job_{job_id}')
-
-            # start job process
-            job_proc.start()
-
-            # return the job process
-            return job_proc
-
-    return None

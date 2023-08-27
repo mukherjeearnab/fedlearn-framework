@@ -7,7 +7,7 @@ from time import sleep
 import os
 from helpers.http import post
 from helpers.logging import logger
-from processes.job import get_jobs_from_server
+from apps.job.getters import get_jobs_from_server
 from dotenv import load_dotenv
 
 # import environment variables
