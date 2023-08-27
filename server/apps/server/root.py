@@ -2,9 +2,7 @@
 Main entry point for the server application.
 This hosts all the server routes and invokes the main function.
 '''
-import os
 from flask import Flask, jsonify
-from dotenv import load_dotenv
 from routes.client_manager import blueprint as client_manager
 from routes.job_manager import blueprint as job_manager
 
