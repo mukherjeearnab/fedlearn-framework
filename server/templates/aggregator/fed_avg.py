@@ -1,7 +1,6 @@
 '''
 Implementation of FedAvg Aggregator for Server Aggregation.
 '''
-from copy import deepcopy
 
 
 def aggregator(model, client_params: list, client_weights: list, kwargs=None):
@@ -12,13 +11,11 @@ def aggregator(model, client_params: list, client_weights: list, kwargs=None):
     # if any keyword arguments are passed
     _ = kwargs
 
-    # create a new copy of the model to work on
-    new_model = deepcopy(model)
-
     # zero out the model parameters weights
-    set_to_zero_model_weights(new_model)
+    set_to_zero_model_weights(model)
 
-    model_params = new_model.state_dict()
+    # get the model parameters
+    model_params = model.state_dict()
 
     # enumerate over the clients
     for k, client_param in enumerate(client_params):
@@ -32,7 +29,7 @@ def aggregator(model, client_params: list, client_weights: list, kwargs=None):
             # add the contribution
             model_params[layer_key].data.add_(contribution)
 
-    return new_model
+    return model
 
 
 def set_to_zero_model_weights(model):

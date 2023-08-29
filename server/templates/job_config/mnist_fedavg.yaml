@@ -15,7 +15,7 @@ client_params:
         - 0.05
   
   model_params: # model and training files and configs
-    model_file: simple_nn
+    model_file: simple_mnist
     parameter_mixer: default
     training_loop_file: simple_loop
     test_file: simple_test
