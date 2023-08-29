@@ -179,7 +179,9 @@ def download_dataset():
         for chunk in JOBS[job_id].client_params['dataset']['distribution']['clients']:
             CHUNK_DIR_NAME += f'-{chunk}'
 
-        DATASET_CHUNK_PATH = f"../../datasets/deploy/{JOBS[job_id].dataset_params['prep']['file']}/chunks/{CHUNK_DIR_NAME}"
+        DATASET_PREP_MOD = JOBS[job_id].dataset_params['prep']['file']
+        DATASET_DIST_MOD = JOBS[job_id].client_params['dataset']['distribution']['distributor']['file']
+        DATASET_CHUNK_PATH = f"../../datasets/deploy/{DATASET_PREP_MOD}/chunks/{DATASET_DIST_MOD}/{CHUNK_DIR_NAME}"
 
         chunk_id = 0
         for i, client in enumerate(JOBS[job_id].exec_params['client_info']):

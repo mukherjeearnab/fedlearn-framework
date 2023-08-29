@@ -11,7 +11,7 @@ from helpers.file import set_OK_file, check_OK_file, create_dir_struct
 def prepare_dataset_for_deployment(config: dict):
     '''Prepares dataset for deployment
     1. run dataset_preperation and save to file in ./datasets/deploy/[dataset_prep file name]/root/dataset.tuple and OK file
-    2. run dataset_distribution and save to file in ./datasets/deploy/[dataset_prep file name]/chunks/client-n-[client_weight].pt and OK file
+    2. run dataset_distribution and save to file in ./datasets/deploy/[dataset_prep file name]/chunks/[dist_file]/client-n-[client_weight].pt and OK file
     '''
 
     CHUNK_DIR_NAME = 'dist'
@@ -19,9 +19,10 @@ def prepare_dataset_for_deployment(config: dict):
         CHUNK_DIR_NAME += f'-{chunk}'
 
     # print('CHUNK_DIR_NAME', CHUNK_DIR_NAME)
-
-    DATASET_ROOT_PATH = f"./datasets/deploy/{config['dataset_params']['prep']['file']}/root"
-    DATASET_CHUNK_PATH = f"./datasets/deploy/{config['dataset_params']['prep']['file']}/chunks/{CHUNK_DIR_NAME}"
+    DATASET_PREP_MOD = config['dataset_params']['prep']['file']
+    DATASET_DIST_MOD = config['client_params']['dataset']['distribution']['distributor']['file']
+    DATASET_ROOT_PATH = f"./datasets/deploy/{DATASET_PREP_MOD}/root"
+    DATASET_CHUNK_PATH = f"./datasets/deploy/{DATASET_PREP_MOD}/chunks/{DATASET_DIST_MOD}/{CHUNK_DIR_NAME}"
 
     # create the directory structures
     create_dir_struct(DATASET_ROOT_PATH)
