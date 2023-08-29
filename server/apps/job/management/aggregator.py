@@ -10,6 +10,8 @@ from helpers.logging import logger
 from helpers.dynamod import load_module
 from helpers.converters import convert_list_to_tensor
 from helpers.converters import get_state_dict
+from helpers.torch import get_device
+from apps.model.testing import test_runner
 
 
 # import environment variables
@@ -28,7 +30,10 @@ def aggregator_process(job_name: str, job_registry: dict, model):
 
     logger.info(f'Starting Aggregator Thread for job {job_name}')
 
+    device = get_device()
+
     curr_model = deepcopy(model)
+    curr_model = curr_model.to(device)
 
     # retrieve the job instance
     job = job_registry[job_name]
@@ -66,7 +71,9 @@ def aggregator_process(job_name: str, job_registry: dict, model):
 
                 for i, client in enumerate(state['exec_params']['client_info']):
                     if client['client_id'] == client_param['client_id']:
-                        client_params[i] = convert_list_to_tensor(param)
+                        client_params[i] = convert_list_to_tensor(
+                            param, device)
+
                         break
 
                 # # retrieve the client index
@@ -78,6 +85,9 @@ def aggregator_process(job_name: str, job_registry: dict, model):
             curr_model = aggregator_module.aggregator(curr_model, client_params,
                                                       state['client_params']['dataset']['distribution']['clients'])
 
+            # move to device, i.e., cpu or gpu
+            curr_model = curr_model.to(device)
+
             # obtain the list form of model parameters
             params = get_state_dict(curr_model)
 
@@ -86,6 +96,15 @@ def aggregator_process(job_name: str, job_registry: dict, model):
 
             logger.info(
                 f"Completed Global Round {job.job_status['global_round']-1} out of {job.server_params['train_params']['rounds']}")
+
+            # TODO: Add logic to test the model with the aggregated parameters
+            CHUNK_DIR_NAME = 'dist'
+            for chunk in state['client_params']['dataset']['distribution']['clients']:
+                CHUNK_DIR_NAME += f'-{chunk}'
+            DATASET_CHUNK_PATH = f"./datasets/deploy/{state['dataset_params']['prep']['file']}/chunks/{CHUNK_DIR_NAME}"
+            test_runner('global_test.tuple', DATASET_CHUNK_PATH,
+                        state['client_params']['train_params']['batch_size'],
+                        curr_model, device)
 
             sleep(DELAY*3)
 

@@ -3,6 +3,7 @@ A Module with functions to handle and convert Tensors into floats and overall mo
 '''
 from collections import OrderedDict
 import torch
+import torch.utils.data as data_utils
 
 
 def set_state_dict(model, state_dict: dict) -> None:
@@ -22,13 +23,14 @@ def get_state_dict(model) -> dict:
     return state_dict
 
 
-def convert_list_to_tensor(params: OrderedDict) -> dict:
+def convert_list_to_tensor(params: OrderedDict, device='cpu') -> dict:
     '''
     Converts an OrderedDict of Tensors into a Dictionary of Lists of floats
     '''
     params_ = {}
     for key in params.keys():
-        params_[key] = torch.tensor(params[key], dtype=torch.float32)
+        params_[key] = torch.tensor(params[key],
+                                    dtype=torch.float32, device=device)
 
     return params_
 
@@ -43,3 +45,16 @@ def convert_tensor_to_list(params: dict) -> dict:
         params_[key] = params[key].tolist()
 
     return params_
+
+
+def tensor_to_data_loader(dataset: tuple, batch_size: int):
+    '''
+    convert dataset tensor to data loader object
+    '''
+
+    data, labels = dataset
+
+    train = data_utils.TensorDataset(data, labels)
+    train_loader = data_utils.DataLoader(train, batch_size, shuffle=True)
+
+    return train_loader
