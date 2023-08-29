@@ -47,21 +47,25 @@ def get_metrics(actuals: list, preds: list) -> dict:
     # print(actuals, preds)
 
     accuracy = metrics.accuracy_score(actuals, preds)
-    # precision = metrics.precision_score(actuals, preds)
-    # recall = metrics.recall_score(actuals, preds)
-    # f1_macro = metrics.f1_score(actuals, preds, average='macro')
-    # f1_micro = metrics.f1_score(actuals, preds, average='micro')
-    # f1_weighted = metrics.f1_score(actuals, preds, average='weighted')
+    precision_weighted = metrics.precision_score(actuals, preds,
+                                                 average='weighted')
+    precision_macro = metrics.precision_score(actuals, preds,
+                                              average='macro')
+    recall_weighted = metrics.recall_score(actuals, preds, average='weighted')
+    recall_macro = metrics.recall_score(actuals, preds, average='macro')
+    f1_macro = metrics.f1_score(actuals, preds, average='macro')
+    f1_weighted = metrics.f1_score(actuals, preds, average='weighted')
     confusion_matrix = metrics.confusion_matrix(actuals, preds)
     report = metrics.classification_report(actuals, preds)
 
     results = {
         'accuracy': accuracy,
-        # 'precision': precision,
-        # 'recall': recall,
-        # 'f1_macro': f1_macro,
-        # 'f1_micro': f1_micro,
-        # 'f1_weighted': f1_weighted,
+        'precision_weighted': precision_weighted,
+        'precision_macro': precision_macro,
+        'recall_weighted': recall_weighted,
+        'recall_macro': recall_macro,
+        'f1_macro': f1_macro,
+        'f1_weighted': f1_weighted,
         'confusion_matrix': confusion_matrix,
         'classification_report': report
     }
