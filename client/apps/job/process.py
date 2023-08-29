@@ -53,8 +53,9 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
     # Step 3: Preprocess dataset.
     # 3.1 preprocess dataset
     (train_set, test_set) = data_preprocessing(file_name, dataset_path,
-                                               job_manifest['client_params']['dataset']['preprocessor']['content'],
-                                               list(job_manifest['client_params']['train_test_split'].values()))
+                                               job_manifest['client_params']['dataset']['preprocessor']['content'])
+    #    list(job_manifest['client_params']['train_test_split'].values()))
+
     # 3.2 create DataLoader Objects for train and test sets
     train_loader = tensor_to_data_loader(train_set,
                                          job_manifest['client_params']['train_params']['batch_size'])

@@ -1,7 +1,7 @@
 '''
 The Dataset Preperation Module for Jobs
 '''
-
+import torch
 from helpers.logging import logger
 from helpers.file import torch_write, torch_read
 from helpers.dynamod import load_module
@@ -65,8 +65,18 @@ def prepare_dataset_for_deployment(config: dict):
         chunks = distributor_module.distribute_into_client_chunks((data, labels),
                                                                   config['client_params']['dataset']['distribution']['clients'])
 
-        # saving chunks to disk
+        # split the chunks into train and test sets
+        split_ratio = list(
+            config['client_params']['train_test_split'].values())
+        chunks = [train_test_split(chunk, split_ratio) for chunk in chunks]
+
+        # create the global test set
+        global_test_set = create_central_testset(
+            [chunk[1] for chunk in chunks])
+
+        # saving chunks and global test dataset to disk
         try:
+            # save the chunks dataset to disk
             for i in range(config['client_params']['num_clients']):
                 # client = f'client-{i+1}'
                 # save the dataset to disk
@@ -75,11 +85,65 @@ def prepare_dataset_for_deployment(config: dict):
                             chunks[i])
 
                 logger.info(
-                    f'Saved Chunk for {i+1}th Client with size {len(chunks[i][1])}')
+                    f'Saved Chunk for {i+1}th Client with size {len(chunks[i][0][1])+len(chunks[i][1][1])}')
+
+            # saving global test dataset to disk
+            torch_write('global_test.tuple',
+                        DATASET_CHUNK_PATH,
+                        global_test_set)
+
+            logger.info(
+                f'Saved Global Test Set with size {len(global_test_set[1])}')
 
             # set the OK file
             set_OK_file(DATASET_CHUNK_PATH)
-            logger.info('Dataset Client Chunks Saved Successfully!')
+            logger.info(
+                'Dataset Client Chunks and Global Set Saved Successfully!')
         except Exception as e:
             logger.error(
                 f'Error Saving Chunked Dataset to disk! {e}')
+
+
+def train_test_split(dataset: tuple, split_weights: list) -> tuple:
+    '''
+    Creates train and test sets by splitting the original dataset into 
+    len(split_weights) chunks.
+    '''
+
+    data, labels = dataset
+
+    total_data_samples = len(data)
+
+    # calculate the split sections
+    split_sections = [int(total_data_samples*weight)
+                      for weight in split_weights]
+
+    # split the data and labels into chunks
+    data_chunks = torch.split(data, split_size_or_sections=split_sections)
+    label_chunks = torch.split(labels, split_size_or_sections=split_sections)
+
+    # create dataset tuples for client chunks
+    train_test_chunks = []
+    for i in range(len(split_weights)):
+        split_chunk = (data_chunks[i], label_chunks[i])
+
+        train_test_chunks.append(split_chunk)
+
+    # returns (train_set, test_set)
+    return (train_test_chunks[0], train_test_chunks[1])
+
+
+def create_central_testset(client_test_sets: list) -> tuple:
+    '''
+    Appendd all the client test sets into a single test set, 
+    which will be used by the server to test the global model.
+    '''
+    # create a list of all the data and labels for each client
+    data = [t[0] for t in client_test_sets]
+    labels = [t[1] for t in client_test_sets]
+
+    # concatenate the data and labels into a single tensor
+    data = torch.cat(data, 0)
+    labels = torch.cat(labels, 0)
+
+    return (data, labels)
