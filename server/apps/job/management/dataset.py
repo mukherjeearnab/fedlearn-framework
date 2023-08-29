@@ -118,6 +118,11 @@ def train_test_split(dataset: tuple, split_weights: list) -> tuple:
     split_sections = [int(total_data_samples*weight)
                       for weight in split_weights]
 
+    if sum(split_sections) < total_data_samples:
+        split_sections[-1] += total_data_samples - sum(split_sections)
+    else:
+        split_sections[0] -= sum(split_sections) - total_data_samples
+
     # split the data and labels into chunks
     data_chunks = torch.split(data, split_size_or_sections=split_sections)
     label_chunks = torch.split(labels, split_size_or_sections=split_sections)
