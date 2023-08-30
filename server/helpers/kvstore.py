@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 KVS_URL = os.getenv('KVSTORE_URL')
-DELAY = int(os.getenv('DELAY'))
+DELAY = float(os.getenv('DELAY'))
 
 
 def kv_get(key: str) -> Any:

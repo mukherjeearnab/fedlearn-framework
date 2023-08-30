@@ -18,7 +18,7 @@ from helpers.converters import get_state_dict
 load_dotenv()
 
 SERVER_PORT = int(os.getenv('SERVER_PORT'))
-DELAY = int(os.getenv('DELAY'))
+DELAY = float(os.getenv('DELAY'))
 
 
 def start_job(job_name: str, config_registry: dict, job_registry: dict) -> dict:

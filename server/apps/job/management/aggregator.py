@@ -18,7 +18,7 @@ from apps.model.testing import test_runner
 load_dotenv()
 
 SERVER_PORT = int(os.getenv('SERVER_PORT'))
-DELAY = int(os.getenv('DELAY'))
+DELAY = float(os.getenv('DELAY'))
 
 
 def aggregator_process(job_name: str, job_registry: dict, model):
@@ -108,7 +108,7 @@ def aggregator_process(job_name: str, job_registry: dict, model):
                         state['client_params']['train_params']['batch_size'],
                         curr_model, device)
 
-            sleep(DELAY*3)
+            sleep(DELAY*6)
 
             # set process phase to 1 to resume local training
             # check if global_round >= server_params.train_params.rounds, then terminate,

@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 # import environment variables
 load_dotenv()
 
-DELAY = int(os.getenv('DELAY'))
+DELAY = float(os.getenv('DELAY'))
 
 
 def download_global_params(job_id: str, server_url: str):

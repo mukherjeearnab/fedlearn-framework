@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 
 # import environment variables
 load_dotenv()
-DELAY = int(os.getenv('DELAY'))
+DELAY = float(os.getenv('DELAY'))
 
 
 def keep_alive_process(jobs_registry: dict, client_state: dict):

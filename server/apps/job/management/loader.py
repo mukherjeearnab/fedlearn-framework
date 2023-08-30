@@ -14,7 +14,7 @@ from apps.client.api import get_alive_clients
 load_dotenv()
 
 SERVER_PORT = int(os.getenv('SERVER_PORT'))
-DELAY = int(os.getenv('DELAY'))
+DELAY = float(os.getenv('DELAY'))
 
 
 def load_job(job_name: str, config_registry: dict):

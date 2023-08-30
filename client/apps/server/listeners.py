@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 # import environment variables
 load_dotenv()
 
-DELAY = int(os.getenv('DELAY'))
+DELAY = float(os.getenv('DELAY'))
 
 
 def listen_to_dataset_download_flag(job_id: str, server_url: str):

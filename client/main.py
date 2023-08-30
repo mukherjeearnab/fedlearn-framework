@@ -13,7 +13,7 @@ from apps.client.registration import register_client
 # import environment variables
 load_dotenv()
 
-DELAY = int(os.getenv('DELAY'))
+DELAY = float(os.getenv('DELAY'))
 
 # fetch mme server url
 CLIENT_STATE = {

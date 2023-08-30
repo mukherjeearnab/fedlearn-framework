@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 # import environment variables
 load_dotenv()
 
-DELAY = int(os.getenv('DELAY'))
+DELAY = float(os.getenv('DELAY'))
 
 
 def update_client_status(client_id: str, job_id: str, status: int, server_url: str):
