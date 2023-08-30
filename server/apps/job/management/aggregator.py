@@ -97,11 +97,13 @@ def aggregator_process(job_name: str, job_registry: dict, model):
             logger.info(
                 f"Completed Global Round {job.job_status['global_round']-1} out of {job.server_params['train_params']['rounds']}")
 
-            # TODO: Add logic to test the model with the aggregated parameters
+            # logic to test the model with the aggregated parameters
+            DATASET_PREP_MOD = state['dataset_params']['prep']['file']
+            DATASET_DIST_MOD = state['client_params']['dataset']['distribution']['distributor']['file']
             CHUNK_DIR_NAME = 'dist'
             for chunk in state['client_params']['dataset']['distribution']['clients']:
                 CHUNK_DIR_NAME += f'-{chunk}'
-            DATASET_CHUNK_PATH = f"./datasets/deploy/{state['dataset_params']['prep']['file']}/chunks/{CHUNK_DIR_NAME}"
+            DATASET_CHUNK_PATH = f"./datasets/deploy/{DATASET_PREP_MOD}/chunks/{DATASET_DIST_MOD}/{CHUNK_DIR_NAME}"
             test_runner('global_test.tuple', DATASET_CHUNK_PATH,
                         state['client_params']['train_params']['batch_size'],
                         curr_model, device)

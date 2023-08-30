@@ -13,23 +13,41 @@ def distribute_into_client_chunks(dataset: tuple, client_weights: list) -> list:
 
     (data, labels) = dataset
 
-    num_clients = len(client_weights)
-    classes = torch.arange(10)
+    # get the unique labels
+    classes = torch.unique(labels)
 
-    # split the classes in a fair way
-    classes_split = list()
-    i = 0
-    for n in range(num_clients):
-        inc = i + int(client_weights[n]*len(classes))
+    # sort and segregate the labels sequentially
+    data_class_chunks = []
+    labels_class_chunks = []
+    for y_ in classes:
+        idx = torch.stack([y_ == labels]).sum(
+            0).bool()  # get indices for the class
+        data_class_chunks.append(data[idx])
+        labels_class_chunks.append(labels[idx])
 
-        classes_split.append(classes[i:i+inc])
+    data = torch.cat(data_class_chunks, 0)
+    labels = torch.cat(labels_class_chunks, 0)
 
-        i += inc
+    # count the total samples
+    total_data_samples = len(data)
 
-    client_chunks = list()
-    for i in range(num_clients):
-        idx = torch.stack([y_ == labels for y_ in classes_split[i]]).sum(
-            0).bool()  # get indices for the classes
-        client_chunks.append((data[idx], labels[idx]))
+    # calculate the split sections
+    split_sections = [int(total_data_samples*weight)
+                      for weight in client_weights]
+
+    # split the data and labels into chunks
+    data_chunks = torch.split(data, split_size_or_sections=split_sections)
+    label_chunks = torch.split(labels, split_size_or_sections=split_sections)
+
+    # create dataset tuples for client chunks
+    client_chunks = []
+    for i in range(len(client_weights)):
+        # shuffle the samples using the permutation
+        idx = torch.randperm(len(label_chunks[i]))
+
+        # shuffle and add to the tuple
+        client_chunk = (data_chunks[i][idx], label_chunks[i][idx])
+
+        client_chunks.append(client_chunk)
 
     return client_chunks
