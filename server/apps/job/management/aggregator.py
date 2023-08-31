@@ -36,6 +36,12 @@ def aggregator_process(job_name: str, job_registry: dict, model):
     curr_model = deepcopy(model)
     curr_model = curr_model.to(device)
 
+    sleep(DELAY*3)
+
+    # retrieve the job instance
+    state = get_job(job_name)
+    logger.info(f'Retrieved Job State for Job {job_name}.')
+
     # start training
     allow_start_training(job_name)
 
@@ -95,7 +101,7 @@ def aggregator_process(job_name: str, job_registry: dict, model):
             set_central_model_params(job_name, params)
 
             logger.info(
-                f"Completed Global Round {state['job_status']['global_round']-1} out of {state['server_params']['train_params']['rounds']}")
+                f"Completed Global Round {state['job_status']['global_round']} out of {state['server_params']['train_params']['rounds']}")
 
             # logic to test the model with the aggregated parameters
             DATASET_PREP_MOD = state['dataset_params']['prep']['file']
@@ -113,7 +119,7 @@ def aggregator_process(job_name: str, job_registry: dict, model):
             # set process phase to 1 to resume local training
             # check if global_round >= server_params.train_params.rounds, then terminate,
             # else allow training
-            if state['job_status']['global_round'] > state['server_params']['train_params']['rounds']:
+            if state['job_status']['global_round'] >= state['server_params']['train_params']['rounds']:
                 logger.info(f'Completed Job [{job_name}]. Terminating...')
                 terminate_training(job_name)
                 break

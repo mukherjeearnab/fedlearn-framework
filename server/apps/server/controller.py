@@ -17,7 +17,7 @@ def run_server():
     '''
     Method to create a thread for the server process
     '''
-    app.run(port=SERVER_PORT, debug=False, threaded=True, host='0.0.0.0')
+    app.run(port=SERVER_PORT, debug=False, host='0.0.0.0')
 
 
 server = Process(target=run_server)

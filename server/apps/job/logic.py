@@ -223,10 +223,10 @@ class TrainingJobManager:
                 f"All clients are at Stage: [{CLIENT_STAGE[self.job_status['client_stage']]}]")
 
             # if all clients is waiting for parameters, update process phase to 2
-            if list(all_client_status)[0] == 4:
-                self.job_status['process_phase'] = 2
-                logger.info(
-                    'All clients params are submitted, starting Federated Aggregation.')
+            # if list(all_client_status)[0] == 4:
+            #     self.job_status['process_phase'] = 2
+            #     logger.info(
+            #         'All clients params are submitted, starting Federated Aggregation.')
 
         # method suffixed with update state and lock release
         self._update_state()
@@ -282,6 +282,7 @@ class TrainingJobManager:
         # method logic
         if (self.job_status['process_phase'] == 0 or self.job_status['process_phase'] == 2) and (self.job_status['client_stage'] == 2 or self.job_status['client_stage'] == 4):
             self.job_status['process_phase'] = 1
+            self.exec_params['client_model_params'] = []
 
             # method suffixed with update state and lock release
             self._update_state()
@@ -314,10 +315,10 @@ class TrainingJobManager:
             # self.update_client_status(client_id, client_status=4)
 
             # if all the client's parameters are submitted, set process_phase to 2, i.e., InCentralAggregation
-            # if len(self.exec_params['client_model_params']) == self.client_params['num_clients']:
-            #     self.job_status['process_phase'] = 2
-            #     logger.info(
-            #         'All clients params are submitted, starting Federated Aggregation.')
+            if len(self.exec_params['client_model_params']) == self.client_params['num_clients']:
+                self.job_status['process_phase'] = 2
+                logger.info(
+                    'All clients params are submitted, starting Federated Aggregation.')
 
             # method suffixed with update state and lock release
             self._update_state()
