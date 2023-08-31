@@ -31,26 +31,6 @@ def distribute_into_client_chunks(dataset: tuple, client_weights: list) -> list:
     # count the total samples
     total_data_samples = len(data)
 
-    # split the data and labels into 2 parts for shuffling and creating a non-iid dist
-    diff_split = [int(total_data_samples*weight)
-                  for weight in [0.5, 0.5]]
-    data_diff_chunks = list(torch.split(
-        data, split_size_or_sections=diff_split))
-    label_diff_chunks = list(torch.split(
-        labels, split_size_or_sections=diff_split))
-
-    # permutate the samples in the
-    for i in range(2):
-        # shuffle the samples using the permutation
-        idx = torch.randperm(len(label_diff_chunks[i]))
-
-        # shuffle and add to the tuple
-        data_diff_chunks[i] = data_diff_chunks[i][idx]
-        label_diff_chunks[i] = label_diff_chunks[i][idx]
-
-    data = torch.cat(data_diff_chunks, 0)
-    labels = torch.cat(label_diff_chunks, 0)
-
     # calculate the split sections
     split_sections = [int(total_data_samples*weight)
                       for weight in client_weights]
