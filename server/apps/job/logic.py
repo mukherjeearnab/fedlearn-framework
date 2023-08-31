@@ -210,12 +210,12 @@ class TrainingJobManager:
             if self.exec_params['client_info'][i]['client_id'] == client_id:
                 self.exec_params['client_info'][i]['status'] = client_status
 
-            logger.info(
-                f"Client [{client_id}] is at stage [{CLIENT_STAGE[client_status]}].")
-
             # collect the status of all the clients
             all_client_status.add(
                 self.exec_params['client_info'][i]['status'])
+
+        logger.info(
+            f"Client [{client_id}] is at stage [{CLIENT_STAGE[client_status]}].")
 
         if len(all_client_status) == 1:
             self.job_status['client_stage'] = list(all_client_status)[0]
