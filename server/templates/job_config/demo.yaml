@@ -18,7 +18,7 @@ client_params:
   model_params: # model and training files and configs
     model_file: simple_mnist
     parameter_mixer: default
-    training_loop_file: simple_loop
+    training_loop_file: fed_prox_loop
     test_file: simple_test
 
 
@@ -28,7 +28,8 @@ client_params:
     local_epochs: 5
     
     extra_params:
-      prox_mu: 0.3
+      fed_prox: 
+        mu: 0.3
       lr_decay: 1
 
   

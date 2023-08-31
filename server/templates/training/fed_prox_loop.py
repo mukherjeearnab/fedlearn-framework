@@ -11,13 +11,11 @@ def train_loop(num_epochs: int, learning_rate: float,
                local_model, global_model,
                extra_params: dict, device='cpu') -> None:
     '''
-    The Training Loop Function. It trains the local_model of num_epochs.
+    The Training Loop Function. It trains the model of num_epochs.
     '''
 
-    _ = global_model
-    _ = extra_params
-
-    # move the local_model to the device, cpu or gpu
+    # move the model to the device, cpu or gpu
+    global_model = global_model.to(device)
     local_model = local_model.to(device)
 
     criterion = nn.CrossEntropyLoss()
@@ -37,11 +35,21 @@ def train_loop(num_epochs: int, learning_rate: float,
             optimizer.zero_grad()
             outputs = local_model(inputs)
             loss = criterion(outputs, labels)
+            loss += extra_params['fed_prox']['mu']/2 * \
+                difference_models_norm_2(local_model, global_model)
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
 
-        # report training loss here
-        # if i % 100 == 99:
-        #     print(f"[Epoch {epoch+1}, Batch {i+1}] Loss: {running_loss/100:.3f}")
-        #     running_loss = 0.0
+
+def difference_models_norm_2(model_1, model_2):
+    """Return the norm 2 difference between the two model parameters
+    """
+
+    tensor_1 = list(model_1.parameters())
+    tensor_2 = list(model_2.parameters())
+
+    norm = sum([torch.sum((tensor_1[i]-tensor_2[i])**2)
+                for i in range(len(tensor_1))])
+
+    return norm

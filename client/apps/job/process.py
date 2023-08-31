@@ -1,6 +1,7 @@
 '''
 Job Process Module
 '''
+from copy import deepcopy
 from helpers.logging import logger
 from helpers.file import create_dir_struct
 from helpers.http import download_file
@@ -68,11 +69,13 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
     # wait for client stage be 2
     listen_to_client_stage(2, job_id, server_url)
 
-    # It is a good idea to initialize the model with initial params here.
-    model = init_model(job_manifest['client_params']
-                       ['model_params']['model_file']['content'])
+    # It is a good idea to initialize the local and global model with initial params here.
+    local_model = init_model(job_manifest['client_params']
+                             ['model_params']['model_file']['content'])
+    global_model = deepcopy(local_model)
+
     # obtain parameters of the model
-    previous_params = get_state_dict(model)
+    previous_params = get_state_dict(local_model)
 
     # Step 5: Listen to check when process phase turns 1.
     listen_to_start_training(job_id, server_url)
@@ -98,17 +101,21 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
         curr_params = parameter_mixing(global_params, previous_params,
                                        job_manifest['client_params']['model_params']['parameter_mixer']['content'])
 
-        # Step 8.2: Update the model parameters
-        set_state_dict(model, curr_params)
+        # Step 8.2.1: Update the local model parameters
+        set_state_dict(local_model, curr_params)
+
+        # Step 8.2.2: Update the local model parameters
+        set_state_dict(global_model, global_params)
 
         # Step 8.3: Training Loop
-        train_model(job_manifest, train_loader, model, device)
+        train_model(job_manifest, train_loader,
+                    local_model, global_model, device)
 
         # Step 8.4: Obtain trained model parameters
-        curr_params = get_state_dict(model)
+        curr_params = get_state_dict(local_model)
 
         # Step 8.5: Test the trained model parameters with test dataset
-        metrics = test_model(model, test_loader, device)
+        metrics = test_model(local_model, test_loader, device)
         # as of now, only print the metrics
         logger.info(f"Training Report:\n{metrics['classification_report']}")
 
