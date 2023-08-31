@@ -4,7 +4,7 @@ Client Main Module
 import os
 from time import sleep
 from dotenv import load_dotenv
-
+from helpers import torch as _
 from helpers.logging import logger
 from apps.client.keep_alive import keep_alive_process
 from apps.client.registration import register_client

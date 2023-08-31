@@ -5,6 +5,8 @@ import os
 import torch
 from dotenv import load_dotenv
 
+torch.manual_seed(0)
+
 load_dotenv()
 USE_CUDA = int(os.getenv('USE_CUDA'))
 
