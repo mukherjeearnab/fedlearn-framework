@@ -89,7 +89,7 @@ class TrainingJobManager:
         '''
         Get All State Variables of the Job Instance
         '''
-        self.modification_lock.wait()
+        # self.modification_lock.wait()
         self._read_state()
         data = {
             'project_name': self.project_name,

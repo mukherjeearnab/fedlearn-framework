@@ -12,6 +12,7 @@ from helpers.converters import convert_list_to_tensor
 from helpers.converters import get_state_dict
 from helpers.torch import get_device
 from apps.model.testing import test_runner
+from apps.job.api import get_job, allow_start_training, terminate_training, set_central_model_params
 
 
 # import environment variables
@@ -35,12 +36,8 @@ def aggregator_process(job_name: str, job_registry: dict, model):
     curr_model = deepcopy(model)
     curr_model = curr_model.to(device)
 
-    # retrieve the job instance
-    job = job_registry[job_name]
-    logger.info(f'Retrieved Job Instance for Job {job_name}.')
-
     # start training
-    job.allow_start_training()
+    allow_start_training(job_name)
 
     i_agg_pp, i_agg_cs = -1, -1
     # keep listening to process_phase
@@ -49,7 +46,7 @@ def aggregator_process(job_name: str, job_registry: dict, model):
         sleep(DELAY)
 
         # get the current job state
-        state = job.get_state()
+        state = get_job(job_name)
 
         if (i_agg_pp != state['job_status']['process_phase']) or (i_agg_cs != state['job_status']['client_stage']):
             logger.info(
@@ -95,10 +92,10 @@ def aggregator_process(job_name: str, job_registry: dict, model):
             params = get_state_dict(curr_model)
 
             # update the central model params
-            job.set_central_model_params(params)
+            set_central_model_params(job_name, params)
 
             logger.info(
-                f"Completed Global Round {job.job_status['global_round']-1} out of {job.server_params['train_params']['rounds']}")
+                f"Completed Global Round {state['job_status']['global_round']-1} out of {state['server_params']['train_params']['rounds']}")
 
             # logic to test the model with the aggregated parameters
             DATASET_PREP_MOD = state['dataset_params']['prep']['file']
@@ -116,12 +113,12 @@ def aggregator_process(job_name: str, job_registry: dict, model):
             # set process phase to 1 to resume local training
             # check if global_round >= server_params.train_params.rounds, then terminate,
             # else allow training
-            if job.job_status['global_round'] > job.server_params['train_params']['rounds']:
+            if state['job_status']['global_round'] > state['server_params']['train_params']['rounds']:
                 logger.info(f'Completed Job [{job_name}]. Terminating...')
-                job.terminate_training()
+                terminate_training(job_name)
                 break
             else:
-                job.allow_start_training()
+                allow_start_training(job_name)
 
             # log that aggregation is complete
             logger.info(f'Aggregation Process Complete for job [{job_name}]')

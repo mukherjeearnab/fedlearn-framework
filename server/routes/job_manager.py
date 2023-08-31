@@ -119,6 +119,53 @@ def get():
     return jsonify(job_state)
 
 
+################################################################
+# Job Specific Routes
+################################################################
+
+
+@blueprint.route('/allow_start_training', methods=['POST'])
+def allow_start_training():
+    '''
+    ROUTE to update the client status
+    '''
+    payload = request.get_json()
+    status = 200
+
+    job_id = payload['job_id']
+
+    # STATE_LOCK.acquire()
+
+    if job_id in JOBS.keys():
+        JOBS[job_id].allow_start_training()
+    else:
+        status = 404
+    # STATE_LOCK.release()
+
+    return jsonify({'message': 'Training Allowed!' if status == 200 else 'Training NOT Allowed!'}), status
+
+
+@blueprint.route('/terminate_training', methods=['POST'])
+def terminate_training():
+    '''
+    ROUTE to update the client status
+    '''
+    payload = request.get_json()
+    status = 200
+
+    job_id = payload['job_id']
+
+    # STATE_LOCK.acquire()
+
+    if job_id in JOBS.keys():
+        JOBS[job_id].terminate_training()
+    else:
+        status = 404
+    # STATE_LOCK.release()
+
+    return jsonify({'message': 'Training Terminated!' if status == 200 else 'Training NOT Terminated!'}), status
+
+
 @blueprint.route('/update_client_status', methods=['POST'])
 def update_client_status():
     '''
@@ -140,6 +187,28 @@ def update_client_status():
     # STATE_LOCK.release()
 
     return jsonify({'message': 'Status updated!' if status == 200 else 'Update failed!'}), status
+
+
+@blueprint.route('/set_central_model_params', methods=['POST'])
+def set_central_model_params():
+    '''
+    ROUTE to update the client status
+    '''
+    payload = request.get_json()
+    status = 200
+
+    job_id = payload['job_id']
+    central_params = payload['central_params']
+
+    # STATE_LOCK.acquire()
+
+    if job_id in JOBS.keys():
+        JOBS[job_id].set_central_model_params(central_params)
+    else:
+        status = 404
+    # STATE_LOCK.release()
+
+    return jsonify({'message': 'Central Params SET!' if status == 200 else 'Central Params NOT SET!'}), status
 
 
 @blueprint.route('/append_client_params', methods=['POST'])

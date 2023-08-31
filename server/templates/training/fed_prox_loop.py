@@ -35,7 +35,7 @@ def train_loop(num_epochs: int, learning_rate: float,
             optimizer.zero_grad()
             outputs = local_model(inputs)
             loss = criterion(outputs, labels)
-            loss += extra_params['fed_prox']['mu']/2 * \
+            loss += (extra_params['fed_prox']['mu']/2) * \
                 difference_models_norm_2(local_model, global_model)
             loss.backward()
             optimizer.step()
