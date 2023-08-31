@@ -42,6 +42,7 @@ def aggregator_process(job_name: str, job_registry: dict, model):
     # start training
     job.allow_start_training()
 
+    i_agg_pp, i_agg_cs = -1, -1
     # keep listening to process_phase
     while True:
         # sleep for DELAY seconds
@@ -50,8 +51,10 @@ def aggregator_process(job_name: str, job_registry: dict, model):
         # get the current job state
         state = job.get_state()
 
-        logger.info(
-            f"Checking for Aggregation Process for job [{job_name}] PS [{state['job_status']['process_phase']}] CS [{state['job_status']['client_stage']}]")
+        if (i_agg_pp != state['job_status']['process_phase']) or (i_agg_cs != state['job_status']['client_stage']):
+            logger.info(
+                f"Checking for Aggregation Process for job [{job_name}] PS [{state['job_status']['process_phase']}] CS [{state['job_status']['client_stage']}]")
+            i_agg_pp, i_agg_cs = state['job_status']['process_phase'], state['job_status']['client_stage']
 
         # if the process phase turns 2
         if state['job_status']['process_phase'] == 2 and state['job_status']['client_stage'] == 4:

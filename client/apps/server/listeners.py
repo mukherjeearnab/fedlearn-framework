@@ -18,7 +18,7 @@ def listen_to_dataset_download_flag(job_id: str, server_url: str):
     Method to listen to server to wait for dataset to get prepared,
     and move on with downloading the dataset
     '''
-
+    i_dd = -1
     while True:
         try:
             # listen to check if dataset flag is true or false
@@ -26,8 +26,10 @@ def listen_to_dataset_download_flag(job_id: str, server_url: str):
 
             manifest = get(url, {'job_id': job_id})
 
-            logger.info(
-                f"Got dataset download flag [{manifest['job_status']['download_dataset']}], Expecting[True] for [{job_id}] from Server at {url}")
+            if i_dd != manifest['job_status']['download_dataset']:
+                logger.info(
+                    f"Got dataset download flag [{manifest['job_status']['download_dataset']}], Expecting[True] for [{job_id}] from Server at {url}")
+                i_dd = manifest['job_status']['download_dataset']
 
             # if download dataset flag is true, break and exit
             if manifest['job_status']['download_dataset']:
@@ -46,6 +48,7 @@ def listen_to_start_training(job_id: str, server_url: str):
     i.e., Process Phase to change to 1
     '''
 
+    i_pp = -1
     while True:
         try:
             # listen to check if dataset flag is true or false
@@ -53,8 +56,10 @@ def listen_to_start_training(job_id: str, server_url: str):
 
             manifest = get(url, {'job_id': job_id})
 
-            logger.info(
-                f"Got Process Phase [{manifest['job_status']['process_phase']}], Expecting [1] for [{job_id}] from Server at {url}")
+            if i_pp != manifest['job_status']['process_phase']:
+                logger.info(
+                    f"Got Process Phase [{manifest['job_status']['process_phase']}], Expecting [1] for [{job_id}] from Server at {url}")
+                i_pp = manifest['job_status']['process_phase']
 
             # if download dataset flag is true, break and exit
             if manifest['job_status']['process_phase'] == 1:
@@ -73,6 +78,7 @@ def listen_for_central_aggregation(job_id: str, server_url: str):
     i.e., Process Phase to change to 2
     '''
 
+    i_pp = -1
     while True:
         try:
             # listen to check if dataset flag is true or false
@@ -80,8 +86,10 @@ def listen_for_central_aggregation(job_id: str, server_url: str):
 
             manifest = get(url, {'job_id': job_id})
 
-            logger.info(
-                f"Got Process Phase [{manifest['job_status']['process_phase']}], Expecting [2] for [{job_id}] from Server at {url}")
+            if i_pp != manifest['job_status']['process_phase']:
+                logger.info(
+                    f"Got Process Phase [{manifest['job_status']['process_phase']}], Expecting [2] for [{job_id}] from Server at {url}")
+                i_pp = manifest['job_status']['process_phase']
 
             # if download dataset flag is true, break and exit
             if manifest['job_status']['process_phase'] == 2:
@@ -97,7 +105,7 @@ def listen_to_client_stage(client_stage: int, job_id: str, server_url: str):
     '''
     Method to listen to client stage
     '''
-
+    i_cs = -1
     while True:
         try:
             # listen to check if dataset flag is true or false
@@ -105,8 +113,10 @@ def listen_to_client_stage(client_stage: int, job_id: str, server_url: str):
 
             manifest = get(url, {'job_id': job_id})
 
-            logger.info(
-                f"Got client Stage [{manifest['job_status']['client_stage']}], Expecting [{client_stage}] for [{job_id}] from Server at {url}")
+            if i_cs != manifest['job_status']['client_stage']:
+                logger.info(
+                    f"Got client Stage [{manifest['job_status']['client_stage']}], Expecting [{client_stage}] for [{job_id}] from Server at {url}")
+                i_cs = manifest['job_status']['client_stage']
 
             # if download dataset flag is true, break and exit
             if manifest['job_status']['client_stage'] == client_stage:
@@ -124,6 +134,7 @@ def listen_for_param_download_training(job_id: str, server_url: str) -> int:
     i.e., Process Phase to change to 1 or 3
     '''
 
+    i_pp = -1
     while True:
         try:
             # listen to check if dataset flag is true or false
@@ -131,8 +142,10 @@ def listen_for_param_download_training(job_id: str, server_url: str) -> int:
 
             manifest = get(url, {'job_id': job_id})
 
-            logger.info(
-                f"Got Process Phase [{manifest['job_status']['process_phase']}], Expecting [1,3] for [{job_id}] from Server at {url}")
+            if i_pp != manifest['job_status']['process_phase']:
+                logger.info(
+                    f"Got Process Phase [{manifest['job_status']['process_phase']}], Expecting [1,3] for [{job_id}] from Server at {url}")
+                i_pp = manifest['job_status']['process_phase']
 
             # if download dataset flag is true, break and exit
             if manifest['job_status']['process_phase'] == 1 or manifest['job_status']['process_phase'] == 3:
