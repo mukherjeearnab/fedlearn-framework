@@ -222,6 +222,12 @@ class TrainingJobManager:
             logger.info(
                 f"All clients are at Stage: [{CLIENT_STAGE[self.job_status['client_stage']]}]")
 
+            # if all clients is waiting for parameters, update process phase to 2
+            if list(all_client_status)[0] == 4:
+                self.job_status['process_phase'] = 2
+                logger.info(
+                    'All clients params are submitted, starting Federated Aggregation.')
+
         # method suffixed with update state and lock release
         self._update_state()
         self.modification_lock.release()
@@ -308,10 +314,10 @@ class TrainingJobManager:
             # self.update_client_status(client_id, client_status=4)
 
             # if all the client's parameters are submitted, set process_phase to 2, i.e., InCentralAggregation
-            if len(self.exec_params['client_model_params']) == self.client_params['num_clients']:
-                self.job_status['process_phase'] = 2
-                logger.info(
-                    'All clients params are submitted, starting Federated Aggregation.')
+            # if len(self.exec_params['client_model_params']) == self.client_params['num_clients']:
+            #     self.job_status['process_phase'] = 2
+            #     logger.info(
+            #         'All clients params are submitted, starting Federated Aggregation.')
 
             # method suffixed with update state and lock release
             self._update_state()
