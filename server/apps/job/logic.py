@@ -284,6 +284,8 @@ class TrainingJobManager:
             self.job_status['process_phase'] = 1
             self.exec_params['client_model_params'] = []
 
+            logger.info("Changed Process phase to 1, Start training.")
+
             # method suffixed with update state and lock release
             self._update_state()
         else:
@@ -311,6 +313,9 @@ class TrainingJobManager:
             self.exec_params['client_model_params'].append({'client_id': client_id,
                                                             'client_params': client_params})
 
+            logger.info(
+                f"[{client_id}] submitted params. Total Params: {len(self.exec_params['client_model_params'])}/{self.client_params['num_clients']}")
+
             # # update client status to 4, ClientWaitingForParams
             # self.update_client_status(client_id, client_status=4)
 
@@ -322,6 +327,7 @@ class TrainingJobManager:
 
             # method suffixed with update state and lock release
             self._update_state()
+            print("StateUPdatedforAppendClientParams")
         else:
             logger.warning(
                 f'Cannot APPEND client model params! job_status.process_phase is {self.job_status["process_phase"]}, job_status.client_stage is {self.job_status["client_stage"]}.')

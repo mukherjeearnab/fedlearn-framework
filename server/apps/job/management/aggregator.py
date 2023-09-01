@@ -114,7 +114,7 @@ def aggregator_process(job_name: str, job_registry: dict, model):
                         state['client_params']['train_params']['batch_size'],
                         curr_model, device)
 
-            sleep(DELAY*6)
+            sleep(DELAY)
 
             # set process phase to 1 to resume local training
             # check if global_round >= server_params.train_params.rounds, then terminate,

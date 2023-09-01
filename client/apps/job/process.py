@@ -128,13 +128,14 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
         listen_to_client_stage(4, job_id, server_url)
 
         # Step 10: Listen to check when process phase change to 2.
-        listen_for_central_aggregation(job_id, server_url)
+        # listen_for_central_aggregation(job_id, server_url)
 
         # Step 11: Listen to check when process phase change to 1 or 3.
-        process_phase = listen_for_param_download_training(job_id, server_url)
+        process_phase, global_round = listen_for_param_download_training(
+            job_id, server_url, global_round)
 
         # update round count
-        global_round += 1
+        # global_round += 1
 
         # Step 12: If process phase is 1, repeat steps 6-11,
         if process_phase == 1:

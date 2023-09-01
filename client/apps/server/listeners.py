@@ -128,13 +128,13 @@ def listen_to_client_stage(client_stage: int, job_id: str, server_url: str):
         sleep(DELAY)
 
 
-def listen_for_param_download_training(job_id: str, server_url: str) -> int:
+def listen_for_param_download_training(job_id: str, server_url: str, local_round: int) -> int:
     '''
     Method to listen to server to wait to start training or terminate,
     i.e., Process Phase to change to 1 or 3
     '''
 
-    i_pp = -1
+    i_pp, i_gr = -1, -1
     while True:
         try:
             # listen to check if dataset flag is true or false
@@ -142,13 +142,15 @@ def listen_for_param_download_training(job_id: str, server_url: str) -> int:
 
             manifest = get(url, {'job_id': job_id})
 
-            if i_pp != manifest['job_status']['process_phase']:
+            if i_pp != manifest['job_status']['process_phase'] or i_gr != manifest['job_status']['global_round']:
                 logger.info(
                     f"Got Process Phase [{manifest['job_status']['process_phase']}], Expecting [1,3] for [{job_id}] from Server at {url}")
-                i_pp = manifest['job_status']['process_phase']
+                logger.info(
+                    f"Got Global Round [{manifest['job_status']['global_round']}], Expecting [{local_round+1}] for [{job_id}] from Server at {url}")
+                i_pp, i_gr = manifest['job_status']['process_phase'], manifest['job_status']['global_round']
 
             # if download dataset flag is true, break and exit
-            if manifest['job_status']['process_phase'] == 1 or manifest['job_status']['process_phase'] == 3:
+            if (manifest['job_status']['process_phase'] == 1 or manifest['job_status']['process_phase'] == 3) and manifest['job_status']['global_round'] == local_round+1:
                 break
 
         except Exception as e:
@@ -157,4 +159,4 @@ def listen_for_param_download_training(job_id: str, server_url: str) -> int:
 
         sleep(DELAY)
 
-    return manifest['job_status']['process_phase']
+    return manifest['job_status']['process_phase'], manifest['job_status']['global_round']

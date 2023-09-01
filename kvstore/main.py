@@ -1,14 +1,14 @@
 '''
 Key Value Store Management Router
 '''
-
+import threading
 from flask import Flask, jsonify, request
-from Semaphore import Semaphore
+# from Semaphore import Semaphore
 from key_val_store import KeyValueStore
 
 app = Flask(__name__)
 
-WRITE_LOCK = Semaphore()
+WRITE_LOCK = threading.Lock()
 keyValueStore = KeyValueStore()
 
 
@@ -29,7 +29,7 @@ def get_val():
     '''
     key = request.args['key']
 
-    WRITE_LOCK.wait()
+    # WRITE_LOCK.wait()
 
     if not keyValueStore.check(key):
         return jsonify({'res': 404})
@@ -46,7 +46,7 @@ def delete_val():
     '''
     key = request.args['key']
 
-    WRITE_LOCK.wait()
+    # WRITE_LOCK.wait()
 
     if not keyValueStore.check(key):
         return jsonify({'value': False, 'res': 404})

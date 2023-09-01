@@ -1,9 +1,9 @@
 '''
 Client Management Routing Module
 '''
-
+import threading
 from flask import Blueprint, jsonify, request, send_file
-from helpers.semaphore import Semaphore
+# from helpers.semaphore import Semaphore
 from helpers.logging import logger
 from helpers.kvstore import kv_delete
 from apps.job.management.loader import load_job
@@ -12,7 +12,7 @@ from apps.job.management.starter import start_job
 ROUTE_NAME = 'job-manager'
 blueprint = Blueprint(ROUTE_NAME, __name__)
 
-STATE_LOCK = Semaphore()
+STATE_LOCK = threading.Lock()
 
 JOBS = {}
 CONFIGS = {}
@@ -36,13 +36,13 @@ def load_job_route():
     '''
     job_id = request.args['job_id']
 
-    # STATE_LOCK.acquire()
+    STATE_LOCK.acquire()
     try:
         load_job(job_id, CONFIGS)
     except Exception as e:
         logger.error(f'Failed to Load Job Instance {e}')
 
-    # STATE_LOCK.release()
+    STATE_LOCK.release()
 
     return jsonify({'message': 'Job instance loaded successfully!'})
 
@@ -54,7 +54,7 @@ def delete_job_route():
     '''
     job_id = request.args['job_id']
 
-    # STATE_LOCK.acquire()
+    STATE_LOCK.acquire()
     try:
         # if job is terminated, only then it can be deleted
         if JOBS[job_id].job_status['process_phase'] == 3:
@@ -69,7 +69,7 @@ def delete_job_route():
     except Exception as e:
         logger.error(f'Failed to Delete Job Instance. {e}')
 
-    # STATE_LOCK.release()
+    STATE_LOCK.release()
 
     return jsonify({'message': 'Job instance deleted successfully!'})
 
@@ -134,13 +134,13 @@ def allow_start_training():
 
     job_id = payload['job_id']
 
-    # STATE_LOCK.acquire()
+    STATE_LOCK.acquire()
 
     if job_id in JOBS.keys():
         JOBS[job_id].allow_start_training()
     else:
         status = 404
-    # STATE_LOCK.release()
+    STATE_LOCK.release()
 
     return jsonify({'message': 'Training Allowed!' if status == 200 else 'Training NOT Allowed!'}), status
 
@@ -155,13 +155,13 @@ def terminate_training():
 
     job_id = payload['job_id']
 
-    # STATE_LOCK.acquire()
+    STATE_LOCK.acquire()
 
     if job_id in JOBS.keys():
         JOBS[job_id].terminate_training()
     else:
         status = 404
-    # STATE_LOCK.release()
+    STATE_LOCK.release()
 
     return jsonify({'message': 'Training Terminated!' if status == 200 else 'Training NOT Terminated!'}), status
 
@@ -178,13 +178,13 @@ def update_client_status():
     client_status = payload['client_status']
     job_id = payload['job_id']
 
-    # STATE_LOCK.acquire()
+    STATE_LOCK.acquire()
 
     if job_id in JOBS.keys():
         JOBS[job_id].update_client_status(client_id, client_status)
     else:
         status = 404
-    # STATE_LOCK.release()
+    STATE_LOCK.release()
 
     return jsonify({'message': 'Status updated!' if status == 200 else 'Update failed!'}), status
 
@@ -200,13 +200,13 @@ def set_central_model_params():
     job_id = payload['job_id']
     central_params = payload['central_params']
 
-    # STATE_LOCK.acquire()
+    STATE_LOCK.acquire()
 
     if job_id in JOBS.keys():
         JOBS[job_id].set_central_model_params(central_params)
     else:
         status = 404
-    # STATE_LOCK.release()
+    STATE_LOCK.release()
 
     return jsonify({'message': 'Central Params SET!' if status == 200 else 'Central Params NOT SET!'}), status
 
@@ -223,13 +223,13 @@ def append_client_params():
     client_params = payload['client_params']
     job_id = payload['job_id']
 
-    # STATE_LOCK.acquire()
+    STATE_LOCK.acquire()
 
     if job_id in JOBS:
         JOBS[job_id].append_client_params(client_id, client_params)
     else:
         status = 404
-    # STATE_LOCK.release()
+    STATE_LOCK.release()
 
     return jsonify({'message': 'Params Added!' if status == 200 else 'Method failed!'}), status
 
