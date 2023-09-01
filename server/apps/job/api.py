@@ -64,3 +64,10 @@ def set_central_model_params(job_name: str, params: dict):
     '''
     post(f'{SERVER_URL}/job_manager/set_central_model_params',
          {'job_id': job_name, 'central_params': params})
+
+
+def set_abort(job_name: str):
+    '''
+    Call to Abort Job
+    '''
+    post(f'{SERVER_URL}/job_manager/set_abort', {'job_id': job_name})

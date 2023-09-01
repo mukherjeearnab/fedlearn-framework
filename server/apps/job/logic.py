@@ -41,6 +41,7 @@ class TrainingJobManager:
             'download_dataset': False,
             'process_phase': 0,
             'global_round': 0,
+            'abort': False,
             'extra_params': {}
         }
 
@@ -150,6 +151,25 @@ class TrainingJobManager:
                 job_status.download_jobsheet is {self.job_status["download_jobsheet"]}, 
                 job_status.download_dataset is {self.job_status["download_dataset"]}.''')
             exec_status = False
+
+        # method suffixed with update state and lock release
+        self.modification_lock.release()
+        return exec_status
+
+    def set_abort(self) -> bool:
+        '''
+        Sets the Abort Flag to True
+        '''
+        # method prefixed with locking and reading state
+        self.modification_lock.acquire()
+        self._read_state()
+        exec_status = True
+
+        # method logic
+        self.job_status['abort'] = True
+
+        # method suffixed with update state and lock release
+        self._update_state()
 
         # method suffixed with update state and lock release
         self.modification_lock.release()

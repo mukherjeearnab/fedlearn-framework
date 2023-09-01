@@ -159,4 +159,4 @@ def listen_for_param_download_training(job_id: str, server_url: str, local_round
 
         sleep(DELAY)
 
-    return manifest['job_status']['process_phase'], manifest['job_status']['global_round']
+    return manifest['job_status']['process_phase'], manifest['job_status']['global_round'], manifest['job_status']['abort']

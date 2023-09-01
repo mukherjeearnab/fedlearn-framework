@@ -4,7 +4,7 @@ Commands for Server
 
 from typing import List
 # from apps.job_loader import load_job, start_job
-from apps.job.api import load_job, start_job, delete_job
+from apps.job.api import load_job, start_job, delete_job, set_abort
 # from helpers.logging import logger
 
 # JOB_PROPS = []
@@ -23,6 +23,9 @@ def handle_command(args: List[str]) -> None:
 
     elif args[0] == 'delete':
         delete_job(job_name=args[1])
+
+    elif args[0] == 'abort':
+        set_abort(job_name=args[1])
 
     elif args[0] == 'help':
         _help()

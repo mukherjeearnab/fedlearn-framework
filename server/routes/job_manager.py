@@ -148,7 +148,7 @@ def allow_start_training():
 @blueprint.route('/terminate_training', methods=['POST'])
 def terminate_training():
     '''
-    ROUTE to update the client status
+    ROUTE to terminate the job
     '''
     payload = request.get_json()
     status = 200
@@ -164,6 +164,27 @@ def terminate_training():
     STATE_LOCK.release()
 
     return jsonify({'message': 'Training Terminated!' if status == 200 else 'Training NOT Terminated!'}), status
+
+
+@blueprint.route('/set_abort', methods=['POST'])
+def set_abort():
+    '''
+    ROUTE to Abort job
+    '''
+    payload = request.get_json()
+    status = 200
+
+    job_id = payload['job_id']
+
+    STATE_LOCK.acquire()
+
+    if job_id in JOBS.keys():
+        JOBS[job_id].set_abort()
+    else:
+        status = 404
+    STATE_LOCK.release()
+
+    return jsonify({'message': 'Training Aborted!' if status == 200 else 'Training NOT Aborted!'}), status
 
 
 @blueprint.route('/update_client_status', methods=['POST'])

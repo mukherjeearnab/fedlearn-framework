@@ -54,6 +54,12 @@ def aggregator_process(job_name: str, job_registry: dict, model):
         # get the current job state
         state = get_job(job_name)
 
+        if state['job_status']['abort']:
+            terminate_training(job_name)
+            logger.info(
+                f'Job [{job_name}] Aborted. Exiting Aggregator Process.')
+            break
+
         if (i_agg_pp != state['job_status']['process_phase']) or (i_agg_cs != state['job_status']['client_stage']):
             logger.info(
                 f"Checking for Aggregation Process for job [{job_name}] PS [{state['job_status']['process_phase']}] CS [{state['job_status']['client_stage']}]")

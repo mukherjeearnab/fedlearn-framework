@@ -131,11 +131,17 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
         # listen_for_central_aggregation(job_id, server_url)
 
         # Step 11: Listen to check when process phase change to 1 or 3.
-        process_phase, global_round = listen_for_param_download_training(
+        process_phase, global_round, abort_signal = listen_for_param_download_training(
             job_id, server_url, global_round)
 
         # update round count
         # global_round += 1
+
+        # if abort signal is true, abort the job
+        if abort_signal:
+            logger.info(f'Job [{job_id}] Aborted. Exiting Process.')
+            update_client_status(client_id, job_id, 5, server_url)
+            break
 
         # Step 12: If process phase is 1, repeat steps 6-11,
         if process_phase == 1:
@@ -148,4 +154,5 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
         # Step 12: else if process phase is 3 terminate process.
         if process_phase == 3:
             logger.info(f'Job [{job_id}] terminated. Exiting Process.')
+            update_client_status(client_id, job_id, 5, server_url)
             break
