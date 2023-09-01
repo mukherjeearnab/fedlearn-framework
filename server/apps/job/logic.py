@@ -89,17 +89,9 @@ class TrainingJobManager:
         '''
         Get All State Variables of the Job Instance
         '''
-        # self.modification_lock.wait()
-        self._read_state()
-        data = {
-            'project_name': self.project_name,
-            'dataset_params': self.dataset_params,
-            'client_params': self.client_params,
-            'server_params': self.server_params,
-            'job_status': self.job_status,
-            'exec_params': self.exec_params
-        }
-        return data
+        payload = kv_get(self.project_name)
+
+        return payload
 
     def allow_jobsheet_download(self) -> bool:
         '''
