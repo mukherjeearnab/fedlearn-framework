@@ -7,6 +7,7 @@ from helpers.file import create_dir_struct
 from helpers.http import download_file
 from helpers.converters import get_state_dict, set_state_dict, tensor_to_data_loader
 from helpers.torch import get_device
+from helpers.perflog import add_record
 from apps.client.status import update_client_status
 from apps.model.training import data_preprocessing, init_model, parameter_mixing, train_model
 from apps.model.tester import test_model
@@ -118,6 +119,8 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
         metrics = test_model(local_model, test_loader, device)
         # as of now, only print the metrics
         logger.info(f"Training Report:\n{metrics['classification_report']}")
+        # report metrics to PerfLog Server
+        add_record(client_id, job_id, metrics, global_round)
 
         # Step 9: Send back locally trained model parameters
         # and update client status to 4 on the server automatically.

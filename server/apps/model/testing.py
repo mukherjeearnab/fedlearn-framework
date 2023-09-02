@@ -23,7 +23,7 @@ def test_runner(test_file_name: str, test_dataset_path: str, batch_size: int, mo
     logger.info(
         f"Aggregated Model Report:\n{results['classification_report']}")
 
-    # _TODO: later on report the results to performance logging server
+    return results
 
 
 def test_model(model, test_loader, device) -> dict:
@@ -76,7 +76,7 @@ def get_metrics(actuals: list, preds: list) -> dict:
     recall_macro = metrics.recall_score(actuals, preds, average='macro')
     f1_macro = metrics.f1_score(actuals, preds, average='macro')
     f1_weighted = metrics.f1_score(actuals, preds, average='weighted')
-    confusion_matrix = metrics.confusion_matrix(actuals, preds)
+    confusion_matrix = metrics.confusion_matrix(actuals, preds).tolist()
     report = metrics.classification_report(actuals, preds)
 
     results = {

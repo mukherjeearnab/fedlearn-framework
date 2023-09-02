@@ -55,7 +55,7 @@ def get_metrics(actuals: list, preds: list) -> dict:
     recall_macro = metrics.recall_score(actuals, preds, average='macro')
     f1_macro = metrics.f1_score(actuals, preds, average='macro')
     f1_weighted = metrics.f1_score(actuals, preds, average='weighted')
-    confusion_matrix = metrics.confusion_matrix(actuals, preds)
+    confusion_matrix = metrics.confusion_matrix(actuals, preds).tolist()
     report = metrics.classification_report(actuals, preds)
 
     results = {

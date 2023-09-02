@@ -12,6 +12,7 @@ from apps.job.management.aggregator import aggregator_process
 from helpers.logging import logger
 from helpers.dynamod import load_module
 from helpers.converters import get_state_dict
+from helpers.perflog import init_project
 
 
 # import environment variables
@@ -94,6 +95,9 @@ def start_job(job_name: str, config_registry: dict, job_registry: dict) -> dict:
 
     # set the initial model parameters
     job_registry[job_name].set_central_model_params(params)
+
+    # init perflog project
+    init_project(job_name, job_registry[job_name].get_state())
 
     # add process to listen to model process phase to change to 2 and start aggregation
     aggregator_proc = Process(target=aggregator_process,

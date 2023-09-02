@@ -11,6 +11,7 @@ from helpers.dynamod import load_module
 from helpers.converters import convert_list_to_tensor
 from helpers.converters import get_state_dict
 from helpers.torch import get_device
+from helpers.perflog import add_params, add_record, save_logs
 from apps.model.testing import test_runner
 from apps.job.api import get_job, allow_start_training, terminate_training, set_central_model_params
 
@@ -116,11 +117,17 @@ def aggregator_process(job_name: str, job_registry: dict, model):
             for chunk in state['client_params']['dataset']['distribution']['clients']:
                 CHUNK_DIR_NAME += f'-{chunk}'
             DATASET_CHUNK_PATH = f"./datasets/deploy/{DATASET_PREP_MOD}/chunks/{DATASET_DIST_MOD}/{CHUNK_DIR_NAME}"
-            test_runner('global_test.tuple', DATASET_CHUNK_PATH,
-                        state['client_params']['train_params']['batch_size'],
-                        curr_model, device)
+            metrics = test_runner('global_test.tuple', DATASET_CHUNK_PATH,
+                                  state['client_params']['train_params']['batch_size'],
+                                  curr_model, device)
 
             # sleep(DELAY)
+
+            # PerfLog Methods
+            add_params(job_name, state['job_status']['global_round'], params)
+            add_record('server', job_name, metrics,
+                       state['job_status']['global_round'])
+            save_logs(job_name)
 
             # set process phase to 1 to resume local training
             # check if global_round >= server_params.train_params.rounds, then terminate,
