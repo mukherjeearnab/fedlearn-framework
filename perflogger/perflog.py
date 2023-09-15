@@ -27,7 +27,7 @@ class PerformanceLog(object):
 
         self._save_config()
 
-    def add_perflog(self, client_id: str, round_num: int, metrics: dict) -> None:
+    def add_perflog(self, client_id: str, round_num: int, metrics: dict, time_delta: float) -> None:
         '''
         Add a Performance Log Row to the perflogs
         '''
@@ -35,7 +35,7 @@ class PerformanceLog(object):
             self._generate_csv_header(metrics)
 
         self.perflogs.append(self._metrics_to_csvline(
-            client_id, round_num, metrics))
+            client_id, round_num, metrics, time_delta))
 
     def save(self):
         '''
@@ -51,7 +51,7 @@ class PerformanceLog(object):
         write_file(f'{round_num}.json', f'{self.project_path}/params',
                    json.dumps(params, indent=4))
 
-    def _metrics_to_csvline(self, client_id: str, round_num: int, metrics: dict) -> str:
+    def _metrics_to_csvline(self, client_id: str, round_num: int, metrics: dict, time_delta: float) -> str:
         '''
         Generate a CSV string row from a dictionary of metrics
         '''
@@ -62,6 +62,9 @@ class PerformanceLog(object):
             record += f'{metrics[key]},'
 
         self._save_extra_metrics(client_id, round_num, metrics)
+
+        # finally add time_delta
+        record += f'{time_delta},'
 
         record = record[:-1] + '\n'
         return record
@@ -90,6 +93,8 @@ class PerformanceLog(object):
                 continue
             self.csv_header += f'{key},'
 
+        # add time_delta header
+        self.csv_header += 'time_delta,'
         self.csv_header = self.csv_header[:-1] + '\n'
 
     def _save_perflog(self) -> None:

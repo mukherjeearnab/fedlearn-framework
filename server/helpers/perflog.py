@@ -19,12 +19,12 @@ def init_project(job_id: str, config: dict):
     logger.info('PerfLog initialized for Job [{job_id}]')
 
 
-def add_record(client_id: str, job_id: str, metrics: dict, round_num: int):
+def add_record(client_id: str, job_id: str, metrics: dict, round_num: int, time_delta: float):
     '''
     Add Metrics Record
     '''
     post(f'{PERFLOG_URL}/add_record',
-         {'client_id': client_id, 'job_id': job_id, 'metrics': metrics, 'round_num': round_num})
+         {'client_id': client_id, 'job_id': job_id, 'metrics': metrics, 'round_num': round_num, 'time_delta': time_delta})
     logger.info(
         'Adding PerfLog Metrics for Job [{job_id}] at Round {round_num}')
 

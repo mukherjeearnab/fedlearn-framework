@@ -51,10 +51,11 @@ def add_record():
     round_num = payload['round_num']
     job_id = payload['job_id']
     metrics = payload['metrics']
+    time_delta = payload['time_delta']
 
     WRITE_LOCK.acquire()
 
-    PROJECTS[job_id].add_perflog(client_id, round_num, metrics)
+    PROJECTS[job_id].add_perflog(client_id, round_num, metrics, time_delta)
 
     WRITE_LOCK.release()
     return jsonify({'res': 200})

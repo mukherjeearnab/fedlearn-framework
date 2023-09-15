@@ -3,7 +3,7 @@ The Aggregator Module
 '''
 
 import os
-from time import sleep
+from time import sleep, time
 from copy import deepcopy
 from dotenv import load_dotenv
 from helpers.logging import logger
@@ -45,6 +45,9 @@ def aggregator_process(job_name: str, job_registry: dict, model):
 
     # start training
     allow_start_training(job_name)
+
+    # record start time
+    start_time = time()
 
     i_agg_pp, i_agg_cs = -1, -1
     # keep listening to process_phase
@@ -123,10 +126,16 @@ def aggregator_process(job_name: str, job_registry: dict, model):
 
             # sleep(DELAY)
 
+            # caclulate total time for 1 round
+            end_time = time()
+            # find the time delta for round and convert the microseconds to milliseconds
+            time_delta = (end_time - start_time)*1000
+            logger.info(f'Total Round Time Delta: {time_delta} ms')
+
             # PerfLog Methods
             add_params(job_name, state['job_status']['global_round'], params)
             add_record('server', job_name, metrics,
-                       state['job_status']['global_round'])
+                       state['job_status']['global_round'], time_delta)
             save_logs(job_name)
 
             # set process phase to 1 to resume local training
@@ -138,6 +147,9 @@ def aggregator_process(job_name: str, job_registry: dict, model):
                 break
             else:
                 allow_start_training(job_name)
+
+                # record start time
+                start_time = time()
 
             # log that aggregation is complete
             logger.info(f'Aggregation Process Complete for job [{job_name}]')

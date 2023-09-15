@@ -1,6 +1,7 @@
 '''
 Job Process Module
 '''
+from time import time
 from copy import deepcopy
 from helpers.logging import logger
 from helpers.file import create_dir_struct
@@ -88,6 +89,9 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
     # some logging vars
     global_round = 1
 
+    # record start time
+    start_time = time()
+
     # round loop for steps 6-12
     while True:
 
@@ -119,8 +123,13 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
         metrics = test_model(local_model, test_loader, device)
         # as of now, only print the metrics
         logger.info(f"Training Report:\n{metrics['classification_report']}")
+        # caclulate total time for 1 round
+        end_time = time()
+        # find the time delta for round and convert the microseconds to milliseconds
+        time_delta = (end_time - start_time)*1000
+        logger.info(f'Total Round Time Delta: {time_delta} ms')
         # report metrics to PerfLog Server
-        add_record(client_id, job_id, metrics, global_round)
+        add_record(client_id, job_id, metrics, global_round, time_delta)
 
         # Step 9: Send back locally trained model parameters
         # and update client status to 4 on the server automatically.
@@ -159,3 +168,6 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
             logger.info(f'Job [{job_id}] terminated. Exiting Process.')
             update_client_status(client_id, job_id, 5, server_url)
             break
+
+        # record start time
+        start_time = time()
