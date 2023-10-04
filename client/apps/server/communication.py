@@ -21,7 +21,7 @@ def download_global_params(job_id: str, server_url: str):
 
     try:
         # listen to check if dataset flag is true or false
-        url = f'{server_url}/job_manager/get'
+        url = f'{server_url}/job_manager/get_params'
 
         logger.info(
             f'Downloading Global Params for [{job_id}] from Server at {url}')

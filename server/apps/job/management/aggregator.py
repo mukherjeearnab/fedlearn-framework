@@ -79,13 +79,14 @@ def aggregator_process(job_name: str, model):
                 'agg_module', state['server_params']['aggregator']['content'])
 
             # prepare the client params based on index
-            client_params_ = state['exec_params']['client_model_params']
+            param_state = get_job(job_name, params=True)
+            client_params_ = param_state['exec_params']['client_model_params']
             client_params = [dict() for _ in client_params_]
             for client_param in client_params_:
                 # retrieve the client params
                 param = client_param['client_params']
 
-                for i, client in enumerate(state['exec_params']['client_info']):
+                for i, client in enumerate(param_state['exec_params']['client_info']):
                     if client['client_id'] == client_param['client_id']:
                         client_params[i] = convert_list_to_tensor(
                             param, device)

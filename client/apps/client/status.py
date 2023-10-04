@@ -49,7 +49,7 @@ def listen_to_client_status(client_id: str, job_id: str, server_url: str):
 
     try:
         # listen to check if dataset flag is true or false
-        url = f'{server_url}/job_manager/get'
+        url = f'{server_url}/job_manager/get_params'
 
         manifest = get(url, {'job_id': job_id})
 

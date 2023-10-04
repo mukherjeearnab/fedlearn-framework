@@ -32,11 +32,14 @@ def start_job(job_name: str):
     get(f'{SERVER_URL}/job_manager/start', {'job_id': job_name})
 
 
-def get_job(job_name: str):
+def get_job(job_name: str, params: True):
     '''
     Call get Job Configuration
     '''
-    return get(f'{SERVER_URL}/job_manager/get', {'job_id': job_name})
+    if params:
+        return get(f'{SERVER_URL}/job_manager/get_params', {'job_id': job_name})
+    else:
+        return get(f'{SERVER_URL}/job_manager/get_exec', {'job_id': job_name})
 
 
 ################################################################

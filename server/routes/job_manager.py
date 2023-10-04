@@ -106,6 +106,20 @@ def list_jobs():
     return jsonify(jobs)
 
 
+@blueprint.route('/get')
+def get():
+    '''
+    GET route, get all the state of a given job
+    '''
+    job_id = request.args['job_id']
+
+    # STATE_LOCK.wait()
+    job_state = JOBS[job_id][0].get_state()
+    job_state['exec_params'] = JOBS[job_id][1].get_state()['exec_params']
+
+    return jsonify(job_state)
+
+
 @blueprint.route('/get_exec')
 def get_exec():
     '''

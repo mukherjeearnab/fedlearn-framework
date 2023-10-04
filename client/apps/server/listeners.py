@@ -22,7 +22,7 @@ def listen_to_dataset_download_flag(job_id: str, server_url: str):
     while True:
         try:
             # listen to check if dataset flag is true or false
-            url = f'{server_url}/job_manager/get'
+            url = f'{server_url}/job_manager/get_exec'
 
             manifest = get(url, {'job_id': job_id})
 
@@ -52,7 +52,7 @@ def listen_to_start_training(job_id: str, server_url: str):
     while True:
         try:
             # listen to check if dataset flag is true or false
-            url = f'{server_url}/job_manager/get'
+            url = f'{server_url}/job_manager/get_exec'
 
             manifest = get(url, {'job_id': job_id})
 
@@ -82,7 +82,7 @@ def listen_for_central_aggregation(job_id: str, server_url: str):
     while True:
         try:
             # listen to check if dataset flag is true or false
-            url = f'{server_url}/job_manager/get'
+            url = f'{server_url}/job_manager/get_exec'
 
             manifest = get(url, {'job_id': job_id})
 
@@ -109,7 +109,7 @@ def listen_to_client_stage(client_stage: int, job_id: str, server_url: str):
     while True:
         try:
             # listen to check if dataset flag is true or false
-            url = f'{server_url}/job_manager/get'
+            url = f'{server_url}/job_manager/get_exec'
 
             manifest = get(url, {'job_id': job_id})
 
@@ -138,7 +138,7 @@ def listen_for_param_download_training(job_id: str, server_url: str, local_round
     while True:
         try:
             # listen to check if dataset flag is true or false
-            url = f'{server_url}/job_manager/get'
+            url = f'{server_url}/job_manager/get_exec'
 
             manifest = get(url, {'job_id': job_id})
 

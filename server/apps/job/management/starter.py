@@ -109,7 +109,7 @@ def start_job(job_name: str, config_registry: dict, job_registry: dict) -> dict:
 
     # add process to listen to model process phase to change to 2 and start aggregation
     aggregator_proc = Process(target=aggregator_process,
-                              args=(job_name, job_registry, model), name=f'aggregator_{job_name}')
+                              args=(job_name, model), name=f'aggregator_{job_name}')
 
     # start aggregation process
     aggregator_proc.start()
