@@ -32,7 +32,7 @@ def start_job(job_name: str):
     get(f'{SERVER_URL}/job_manager/start', {'job_id': job_name})
 
 
-def get_job(job_name: str, params: True):
+def get_job(job_name: str, params=False):
     '''
     Call get Job Configuration
     '''

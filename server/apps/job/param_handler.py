@@ -165,7 +165,8 @@ class JobParamHandler:
             # empty out client params
             self.exec_params['client_model_params'] = []
             # increment global round
-            self.exec_handler.set_job_status('global_round', 1)  # HEREW
+            self.exec_handler.set_job_status(
+                'global_round', self.exec_handler.get_job_status('global_round')+1)  # HEREW
 
             logger.info(
                 'Central Model Parameters are Set. Waiting for Process Phase to be in [1] Local Training.')

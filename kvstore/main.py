@@ -8,7 +8,7 @@ from key_val_store import KeyValueStore
 
 app = Flask(__name__)
 
-WRITE_LOCK = threading.Lock()
+WRITE_LOCKS = {}
 keyValueStore = KeyValueStore()
 
 
@@ -62,12 +62,15 @@ def set_val():
     register route, for clients to register on the server and obtain IDs.
     '''
     data = request.get_json()
+    key, value = data['key'], data['value']
 
-    WRITE_LOCK.acquire()
+    if key not in WRITE_LOCKS:
+        WRITE_LOCKS[key] = threading.Lock()
+    WRITE_LOCKS[key].acquire()
 
-    keyValueStore.set(data['key'], data['value'])
+    keyValueStore.set(key, value)
 
-    WRITE_LOCK.release()
+    WRITE_LOCKS[key].release()
     return jsonify({'res': 200})
 
 
