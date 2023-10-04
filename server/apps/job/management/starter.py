@@ -6,7 +6,8 @@ import os
 from time import sleep
 from multiprocessing import Process
 from dotenv import load_dotenv
-from apps.job.logic import TrainingJobManager
+from apps.job.exec_handler import JobExecHandler
+from apps.job.param_handler import JobParamHandler
 from apps.client.api import get_alive_clients
 from apps.job.management.aggregator import aggregator_process
 from helpers.logging import logger
@@ -39,15 +40,20 @@ def start_job(job_name: str, config_registry: dict, job_registry: dict) -> dict:
     client_list = get_alive_clients()
 
     # create a new job instance
-    job_registry[job_name] = TrainingJobManager(project_name=job_name,
-                                                client_params=config['client_params'],
-                                                server_params=config['server_params'],
-                                                dataset_params=config['dataset_params'])
+    exec_handler = JobExecHandler(project_name=job_name,
+                                  client_params=config['client_params'],
+                                  server_params=config['server_params'],
+                                  dataset_params=config['dataset_params'])
+
+    param_handler = JobParamHandler(project_name=job_name)
+
+    job_registry[job_name] = (exec_handler, param_handler)
+
     logger.info(f'Created Job Instance for Job {job_name}.')
 
     # assign the required number of clients to the job
     for i in range(config['client_params']['num_clients']):
-        job_registry[job_name].add_client(client_list[i]['id'])
+        param_handler.add_client(client_list[i]['id'])
         logger.info(f'Assigning client to job {client_list[i]}')
     logger.info('Successfully assigned clients to job.')
 
@@ -56,7 +62,7 @@ def start_job(job_name: str, config_registry: dict, job_registry: dict) -> dict:
     #     {'job_id': job_name})
 
     # allow clients to download jobsheet
-    job_registry[job_name].allow_jobsheet_download()
+    exec_handler.allow_jobsheet_download()
     logger.info(
         'Job sheet download set, waiting for clients to download and acknowledge.')
 
@@ -65,7 +71,7 @@ def start_job(job_name: str, config_registry: dict, job_registry: dict) -> dict:
     while True:
         logger.info(
             'Waiting for ClientStage to be [1] ClientReadyWithJobSheet')
-        state = job_registry[job_name].get_state()
+        state = exec_handler.get_state()
 
         if state['job_status']['client_stage'] == 1:
             break
@@ -74,7 +80,7 @@ def start_job(job_name: str, config_registry: dict, job_registry: dict) -> dict:
     ######################################################################################
 
     # set dataset download for clients
-    job_registry[job_name].allow_dataset_download()
+    exec_handler.allow_dataset_download()
 
     logger.info('Allowing Clients to Download Dataset.')
 
@@ -82,7 +88,7 @@ def start_job(job_name: str, config_registry: dict, job_registry: dict) -> dict:
     # wait for clients to ACK dataset, i.e., wait until client stage becomes 2
     while True:
         logger.info('Waiting for ClientStage to be [2] ClientReadyWithDataset')
-        state = job_registry[job_name].get_state()
+        state = exec_handler.get_state()
 
         if state['job_status']['client_stage'] == 2:
             break
@@ -94,10 +100,12 @@ def start_job(job_name: str, config_registry: dict, job_registry: dict) -> dict:
     params, model = load_model_and_get_params(config)
 
     # set the initial model parameters
-    job_registry[job_name].set_central_model_params(params)
+    param_handler.set_central_model_params(params)
 
     # init perflog project
-    init_project(job_name, job_registry[job_name].get_state())
+    state = exec_handler.get_state()
+    state['exec_params'] = param_handler.get_state()['exec_params']
+    init_project(job_name, state)
 
     # add process to listen to model process phase to change to 2 and start aggregation
     aggregator_proc = Process(target=aggregator_process,

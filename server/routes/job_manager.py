@@ -57,7 +57,7 @@ def delete_job_route():
     STATE_LOCK.acquire()
     try:
         # if job is terminated, only then it can be deleted
-        if JOBS[job_id].job_status['process_phase'] == 3:
+        if JOBS[job_id][0].job_status['process_phase'] == 3:
             kv_delete(job_id)
             del JOBS[job_id]
             del CONFIGS[job_id]
@@ -87,7 +87,7 @@ def start_job_route():
     except Exception as e:
         logger.error(f'Failed to Load Job Instance {e}')
 
-    job_state = JOBS[job_id].get_state()
+    job_state = JOBS[job_id][0].get_state()
     # JOB_THREADS[job_id] = resp
 
     # STATE_LOCK.release()
@@ -106,15 +106,28 @@ def list_jobs():
     return jsonify(jobs)
 
 
-@blueprint.route('/get')
-def get():
+@blueprint.route('/get_exec')
+def get_exec():
     '''
     GET route, get all the state of a given job
     '''
     job_id = request.args['job_id']
 
     # STATE_LOCK.wait()
-    job_state = JOBS[job_id].get_state()
+    job_state = JOBS[job_id][0].get_state()
+
+    return jsonify(job_state)
+
+
+@blueprint.route('/get_params')
+def get_params():
+    '''
+    GET route, get all the state of a given job
+    '''
+    job_id = request.args['job_id']
+
+    # STATE_LOCK.wait()
+    job_state = JOBS[job_id][1].get_state()
 
     return jsonify(job_state)
 
@@ -137,7 +150,7 @@ def allow_start_training():
     STATE_LOCK.acquire()
 
     if job_id in JOBS.keys():
-        JOBS[job_id].allow_start_training()
+        JOBS[job_id][0].allow_start_training()
     else:
         status = 404
     STATE_LOCK.release()
@@ -158,7 +171,7 @@ def terminate_training():
     STATE_LOCK.acquire()
 
     if job_id in JOBS.keys():
-        JOBS[job_id].terminate_training()
+        JOBS[job_id][0].terminate_training()
     else:
         status = 404
     STATE_LOCK.release()
@@ -179,7 +192,7 @@ def set_abort():
     STATE_LOCK.acquire()
 
     if job_id in JOBS.keys():
-        JOBS[job_id].set_abort()
+        JOBS[job_id][0].set_abort()
     else:
         status = 404
     STATE_LOCK.release()
@@ -202,7 +215,7 @@ def update_client_status():
     STATE_LOCK.acquire()
 
     if job_id in JOBS.keys():
-        JOBS[job_id].update_client_status(client_id, client_status)
+        JOBS[job_id][1].update_client_status(client_id, client_status)
     else:
         status = 404
     STATE_LOCK.release()
@@ -224,7 +237,7 @@ def set_central_model_params():
     STATE_LOCK.acquire()
 
     if job_id in JOBS.keys():
-        JOBS[job_id].set_central_model_params(central_params)
+        JOBS[job_id][1].set_central_model_params(central_params)
     else:
         status = 404
     STATE_LOCK.release()
@@ -247,7 +260,7 @@ def append_client_params():
     STATE_LOCK.acquire()
 
     if job_id in JOBS:
-        JOBS[job_id].append_client_params(client_id, client_params)
+        JOBS[job_id][1].append_client_params(client_id, client_params)
     else:
         status = 404
     STATE_LOCK.release()
@@ -266,15 +279,15 @@ def download_dataset():
 
     if job_id in JOBS:
         CHUNK_DIR_NAME = 'dist'
-        for chunk in JOBS[job_id].client_params['dataset']['distribution']['clients']:
+        for chunk in JOBS[job_id][0].client_params['dataset']['distribution']['clients']:
             CHUNK_DIR_NAME += f'-{chunk}'
 
-        DATASET_PREP_MOD = JOBS[job_id].dataset_params['prep']['file']
-        DATASET_DIST_MOD = JOBS[job_id].client_params['dataset']['distribution']['distributor']['file']
+        DATASET_PREP_MOD = JOBS[job_id][0].dataset_params['prep']['file']
+        DATASET_DIST_MOD = JOBS[job_id][0].client_params['dataset']['distribution']['distributor']['file']
         DATASET_CHUNK_PATH = f"../../datasets/deploy/{DATASET_PREP_MOD}/chunks/{DATASET_DIST_MOD}/{CHUNK_DIR_NAME}"
 
         chunk_id = 0
-        for i, client in enumerate(JOBS[job_id].exec_params['client_info']):
+        for i, client in enumerate(JOBS[job_id][1].exec_params['client_info']):
             if client['client_id'] == client_id:
                 chunk_id = i
 

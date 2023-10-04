@@ -23,7 +23,7 @@ SERVER_PORT = int(os.getenv('SERVER_PORT'))
 DELAY = float(os.getenv('DELAY'))
 
 
-def aggregator_process(job_name: str, job_registry: dict, model):
+def aggregator_process(job_name: str, model):
     '''
     The aggregator process, running in background, and checking if ProcessPhase turns 2.
     If ProcessPhase is 2, run the aggregator function, and update the central model params,
