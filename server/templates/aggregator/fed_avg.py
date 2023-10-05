@@ -1,6 +1,7 @@
 '''
 Implementation of FedAvg Aggregator for Server Aggregation.
 '''
+import torch
 
 
 def aggregator(model, client_params: list, client_weights: list, kwargs=None):
@@ -22,6 +23,10 @@ def aggregator(model, client_params: list, client_weights: list, kwargs=None):
 
         # enumerate over the layers of the model
         for layer_key in model_params:
+
+            # skip layer if it is not float tensor, i.e., float32 and float64
+            if not (model_params[layer_key].dtype == torch.float32 or model_params[layer_key].dtype == torch.float64):
+                continue
 
             # calculate the weighted contribution from the client k
             contribution = client_param[layer_key].data * client_weights[k]

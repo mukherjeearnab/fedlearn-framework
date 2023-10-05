@@ -18,7 +18,7 @@ client_params:
     model_file: cbis__density_mobilenet
     parameter_mixer: default
     training_loop_file: bce_simple
-    test_file: simple_test
+    test_file: bin_bce_loss
 
 
   train_params: # training parameters

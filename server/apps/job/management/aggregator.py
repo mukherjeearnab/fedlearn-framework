@@ -35,8 +35,8 @@ def aggregator_process(job_name: str, model):
 
     device = get_device()
 
-    curr_model = deepcopy(model)
-    curr_model = curr_model.to(device)
+    # curr_model = deepcopy(model)
+    curr_model = model.to(device)
 
     sleep(DELAY*3)
 
