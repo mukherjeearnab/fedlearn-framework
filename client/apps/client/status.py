@@ -49,11 +49,11 @@ def listen_to_client_status(client_id: str, job_id: str, server_url: str):
 
     try:
         # listen to check if dataset flag is true or false
-        url = f'{server_url}/job_manager/get_params'
+        url = f'{server_url}/job_manager/get_exec'
 
         manifest = get(url, {'job_id': job_id})
 
-        for client in manifest['exec_params']['client_info']:
+        for client in manifest['job_status']['client_info']:
             if client['client_id'] == client_id:
                 return client['status']
 

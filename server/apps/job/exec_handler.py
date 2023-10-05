@@ -42,7 +42,13 @@ class JobExecHandler:
             'process_phase': 0,
             'global_round': 0,
             'abort': False,
-            'extra_params': {}
+            'extra_params': {},
+            'client_info': [
+                # {
+                #     'client_id': 'client-0',
+                #     'status': 0
+                # }
+            ]
         }
 
         if load_from_db:
@@ -191,111 +197,75 @@ class JobExecHandler:
         self.modification_lock.release()
         return exec_status
 
-    # def add_client(self, client_id: str) -> bool:
-    #     '''
-    #     Adds a Client to the list of clients for the current job, only if job_status.process_phase is 0.
-    #     '''
-    #     # method prefixed with locking and reading state
-    #     self.modification_lock.acquire()
-    #     self._read_state()
-    #     exec_status = True
+    def add_client(self, client_id: str) -> bool:
+        '''
+        Adds a Client to the list of clients for the current job, only if job_status.process_phase is 0.
+        '''
+        # method prefixed with locking and reading state
+        self.modification_lock.acquire()
+        self._read_state()
+        exec_status = True
 
-    #     # method logic
-    #     if self.job_status['process_phase'] == 0:
-    #         self.exec_params['client_info'].append({
-    #             'client_id': client_id,
-    #             'status': 0
-    #         })
+        # method logic
+        if self.job_status['process_phase'] == 0:
+            self.job_status['client_info'].append({
+                'client_id': client_id,
+                'status': 0
+            })
 
-    #         # method suffixed with update state and lock release
-    #         self._update_state()
-    #     else:
-    #         # log output and set execution status to False
-    #         logger.warning(
-    #             f'''Cannot ADD Client!
-    #             job_status.process_phase is {self.job_status["process_phase"]}.''')
-    #         exec_status = False
+            # method suffixed with update state and lock release
+            self._update_state()
+        else:
+            # log output and set execution status to False
+            logger.warning(
+                f'''Cannot ADD Client!
+                job_status.process_phase is {self.job_status["process_phase"]}.''')
+            exec_status = False
 
-    #     # method suffixed with update state and lock release
-    #     self.modification_lock.release()
-    #     return exec_status
+        # method suffixed with update state and lock release
+        self.modification_lock.release()
+        return exec_status
 
-    # def update_client_status(self, client_id: str, client_status: int) -> bool:
-    #     '''
-    #     Updates the status of a client, based on their client_id and
-    #     if all clients have the same status, the global status, i.e., job_status.client_stage is set as the status of the clients
-    #     '''
-    #     # method prefixed with locking and reading state
-    #     self.modification_lock.acquire()
-    #     self._read_state()
-    #     exec_status = True
+    def update_client_status(self, client_id: str, client_status: int) -> bool:
+        '''
+        Updates the status of a client, based on their client_id and
+        if all clients have the same status, the global status, i.e., job_status.client_stage is set as the status of the clients
+        '''
+        # method prefixed with locking and reading state
+        self.modification_lock.acquire()
+        self._read_state()
+        exec_status = True
 
-    #     # method logic
-    #     all_client_status = set()
+        # method logic
+        all_client_status = set()
 
-    #     for i in range(len(self.exec_params['client_info'])):
-    #         # find the client and update their status
-    #         if self.exec_params['client_info'][i]['client_id'] == client_id:
-    #             self.exec_params['client_info'][i]['status'] = client_status
+        for i in range(len(self.job_status['client_info'])):
+            # find the client and update their status
+            if self.job_status['client_info'][i]['client_id'] == client_id:
+                self.job_status['client_info'][i]['status'] = client_status
 
-    #         # collect the status of all the clients
-    #         all_client_status.add(
-    #             self.exec_params['client_info'][i]['status'])
+            # collect the status of all the clients
+            all_client_status.add(
+                self.job_status['client_info'][i]['status'])
 
-    #     logger.info(
-    #         f"Client [{client_id}] is at stage [{CLIENT_STAGE[client_status]}].")
+        logger.info(
+            f"Client [{client_id}] is at stage [{CLIENT_STAGE[client_status]}].")
 
-    #     if len(all_client_status) == 1:
-    #         self.job_status['client_stage'] = list(all_client_status)[0]
-    #         logger.info(
-    #             f"All clients are at Stage: [{CLIENT_STAGE[self.job_status['client_stage']]}]")
+        if len(all_client_status) == 1:
+            self.job_status['client_stage'] = list(all_client_status)[0]
+            logger.info(
+                f"All clients are at Stage: [{CLIENT_STAGE[self.job_status['client_stage']]}]")
 
-    #         # if all clients is waiting for parameters, update process phase to 2
-    #         # if list(all_client_status)[0] == 4:
-    #         #     self.job_status['process_phase'] = 2
-    #         #     logger.info(
-    #         #         'All clients params are submitted, starting Federated Aggregation.')
+            # if all clients is waiting for parameters, update process phase to 2
+            # if list(all_client_status)[0] == 4:
+            #     self.job_status['process_phase'] = 2
+            #     logger.info(
+            #         'All clients params are submitted, starting Federated Aggregation.')
 
-    #     # method suffixed with update state and lock release
-    #     self._update_state()
-    #     self.modification_lock.release()
-    #     return exec_status
-
-    # def set_central_model_params(self, params: dict) -> bool:
-    #     '''
-    #     Set or Update the Central Mode Parameters, for initial time, or aggregated update time.
-    #     Only set, if Provess Phase is 0 or 2, i.e., TrainingNotStarted or InCentralAggregation.
-
-    #     Remember to call allow_start_training() to update the Process Phase to 1,
-    #     to signal Clients to download params and start training.
-    #     '''
-    #     # method prefixed with locking and reading state
-    #     self.modification_lock.acquire()
-    #     self._read_state()
-    #     exec_status = True
-
-    #     # method logic
-    #     if self.job_status['process_phase'] == 0 or self.job_status['process_phase'] == 2:
-    #         self.exec_params['central_model_param'] = params
-
-    #         # empty out client params
-    #         self.exec_params['client_model_params'] = []
-    #         # increment global round
-    #         self.job_status['global_round'] += 1
-
-    #         logger.info(
-    #             'Central Model Parameters are Set. Waiting for Process Phase to be in [1] Local Training.')
-
-    #         # method suffixed with update state and lock release
-    #         self._update_state()
-    #     else:
-    #         logger.warning(
-    #             f'Central model parameters NOT SET! job_status.process_phase is {self.job_status["process_phase"]}.')
-    #         exec_status = False
-
-    #     # method suffixed with update state and lock release
-    #     self.modification_lock.release()
-    #     return exec_status
+        # method suffixed with update state and lock release
+        self._update_state()
+        self.modification_lock.release()
+        return exec_status
 
     def allow_start_training(self) -> bool:
         '''
@@ -324,46 +294,6 @@ class JobExecHandler:
         # method suffixed with update state and lock release
         self.modification_lock.release()
         return exec_status
-
-    # def append_client_params(self, client_id: str, client_params: dict) -> bool:
-    #     '''
-    #     Append Trained Model Params from Clients to the exec_params.client_model_params[].
-    #     Only works if job_status.client_stage=3 and job_status.process_phase=1.
-    #     '''
-    #     # method prefixed with locking and reading state
-    #     self.modification_lock.acquire()
-    #     self._read_state()
-    #     exec_status = True
-
-    #     # method logic
-    #     if self.job_status['process_phase'] == 1 and self.job_status['client_stage'] == 3:
-    #         # add client submitted parameters
-    #         self.exec_params['client_model_params'].append({'client_id': client_id,
-    #                                                         'client_params': client_params})
-
-    #         logger.info(
-    #             f"[{client_id}] submitted params. Total Params: {len(self.exec_params['client_model_params'])}/{self.client_params['num_clients']}")
-
-    #         # # update client status to 4, ClientWaitingForParams
-    #         # self.update_client_status(client_id, client_status=4)
-
-    #         # if all the client's parameters are submitted, set process_phase to 2, i.e., InCentralAggregation
-    #         if len(self.exec_params['client_model_params']) == self.client_params['num_clients']:
-    #             self.job_status['process_phase'] = 2
-    #             logger.info(
-    #                 'All clients params are submitted, starting Federated Aggregation.')
-
-    #         # method suffixed with update state and lock release
-    #         self._update_state()
-    #         print("StateUPdatedforAppendClientParams")
-    #     else:
-    #         logger.warning(
-    #             f'Cannot APPEND client model params! job_status.process_phase is {self.job_status["process_phase"]}, job_status.client_stage is {self.job_status["client_stage"]}.')
-    #         exec_status = False
-
-    #     # method suffixed with update state and lock release
-    #     self.modification_lock.release()
-    #     return exec_status
 
     def terminate_training(self) -> None:
         '''

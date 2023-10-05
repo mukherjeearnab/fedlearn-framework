@@ -229,7 +229,7 @@ def update_client_status():
     STATE_LOCK.acquire()
 
     if job_id in JOBS.keys():
-        JOBS[job_id][1].update_client_status(client_id, client_status)
+        JOBS[job_id][0].update_client_status(client_id, client_status)
     else:
         status = 404
     STATE_LOCK.release()
@@ -301,7 +301,7 @@ def download_dataset():
         DATASET_CHUNK_PATH = f"../../datasets/deploy/{DATASET_PREP_MOD}/chunks/{DATASET_DIST_MOD}/{CHUNK_DIR_NAME}"
 
         chunk_id = 0
-        for i, client in enumerate(JOBS[job_id][1].exec_params['client_info']):
+        for i, client in enumerate(JOBS[job_id][0].job_status['client_info']):
             if client['client_id'] == client_id:
                 chunk_id = i
 

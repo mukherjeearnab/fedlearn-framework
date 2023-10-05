@@ -33,12 +33,6 @@ class JobParamHandler:
         self.exec_handler = JobExecHandler(self.project_name, {}, {}, {}, True)
 
         self.exec_params = {
-            'client_info': [
-                # {
-                #     'client_id': 'client-0',
-                #     'status': 0
-                # }
-            ],
             'client_model_params': [],  # state_dict()
             'central_model_param': None,  # state_dict(),
         }
@@ -72,77 +66,6 @@ class JobParamHandler:
         payload = kv_get(f'{self.project_name}-execlogic')
 
         return payload
-
-    def add_client(self, client_id: str) -> bool:
-        '''
-        Adds a Client to the list of clients for the current job, only if job_status.process_phase is 0.
-        '''
-        # method prefixed with locking and reading state
-        self.modification_lock.acquire()
-        self._read_state()
-        exec_status = True
-
-        # method logic
-        if self.exec_handler.get_job_status('process_phase') == 0:
-            self.exec_params['client_info'].append({
-                'client_id': client_id,
-                'status': 0
-            })
-
-            # method suffixed with update state and lock release
-            self._update_state()
-        else:
-            # log output and set execution status to False
-            logger.warning(
-                f'''Cannot ADD Client! 
-                job_status.process_phase is {self.exec_handler.get_job_status("process_phase")}.''')
-            exec_status = False
-
-        # method suffixed with update state and lock release
-        self.modification_lock.release()
-        return exec_status
-
-    def update_client_status(self, client_id: str, client_status: int) -> bool:
-        '''
-        Updates the status of a client, based on their client_id and 
-        if all clients have the same status, the global status, i.e., job_status.client_stage is set as the status of the clients
-        '''
-        # method prefixed with locking and reading state
-        self.modification_lock.acquire()
-        self._read_state()
-        exec_status = True
-
-        # method logic
-        all_client_status = set()
-
-        for i in range(len(self.exec_params['client_info'])):
-            # find the client and update their status
-            if self.exec_params['client_info'][i]['client_id'] == client_id:
-                self.exec_params['client_info'][i]['status'] = client_status
-
-            # collect the status of all the clients
-            all_client_status.add(
-                self.exec_params['client_info'][i]['status'])
-
-        logger.info(
-            f"Client [{client_id}] is at stage [{CLIENT_STAGE[client_status]}].")
-
-        if len(all_client_status) == 1:
-            self.exec_handler.set_job_status(
-                'client_stage', list(all_client_status)[0])
-            logger.info(
-                f"All clients are at Stage: [{CLIENT_STAGE[self.exec_handler.get_job_status('client_stage')]}]")
-
-            # if all clients is waiting for parameters, update process phase to 2
-            # if list(all_client_status)[0] == 4:
-            #     self.job_status['process_phase'] = 2
-            #     logger.info(
-            #         'All clients params are submitted, starting Federated Aggregation.')
-
-        # method suffixed with update state and lock release
-        self._update_state()
-        self.modification_lock.release()
-        return exec_status
 
     def set_central_model_params(self, params: dict) -> bool:
         '''

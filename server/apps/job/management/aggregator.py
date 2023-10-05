@@ -99,7 +99,7 @@ def aggregator_process(job_name: str, model):
                 # retrieve the client params
                 param = client_param['client_params']
 
-                for i, client in enumerate(param_state['exec_params']['client_info']):
+                for i, client in enumerate(state['job_status']['client_info']):
                     if client['client_id'] == client_param['client_id']:
                         client_params[i] = convert_list_to_tensor(
                             param, device)

@@ -27,11 +27,17 @@ def test_model(model, test_loader, device) -> dict:
     performance metrics
     '''
 
+    print('Starting Model Testing...')
+
     # move the model to the device, cpu or gpu and set to evaluation
     model = model.to(device)
     model.eval()
 
+    print('Loaded Model to Device...')
+
     criterion = torch.nn.BCELoss()
+
+    print('Starting Testing Loop...')
 
     # Validation
     model.eval()
@@ -42,24 +48,38 @@ def test_model(model, test_loader, device) -> dict:
         total_labels = []
         total_scores = []
 
-        for inputs, labels in test_loader:
-            inputs, labels = inputs.to(device), labels.to(device)
+        for i, _ in enumerate(test_loader, 1):
+            print(i)
 
+        print('In No Gradient Context')
+        for i, (inputs, labels) in enumerate(test_loader, 1):
+            print('starting to convert datasets to device')
+            inputs, labels = inputs.to(device), labels.to(device)
+            print('converted dataset to device')
             outputs = model(inputs)
             loss = criterion(outputs, labels.unsqueeze(1).float())
             val_loss += loss.item()
+            print('done with forward pass')
 
             predicted = (outputs > 0.5).float()
+
+            print('computed predictions')
 
             total_labels.extend(labels.tolist())
             total_preds.extend(predicted.squeeze(1).tolist())
             total_scores.extend(outputs.squeeze(1).tolist())
 
+            print(f'Processing batch {i} out of {len(test_loader)}')
+
         average_loss = val_loss / len(test_loader)
+
+    print('\nDone Testing Model...')
 
     results = get_metrics(total_labels, total_preds, total_scores)
 
     results['loss'] = average_loss
+
+    print('Done Calculating Metrics...')
 
     return results
 

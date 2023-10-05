@@ -55,6 +55,7 @@ def tensor_to_data_loader(dataset: tuple, batch_size: int):
     data, labels = dataset
 
     train = data_utils.TensorDataset(data, labels)
-    train_loader = data_utils.DataLoader(train, batch_size, shuffle=True)
+    train_loader = data_utils.DataLoader(
+        train, batch_size, shuffle=True, num_workers=2)
 
     return train_loader

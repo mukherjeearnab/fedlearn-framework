@@ -48,7 +48,7 @@ def get_job_manifest(client_id: str, job_id: str, server_url: str):
 
     manifest = get(url, {'job_id': job_id})
 
-    for client in manifest['exec_params']['client_info']:
+    for client in manifest['job_status']['client_info']:
         if client['client_id'] == client_id:
             logger.info(f'Starting Job Process for Job [{job_id}]')
 

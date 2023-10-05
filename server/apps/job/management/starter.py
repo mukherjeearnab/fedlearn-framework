@@ -53,7 +53,7 @@ def start_job(job_name: str, config_registry: dict, job_registry: dict) -> dict:
 
     # assign the required number of clients to the job
     for i in range(config['client_params']['num_clients']):
-        param_handler.add_client(client_list[i]['id'])
+        exec_handler.add_client(client_list[i]['id'])
         logger.info(f'Assigning client to job {client_list[i]}')
     logger.info('Successfully assigned clients to job.')
 
