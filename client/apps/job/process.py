@@ -9,12 +9,12 @@ from helpers.http import download_file
 from helpers.converters import get_state_dict, set_state_dict, tensor_to_data_loader
 from helpers.torch import get_device
 from helpers.perflog import add_record
+from helpers.dynamod import load_module
 from apps.client.status import update_client_status
 from apps.model.training import data_preprocessing, init_model, parameter_mixing, train_model
-from apps.model.tester import test_model
 from apps.server.listeners import listen_to_dataset_download_flag, listen_to_start_training, listen_to_client_stage
 from apps.server.communication import download_global_params, upload_client_params
-from apps.server.listeners import listen_for_central_aggregation, listen_for_param_download_training
+from apps.server.listeners import listen_for_param_download_training
 
 
 def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str):
@@ -120,9 +120,10 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
         curr_params = get_state_dict(local_model)
 
         # Step 8.5: Test the trained model parameters with test dataset
-        metrics = test_model(local_model, test_loader, device)
-        # as of now, only print the metrics
-        logger.info(f"Training Report:\n{metrics['classification_report']}")
+        testing_module = load_module(
+            'testing_module', job_manifest['client_params']['model_params']['test_file']['content'])
+        metrics = testing_module.test_runner(local_model, test_loader, device)
+
         # caclulate total time for 1 round
         end_time = time()
         # find the time delta for round and convert the microseconds to milliseconds

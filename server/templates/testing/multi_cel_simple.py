@@ -3,6 +3,22 @@ Model Testing Module
 '''
 import torch
 from sklearn import metrics
+from helpers.logging import logger
+
+
+def test_runner(model, test_loader, device):
+    '''
+    The test orchestrator module. 
+    1. Tests the Model against the test dataset.
+    2. Reports the test results.
+    '''
+
+    results = test_model(model, test_loader, device)
+
+    logger.info(
+        f"Model Test Report:\n{results['classification_report']}")
+
+    return results
 
 
 def test_model(model, test_loader, device) -> dict:

@@ -11,8 +11,9 @@ from helpers.dynamod import load_module
 from helpers.converters import convert_list_to_tensor
 from helpers.converters import get_state_dict
 from helpers.torch import get_device
+from helpers.file import torch_read
+from helpers.converters import tensor_to_data_loader
 from helpers.perflog import add_params, add_record, save_logs
-from apps.model.testing import test_runner
 from apps.job.api import get_job, allow_start_training, terminate_training, set_central_model_params
 
 
@@ -45,6 +46,18 @@ def aggregator_process(job_name: str, model):
 
     # start training
     allow_start_training(job_name)
+
+    # load the test dataset
+    DATASET_PREP_MOD = state['dataset_params']['prep']['file']
+    DATASET_DIST_MOD = state['client_params']['dataset']['distribution']['distributor']['file']
+    CHUNK_DIR_NAME = 'dist'
+    for chunk in state['client_params']['dataset']['distribution']['clients']:
+        CHUNK_DIR_NAME += f'-{chunk}'
+    DATASET_CHUNK_PATH = f"./datasets/deploy/{DATASET_PREP_MOD}/chunks/{DATASET_DIST_MOD}/{CHUNK_DIR_NAME}"
+    # load the test dataset from disk
+    test_dataset = torch_read('global_test.tuple', DATASET_CHUNK_PATH)
+    test_loader = tensor_to_data_loader(
+        test_dataset, state['client_params']['train_params']['batch_size'])
 
     # record start time
     start_time = time()
@@ -115,15 +128,11 @@ def aggregator_process(job_name: str, model):
                 f"Completed Global Round {state['job_status']['global_round']} out of {state['server_params']['train_params']['rounds']}")
 
             # logic to test the model with the aggregated parameters
-            DATASET_PREP_MOD = state['dataset_params']['prep']['file']
-            DATASET_DIST_MOD = state['client_params']['dataset']['distribution']['distributor']['file']
-            CHUNK_DIR_NAME = 'dist'
-            for chunk in state['client_params']['dataset']['distribution']['clients']:
-                CHUNK_DIR_NAME += f'-{chunk}'
-            DATASET_CHUNK_PATH = f"./datasets/deploy/{DATASET_PREP_MOD}/chunks/{DATASET_DIST_MOD}/{CHUNK_DIR_NAME}"
-            metrics = test_runner('global_test.tuple', DATASET_CHUNK_PATH,
-                                  state['client_params']['train_params']['batch_size'],
-                                  curr_model, device)
+
+            testing_module = load_module(
+                'testing_module', state['client_params']['model_params']['test_file']['content'])
+            metrics = testing_module.test_runner(
+                curr_model, test_loader, device)
 
             # sleep(DELAY)
 

@@ -18,7 +18,7 @@ client_params:
     model_file: simple_mnist
     parameter_mixer: default
     training_loop_file: simple_loop
-    test_file: simple_test
+    test_file: multi_cel_simple
 
 
   train_params: # training parameters
