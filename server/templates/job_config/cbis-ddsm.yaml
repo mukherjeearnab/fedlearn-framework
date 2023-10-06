@@ -15,7 +15,7 @@ client_params:
         - 0.5
   
   model_params: # model and training files and configs
-    model_file: cbis_density_resnet
+    model_file: cbis_density_mobilenet
     parameter_mixer: default
     training_loop_file: bce_simple
     test_file: bin_bce_loss
@@ -24,7 +24,7 @@ client_params:
   train_params: # training parameters
     learning_rate: 0.000001
     batch_size: 8
-    local_epochs: 3
+    local_epochs: 5
     
     extra_params:
       fed_prox: 

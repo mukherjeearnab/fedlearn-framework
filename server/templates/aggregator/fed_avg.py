@@ -1,6 +1,7 @@
 '''
 Implementation of FedAvg Aggregator for Server Aggregation.
 '''
+import copy
 import torch
 
 
@@ -12,41 +13,23 @@ def aggregator(model, client_params: list, client_weights: list, kwargs=None):
     # if any keyword arguments are passed
     _ = kwargs
 
-    # zero out the model parameters weights
-    set_to_zero_model_weights(model)
+    with torch.no_grad():
 
-    # get the model parameters
-    model_params = model.state_dict()
+        # get the model parameters
+        global_params = model.state_dict()
 
-    # # enumerate over the clients
-    # for k, client_param in enumerate(client_params):
+        new_global_params = copy.deepcopy(global_params)  # Create a deep copy
 
-    #     # enumerate over the layers of the model
-    #     for layer_key in model_params:
+        # Initialize global parameters to zeros
+        for param_name, param in new_global_params.items():
+            param.zero_()
 
-    #         # skip layer if it is not float tensor, i.e., float32 and float64
-    #         if not (model_params[layer_key].dtype == torch.float32 or model_params[layer_key].dtype == torch.float64):
-    #             print('Skipping layer', layer_key)
-    #             continue
+        # Aggregate client updates
+        for client_state_dict, weight in zip(client_params, client_weights):
+            for param_name, param in client_state_dict.items():
+                new_global_params[param_name] += (weight * param).type(
+                    new_global_params[param_name].dtype)
 
-    #         # calculate the weighted contribution from the client k
-    #         # client_weights[k]
-    #         contribution = client_param[layer_key].data * 1.0
-
-    #         # add the contribution
-    #         model_params[layer_key].data.add_(contribution)
-
-    #     break
-
-    print(client_params[0]['resnet50.layer1.0.bn3.num_batches_tracked'])
-
-    model.load_state_dict(client_params[0])
+        model.load_state_dict(new_global_params)
 
     return model
-
-
-def set_to_zero_model_weights(model):
-    """Set all the parameters of a model to 0"""
-
-    for layer_weigths in model.parameters():
-        layer_weigths.data.sub_(layer_weigths.data)
