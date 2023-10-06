@@ -22,9 +22,9 @@ client_params:
 
 
   train_params: # training parameters
-    learning_rate: 0.1
+    learning_rate: 0.001
     batch_size: 50
-    local_epochs: 5
+    local_epochs: 1
     
     extra_params:
       fed_prox: 
@@ -37,7 +37,7 @@ server_params:
   aggregator: fed_avg
 
   train_params: # training parameters
-    rounds: 3
+    rounds: 10
 
     extra_params: # extra training parameters
       fed_avg_momentum: 0.1
