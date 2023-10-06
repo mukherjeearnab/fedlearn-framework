@@ -136,7 +136,6 @@ class JobParamHandler:
 
             # method suffixed with update state and lock release
             self._update_state()
-            print("StateUPdatedforAppendClientParams")
         else:
             logger.warning(
                 f'Cannot APPEND client model params! job_status.process_phase is {self.exec_handler.get_job_status("process_phase")}, job_status.client_stage is {self.exec_handler.get_job_status("client_stage")}.')  # HERER

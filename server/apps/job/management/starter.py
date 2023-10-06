@@ -14,7 +14,7 @@ from helpers.logging import logger
 from helpers.dynamod import load_module
 from helpers.converters import get_base64_state_dict
 from helpers.perflog import init_project
-
+from helpers.torch import reset_seed
 
 # import environment variables
 load_dotenv()
@@ -131,6 +131,9 @@ def load_model_and_get_params(config: dict):
     # load the model module
     model_module = load_module(
         'model_module', config['client_params']['model_params']['model_file']['content'])
+
+    # reset torch seed
+    reset_seed()
 
     # create an instance of the model
     model = model_module.ModelClass()
