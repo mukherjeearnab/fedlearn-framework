@@ -11,8 +11,8 @@ def param_mixer(current_global_params: dict, previous_local_params: dict) -> dic
     '''
 
     # replace the previous parameter layer weights with the current global ones
-    for param_key in previous_local_params.keys():
-        previous_local_params[param_key] = deepcopy(
-            current_global_params[param_key])
+    # for param_key in previous_local_params.keys():
+    #     previous_local_params[param_key] = deepcopy(
+    #         current_global_params[param_key])
 
-    return previous_local_params
+    return current_global_params

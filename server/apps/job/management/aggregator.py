@@ -8,8 +8,8 @@ from copy import deepcopy
 from dotenv import load_dotenv
 from helpers.logging import logger
 from helpers.dynamod import load_module
-from helpers.converters import convert_list_to_tensor
-from helpers.converters import get_state_dict
+from helpers.converters import convert_base64_to_state_dict
+from helpers.converters import get_base64_state_dict
 from helpers.torch import get_device
 from helpers.file import torch_read
 from helpers.converters import tensor_to_data_loader
@@ -101,7 +101,7 @@ def aggregator_process(job_name: str, model):
 
                 for i, client in enumerate(state['job_status']['client_info']):
                     if client['client_id'] == client_param['client_id']:
-                        client_params[i] = convert_list_to_tensor(
+                        client_params[i] = convert_base64_to_state_dict(
                             param, device)
 
                         break
@@ -119,7 +119,7 @@ def aggregator_process(job_name: str, model):
             curr_model = curr_model.to(device)
 
             # obtain the list form of model parameters
-            params = get_state_dict(curr_model)
+            params = get_base64_state_dict(curr_model)
 
             # update the central model params
             set_central_model_params(job_name, params)

@@ -6,7 +6,7 @@ from copy import deepcopy
 from helpers.logging import logger
 from helpers.file import create_dir_struct
 from helpers.http import download_file
-from helpers.converters import get_state_dict, set_state_dict, tensor_to_data_loader
+from helpers.converters import get_base64_state_dict, set_base64_state_dict, tensor_to_data_loader
 from helpers.torch import get_device
 from helpers.perflog import add_record
 from helpers.dynamod import load_module
@@ -77,7 +77,7 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
     global_model = deepcopy(local_model)
 
     # obtain parameters of the model
-    previous_params = get_state_dict(local_model)
+    previous_params = get_base64_state_dict(local_model)
 
     # Step 5: Listen to check when process phase turns 1.
     listen_to_start_training(job_id, server_url)
@@ -107,17 +107,17 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
                                        job_manifest['client_params']['model_params']['parameter_mixer']['content'])
 
         # Step 8.2.1: Update the local model parameters
-        set_state_dict(local_model, curr_params)
+        set_base64_state_dict(local_model, curr_params)
 
         # Step 8.2.2: Update the local model parameters
-        set_state_dict(global_model, global_params)
+        set_base64_state_dict(global_model, global_params)
 
         # Step 8.3: Training Loop
         train_model(job_manifest, train_loader,
                     local_model, global_model, device)
 
         # Step 8.4: Obtain trained model parameters
-        curr_params = get_state_dict(local_model)
+        curr_params = get_base64_state_dict(local_model)
 
         # Step 8.5: Test the trained model parameters with test dataset
         testing_module = load_module(

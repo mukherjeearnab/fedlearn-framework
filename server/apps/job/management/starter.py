@@ -12,7 +12,7 @@ from apps.client.api import get_alive_clients
 from apps.job.management.aggregator import aggregator_process
 from helpers.logging import logger
 from helpers.dynamod import load_module
-from helpers.converters import get_state_dict
+from helpers.converters import get_base64_state_dict
 from helpers.perflog import init_project
 
 
@@ -136,6 +136,6 @@ def load_model_and_get_params(config: dict):
     model = model_module.ModelClass()
 
     # obtain the list form of model parameters
-    params = get_state_dict(model)
+    params = get_base64_state_dict(model)
 
     return params, model
