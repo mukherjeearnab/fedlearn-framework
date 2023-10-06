@@ -16,7 +16,6 @@ STATE_LOCK = threading.Lock()
 
 JOBS = {}
 CONFIGS = {}
-# JOB_THREADS = {}
 
 
 @blueprint.route('/')
@@ -81,16 +80,12 @@ def start_job_route():
     '''
     job_id = request.args['job_id']
 
-    # STATE_LOCK.acquire()
     try:
         start_job(job_id, CONFIGS, JOBS)
+        job_state = JOBS[job_id][0].get_state()
     except Exception as e:
         logger.error(f'Failed to Load Job Instance {e}')
-
-    job_state = JOBS[job_id][0].get_state()
-    # JOB_THREADS[job_id] = resp
-
-    # STATE_LOCK.release()
+        job_state = {'message': 'Job instance not found'}
 
     return jsonify(job_state)
 
@@ -100,7 +95,7 @@ def list_jobs():
     '''
     get the list of all the jobs in the state machine
     '''
-    # STATE_LOCK.wait()
+
     jobs = list(JOBS.keys())
 
     return jsonify(jobs)
@@ -113,7 +108,6 @@ def get():
     '''
     job_id = request.args['job_id']
 
-    # STATE_LOCK.wait()
     job_state = JOBS[job_id][0].get_state()
     job_state['exec_params'] = JOBS[job_id][1].get_state()['exec_params']
 
@@ -127,7 +121,6 @@ def get_exec():
     '''
     job_id = request.args['job_id']
 
-    # STATE_LOCK.wait()
     job_state = JOBS[job_id][0].get_state()
 
     return jsonify(job_state)
@@ -140,7 +133,6 @@ def get_params():
     '''
     job_id = request.args['job_id']
 
-    # STATE_LOCK.wait()
     job_state = JOBS[job_id][1].get_state()
 
     return jsonify(job_state)
