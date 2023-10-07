@@ -9,6 +9,14 @@ import torch
 from helpers.logging import logger
 
 
+def file_exists(filename: str) -> bool:
+    '''
+    Function to check if a file exists or not
+    '''
+
+    return exists(filename)
+
+
 def read_yaml_file(filename: str) -> dict:
     '''
     Function to read a YAML file from Disk and return a dictionary.
