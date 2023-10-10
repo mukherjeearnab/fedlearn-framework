@@ -15,11 +15,13 @@ def prepare_dataset():
     '''
 
     # Load and preprocess the train dataset
-    train_dataset = torch.load('/DATA/arnab/Projects/cbis-ddsm/total.tuple')
+    train_dataset = torch.load(
+        '/DATA/arnab/Projects/cbis-ddsm/official-ddsm-density-train-sm.tuple')
     train_data, train_labels = train_dataset
 
     # Load and preprocess the test dataset
-    test_dataset = torch.load('/DATA/arnab/Projects/cbis-ddsm/total.tuple')
+    test_dataset = torch.load(
+        '/DATA/arnab/Projects/cbis-ddsm/official-ddsm-density-test-sm.tuple')
     test_data, test_labels = test_dataset
 
     # return the tuple as ((train_data, train_labels), (test_data, test_labels)),
