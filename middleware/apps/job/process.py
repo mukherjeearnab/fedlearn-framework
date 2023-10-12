@@ -4,20 +4,19 @@ Job Process Module
 from time import time
 from copy import deepcopy
 from helpers.logging import logger
-from helpers.file import create_dir_struct
-from helpers.http import download_file
-from helpers.converters import get_base64_state_dict, set_base64_state_dict, tensor_to_data_loader
 from helpers.torch import get_device
-from helpers.perflog import add_record
-from helpers.dynamod import load_module
-from apps.client.status import update_client_status
-from apps.model.training import data_preprocessing, init_model, parameter_mixing, train_model
-from apps.server.listeners import listen_to_dataset_download_flag, listen_to_start_training, listen_to_client_stage
-from apps.server.communication import download_global_params, upload_client_params
-from apps.server.listeners import listen_for_param_download_training
+from apps.job.api import load_job, start_job, allow_start_training
+from apps.job.management.dataset.downloader import download_upstream_dataset
+from apps.job.management.dataset.prepare import dataset_prepare_for_downstream_clients
+from apps.job.management.dataset.allow_dataset_download import allow_downstream_dataset_download
+from apps.job.management.set_central_model_params import set_downstream_central_model_params
+from apps.job.management.wait_for_client_stage import wait_for_client_stage
+from apps.middleware.status import update_middleware_status
+from apps.server.listeners import listen_to_dataset_download_flag, listen_to_client_stage, listen_to_start_training
+from apps.server.communication import download_global_params
 
 
-def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str):
+def job_process(middleware_id: str, job_id: str, job_manifest: dict, server_url: str):
     '''
     The Job Process method
     1. ACK of job manifest to server, and update middleware (client) status to 1.
@@ -34,21 +33,21 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
         3. Serve Dataset (middleware) to Downstream Clients (set Download flag of middleware).
         4. Wait for Downstream Clients to send ACK of Dataset.
     3. ACK of dataset to Upstream server, and update middleware (client) status to 2 (2.5).
-    5. Listen to check when Upstream Process Phase turns 1.
+    4. Listen to check when Upstream Process Phase turns 1.
         0. Listen to Upstream Server for Process Phase to turn 1.
         1. Download Global Params from Upstream Server.
         2. Set Global Params for Downstream Clients to download.
         3. Set Middleware Process Phase to 1, for all Downstream Clients.
         4. Wait for Downstream Clients to send ACK and Downstream Client Stage to be 3.
-    6. ACK of global parameters to Upstream server, and update middleware (client) status to 3.
-    7. Wait for Downstream Clients to Train.
+    5. ACK of global parameters to Upstream server, and update middleware (client) status to 3.
+    6. Wait for Downstream Clients to Train.
         1. Wait for Downstream Clients to upload their Parameters to Middleware, as Downstream Client Stage will turn 4.
         2. If Downstream Client Stage is 4, SET Downstream Client (middleware) Process Phase to turn 2.
-    8. Perform Aggregation of Downstream Client Parameters.
-    9. Send back Aggregated Model Parameters to Upstream Server and ACK of model update, and update middleware (client) status to 4.
-    10. Listen to check when Upstream Server Process Phase change to 2.
-    11. Listen to check when Upstream Server Process Phase change to 1 or 3.
-    12. If Upstream Server Process Phase is 1, repeat steps 5-12, 
+    7. Perform Aggregation of Downstream Client Parameters.
+    8. Send back Aggregated Model Parameters to Upstream Server and ACK of model update, and update middleware (client) status to 4.
+    9. Listen to check when Upstream Server Process Phase change to 2.
+    10. Listen to check when Upstream Server Process Phase change to 1 or 3.
+    11. If Upstream Server Process Phase is 1, repeat steps 5-12, 
         else SET Downstream Client (middleware) Process Phase to 3, and terminate process.
     '''
 
@@ -57,138 +56,63 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
     # Step 0: Select Device
     device = get_device()
 
-    # Step 1: ACK of job manifest to server, and update client status to 1.
-    update_client_status(client_id, job_id, 1, server_url)
+    # Step 1. ACK of job manifest to server, and update middleware (client) status to 1.
+    #    0. Listen to Upstream server for Job Manifest. (already done)
+    #    1. Download Upstream Job Manifest. (already done)
+    #    2. Prepare Middleware Job Manifest.
+    exec_status = load_job(job_id, job_manifest)
 
-    # Step 2: Listen to download_dataset to turn true, then download dataset.
-    # 2.1 listen to download dataset flag
+    if not exec_status:
+        logger.error('Job Loading Failed. Exiting...')
+        return
+
+    #    3. Serve Job Manifest (middleware) to Downstream Clients.
+    #    4. Wait for Downstream Clients to send ACK of job manifest.
+    start_job(job_id, job_manifest)
+
+    #    5. Send ACK of job manifest to Upstream Server.
+    update_middleware_status(middleware_id, job_id, 1, server_url)
+
+    # Step 2. Listen to download_dataset to turn true, then download dataset.
+    #    0. Listen to Upstream server for Dataset.
     listen_to_dataset_download_flag(job_id, server_url)
 
-    # 2.2 create the directory structure for the download
-    file_name = f'{client_id}.tuple'
-    dataset_path = f'./datasets/{job_id}'
-    create_dir_struct(dataset_path)
+    #    1. Download Upstream Dataset.
+    download_upstream_dataset(job_id, middleware_id, server_url)
 
-    # 2.3 download dataset to ./datasets/[job_id]/dataset.tuple
-    download_file(f'{server_url}/job_manager/download_dataset?job_id={job_id}&client_id={client_id}',
-                  f'{dataset_path}/{file_name}')
+    #    2. Prepare Downstream Client Datasets (prepare chunks, distribute).
+    dataset_prepare_for_downstream_clients(middleware_id, job_id, job_manifest)
 
-    # Step 3: Preprocess dataset.
-    # 3.1 preprocess dataset
-    (train_set, test_set) = data_preprocessing(file_name, dataset_path,
-                                               job_manifest['client_params']['dataset']['preprocessor']['content'])
-    #    list(job_manifest['client_params']['train_test_split'].values()))
+    #    3. Serve Dataset (middleware) to Downstream Clients (set Download flag of middleware).
+    #    4. Wait for Downstream Clients to send ACK of Dataset.
+    allow_downstream_dataset_download(job_id)
 
-    # 3.2 create DataLoader Objects for train and test sets
-    train_loader = tensor_to_data_loader(train_set,
-                                         job_manifest['client_params']['train_params']['batch_size'])
-    test_loader = tensor_to_data_loader(test_set,
-                                        job_manifest['client_params']['train_params']['batch_size'])
+    # Step 3. ACK of dataset to Upstream server, and update middleware (client) status to 2 (2.5).
+    update_middleware_status(middleware_id, job_id, 2, server_url)
 
-    # Step 4: ACK of dataset to server, and update client status to 2.
-    update_client_status(client_id, job_id, 2, server_url)
-
-    # wait for client stage be 2
+    # Step 4. Listen to check when Upstream Process Phase turns 1.
+    #    0. Listen to Upstream Server for Process Phase to turn 1.
     listen_to_client_stage(2, job_id, server_url)
-
-    # It is a good idea to initialize the local and global model with initial params here.
-    local_model = init_model(job_manifest['client_params']
-                             ['model_params']['model_file']['content'])
-    global_model = deepcopy(local_model)
-
-    # obtain parameters of the model
-    previous_params = get_base64_state_dict(local_model)
-
-    # Step 5: Listen to check when process phase turns 1.
     listen_to_start_training(job_id, server_url)
 
-    # Step 6: Download global parameters from server.
+    #    1. Download Global Params from Upstream Server.
     global_params = download_global_params(job_id, server_url)
-    previous_params = global_params
 
-    # some logging vars
-    global_round = 1
+    #    2. Set Global Params for Downstream Clients to download.
+    set_downstream_central_model_params(job_id, global_params)
 
-    # record start time
-    start_time = time()
+    #    3. Set Middleware Process Phase to 1, for all Downstream Clients.
+    allow_start_training(job_id)
 
-    # round loop for steps 6-12
-    while True:
+    #    4. Wait for Downstream Clients to send ACK and Downstream Client Stage to be 3.
+    wait_for_client_stage(job_id, 3)
 
-        # Step 7: ACK of global parameters to server, and update client status to 3.
-        update_client_status(client_id, job_id, 3, server_url)
+    # Step 5. ACK of global parameters to Upstream server, and update middleware (client) status to 3.
+    update_middleware_status(middleware_id, job_id, 3, server_url)
 
-        # wait for client stage be 3
-        listen_to_client_stage(3, job_id, server_url)
+    # Step 6. Wait for Downstream Clients to Train.
+    #    1. Wait for Downstream Clients to upload their Parameters to Middleware, as Downstream Client Stage will turn 4.
+    wait_for_client_stage(job_id, 4)
 
-        # Step 8: Perform local training.
-        # Step 8.1: Perform the Parameter Mixing
-        curr_params = parameter_mixing(global_params, previous_params,
-                                       job_manifest['client_params']['model_params']['parameter_mixer']['content'])
-
-        # Step 8.2.1: Update the local model parameters
-        set_base64_state_dict(local_model, curr_params)
-
-        # Step 8.2.2: Update the local model parameters
-        set_base64_state_dict(global_model, global_params)
-
-        # Step 8.3: Training Loop
-        train_model(job_manifest, train_loader,
-                    local_model, global_model, device)
-
-        # Step 8.4: Obtain trained model parameters
-        curr_params = get_base64_state_dict(local_model)
-
-        # Step 8.5: Test the trained model parameters with test dataset
-        testing_module = load_module(
-            'testing_module', job_manifest['client_params']['model_params']['test_file']['content'])
-        metrics = testing_module.test_runner(local_model, test_loader, device)
-
-        # caclulate total time for 1 round
-        end_time = time()
-        # find the time delta for round and convert the microseconds to milliseconds
-        time_delta = (end_time - start_time)*1000
-        logger.info(f'Total Round Time Delta: {time_delta} ms')
-        # report metrics to PerfLog Server
-        add_record(client_id, job_id, metrics, global_round, time_delta)
-
-        # Step 9: Send back locally trained model parameters
-        # and update client status to 4 on the server automatically.
-        upload_client_params(curr_params, client_id, job_id, server_url)
-        update_client_status(client_id, job_id, 4, server_url)
-
-        # wait for client stage be 4
-        listen_to_client_stage(4, job_id, server_url)
-
-        # Step 10: Listen to check when process phase change to 2.
-        # listen_for_central_aggregation(job_id, server_url)
-
-        # Step 11: Listen to check when process phase change to 1 or 3.
-        process_phase, global_round, abort_signal = listen_for_param_download_training(
-            job_id, server_url, global_round)
-
-        # update round count
-        # global_round += 1
-
-        # if abort signal is true, abort the job
-        if abort_signal:
-            logger.info(f'Job [{job_id}] Aborted. Exiting Process.')
-            update_client_status(client_id, job_id, 5, server_url)
-            break
-
-        # Step 12: If process phase is 1, repeat steps 6-11,
-        if process_phase == 1:
-            # update previous parameters
-            previous_params = curr_params
-
-            # Step 6: Download global parameters from server.
-            global_params = download_global_params(job_id, server_url)
-
-        # Step 12: else if process phase is 3 terminate process.
-        if process_phase == 3:
-            logger.info(f'Job [{job_id}] terminated. Exiting Process.')
-            update_client_status(client_id, job_id, 5, server_url)
-            break
-
-        # record start time
-        start_time = time()
+    #    2. If Downstream Client Stage is 4, SET Downstream Client (middleware) Process Phase to turn 2.
+    # This is Auto Handled in Job Exec and Params Handler

@@ -1,0 +1,89 @@
+hierarchical: true
+middleware_params:
+  dataset:
+    distribution:
+      distributor: random_dist
+      splits:
+        - 0.5
+        - 0.5
+
+  individual_configs:
+    - num_clients: 2
+
+      aggregation:
+        aggregator: fed_avg
+
+        extra_params: # extra aggregation parameters
+          fed_avg_momentum: 0.1
+
+      train_test_split: # train test split config
+        train: 0.8
+        test: 0.2
+
+      dataset: # dataset hyperparameters and configs
+        preprocessor: default
+        distribution:
+          distributor: random_dist
+          clients:
+            - 0.8
+            - 0.2
+
+      model_params: # model and training files and configs
+        model_file: simple_mnist
+        parameter_mixer: default
+        training_loop_file: simple_loop
+        test_file: multi_cel_simple
+
+      train_params: # training parameters
+        learning_rate: 0.01
+        batch_size: 50
+        local_epochs: 5
+
+        extra_params:
+          lr_decay: 1
+
+    - num_clients: 2
+
+      aggregation:
+        aggregator: fed_avg
+
+        extra_params: # extra aggregation parameters
+          fed_avg_momentum: 0.1
+
+      train_test_split: # train test split config
+        train: 0.8
+        test: 0.2
+
+      dataset: # dataset hyperparameters and configs
+        preprocessor: default
+        distribution:
+          distributor: random_dist
+          clients:
+            - 0.5
+            - 0.5
+
+      model_params: # model and training files and configs
+        model_file: simple_mnist
+        parameter_mixer: default
+        training_loop_file: simple_loop
+        test_file: multi_cel_simple
+
+      train_params: # training parameters
+        learning_rate: 0.01
+        batch_size: 50
+        local_epochs: 5
+
+        extra_params:
+          lr_decay: 1
+
+server_params:
+  aggregator: fed_avg
+
+  train_params: # training parameters
+    rounds: 3
+
+    extra_params: # extra training parameters
+      fed_avg_momentum: 0.1
+
+dataset_params:
+  prep: mnist_def

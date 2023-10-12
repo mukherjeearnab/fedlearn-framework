@@ -48,13 +48,21 @@ def get_job_manifest(middleware_id: str, job_id: str, server_url: str):
 
     manifest = get(url, {'job_id': job_id})
 
-    for middleware in manifest['job_status']['client_info']:
+    for client_index, middleware in enumerate(manifest['job_status']['client_info']):
         if middleware['client_id'] == middleware_id:
             logger.info(f'Starting Job Process for Job [{job_id}]')
 
+            job_manifest = {
+                'client_params': manifest['middleware_params']['individual_configs'][client_index],
+                'server_params': manifest['server_params'],
+                'dataset_params': manifest['dataset_params']
+            }
+
             # start new job thread
             job_proc = Process(target=job_process,
-                               args=(middleware_id, job_id, manifest, server_url), name=f'job_{job_id}')
+                               args=(
+                                   middleware_id, job_id, job_manifest, server_url),
+                               name=f'job_{job_id}')
 
             # start job process
             job_proc.start()

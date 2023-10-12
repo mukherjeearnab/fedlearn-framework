@@ -1,14 +1,15 @@
 '''
 This is the Commandline interface for managing the server
 '''
-import sys
+import os
 import logging
 from time import sleep
 from dotenv import load_dotenv
+from global_kvset import app_globals
 from helpers.logging import logger
-from helpers import torch as _
 from apps.middleware.keep_alive import keep_alive_process
 from apps.middleware.registration import register_client
+from apps.http_server.controller import start_server
 
 
 log = logging.getLogger('werkzeug')
@@ -33,6 +34,9 @@ JOBS = {
     'job_ids': [],
     'jobs': {}
 }
+
+# 0. Start the Middlware HTTP Server
+start_server()
 
 # 1. register middleware on server
 while True:  # loop through and wait for the server to be available for registration

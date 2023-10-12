@@ -37,13 +37,14 @@ def load_job_route():
 
     STATE_LOCK.acquire()
     try:
-        load_job(job_id, CONFIGS)
+        exec_status = load_job(job_id, CONFIGS)
     except Exception as e:
         logger.error(f'Failed to Load Job Instance {e}')
+        exec_status = False
 
     STATE_LOCK.release()
 
-    return jsonify({'message': 'Job instance loaded successfully!'})
+    return jsonify({'exec_status': exec_status})
 
 
 @blueprint.route('/delete')
@@ -141,6 +142,26 @@ def get_params():
 ################################################################
 # Job Specific Routes
 ################################################################
+
+@blueprint.route('/allow_dataset_download', methods=['POST'])
+def allow_dataset_download():
+    '''
+    ROUTE to set dataset download for clients
+    '''
+    payload = request.get_json()
+    status = 200
+
+    job_id = payload['job_id']
+
+    STATE_LOCK.acquire()
+
+    if job_id in JOBS.keys():
+        JOBS[job_id][0].allow_dataset_download()
+    else:
+        status = 404
+    STATE_LOCK.release()
+
+    return jsonify({'message': 'Training Allowed!' if status == 200 else 'Training NOT Allowed!'}), status
 
 
 @blueprint.route('/allow_start_training', methods=['POST'])
