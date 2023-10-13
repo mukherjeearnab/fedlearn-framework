@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from global_kvset import app_globals
 from helpers.logging import logger
 from apps.middleware.keep_alive import keep_alive_process
-from apps.middleware.registration import register_client
+from apps.middleware.registration import register_middleware
 from apps.http_server.controller import start_server
 
 
@@ -41,7 +41,8 @@ start_server()
 # 1. register middleware on server
 while True:  # loop through and wait for the server to be available for registration
     try:
-        CLIENT_STATE['reginfo'] = register_client(CLIENT_STATE['server_url'])
+        CLIENT_STATE['reginfo'] = register_middleware(
+            CLIENT_STATE['server_url'])
         logger.info(f"Registered client with {CLIENT_STATE['reginfo']}")
         break
     except Exception as e:

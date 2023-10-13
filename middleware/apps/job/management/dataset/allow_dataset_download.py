@@ -1,3 +1,4 @@
+import os
 from time import sleep
 from dotenv import load_dotenv
 from helpers.logging import logger
