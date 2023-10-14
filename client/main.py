@@ -20,6 +20,15 @@ CLIENT_STATE = {
     'server_url': os.getenv('MANAGEMENT_SERVER')
 }
 
+override_url = input(
+    'Enter Management Server URL or PORT (Leave empty to use the default from .env): ').strip()
+
+if len(override_url) > 0:
+    if override_url.isdigit():
+        CLIENT_STATE['server_url'] = f'http://localhost:{override_url}'
+    else:
+        CLIENT_STATE['server_url'] = f'http://{override_url}'
+
 
 # global variables
 JOBS = {
