@@ -14,13 +14,22 @@ def prepare_dataset_for_deployment(config: dict):
     2. run dataset_distribution and save to file in ./datasets/deploy/[dataset_prep file name]/chunks/[dist_file]/client-n-[client_weight].pt and OK file
     '''
 
+    if 'hierarchical' in config and config['hierarchical']:
+        num_clients = len(config['middleware_params']['individual_configs'])
+        client_config = config['middleware_params']
+        client_split_key = 'splits'
+    else:
+        num_clients = config['client_params']['num_clients']
+        client_config = config['client_params']
+        client_split_key = 'clients'
+
     CHUNK_DIR_NAME = 'dist'
-    for chunk in config['client_params']['dataset']['distribution']['clients']:
+    for chunk in client_config['dataset']['distribution'][client_split_key]:
         CHUNK_DIR_NAME += f'-{chunk}'
 
     # print('CHUNK_DIR_NAME', CHUNK_DIR_NAME)
     DATASET_PREP_MOD = config['dataset_params']['prep']['file']
-    DATASET_DIST_MOD = config['client_params']['dataset']['distribution']['distributor']['file']
+    DATASET_DIST_MOD = client_config['dataset']['distribution']['distributor']['file']
     DATASET_ROOT_PATH = f"./datasets/deploy/{DATASET_PREP_MOD}/root"
     DATASET_CHUNK_PATH = f"./datasets/deploy/{DATASET_PREP_MOD}/chunks/{DATASET_DIST_MOD}/{CHUNK_DIR_NAME}"
 
@@ -68,19 +77,19 @@ def prepare_dataset_for_deployment(config: dict):
     if not check_OK_file(DATASET_CHUNK_PATH):
         # load the dataset prep module
         distributor_module = load_module(
-            'distributor', config['client_params']['dataset']['distribution']['distributor']['content'])
+            'distributor', client_config['dataset']['distribution']['distributor']['content'])
 
         # obtain the dataset as data and labels
         train_chunks = distributor_module.distribute_into_client_chunks(train_set,
-                                                                        config['client_params']['dataset']['distribution']['clients'])
+                                                                        client_config['dataset']['distribution'][client_split_key])
         if test_set is not None:
             test_chunks = distributor_module.distribute_into_client_chunks(test_set,
-                                                                           config['client_params']['dataset']['distribution']['clients'])
+                                                                           client_config['dataset']['distribution'][client_split_key])
 
         # if test set is not available, split the chunks into train and test sets
         if test_set is None:
             split_ratio = list(
-                config['client_params']['train_test_split'].values())
+                client_config['train_test_split'].values())
             chunks = [train_test_split(chunk, split_ratio)
                       for chunk in train_chunks]
         else:  # if test set is available, merge the train-test chunks into one
@@ -93,7 +102,7 @@ def prepare_dataset_for_deployment(config: dict):
         # saving chunks and global test dataset to disk
         try:
             # save the chunks dataset to disk
-            for i in range(config['client_params']['num_clients']):
+            for i in range(num_clients):
                 # client = f'client-{i+1}'
                 # save the dataset to disk
                 torch_write(f'{i}.tuple',

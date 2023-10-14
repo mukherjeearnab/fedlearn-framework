@@ -36,10 +36,10 @@ def load_job_route():
     job_id = request.args['job_id']
 
     STATE_LOCK.acquire()
-    try:
-        load_job(job_id, CONFIGS)
-    except Exception as e:
-        logger.error(f'Failed to Load Job Instance {e}')
+    # try:
+    load_job(job_id, CONFIGS)
+    # except Exception as e:
+    #     logger.error(f'Failed to Load Job Instance {e}')
 
     STATE_LOCK.release()
 

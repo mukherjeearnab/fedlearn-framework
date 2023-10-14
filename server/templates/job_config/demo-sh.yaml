@@ -6,6 +6,10 @@ middleware_params:
       splits:
         - 1.0
 
+  train_test_split: # train test split config
+    train: 0.8
+    test: 0.2
+
   individual_configs:
     - num_clients: 1
 
