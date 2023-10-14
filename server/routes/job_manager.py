@@ -285,7 +285,13 @@ def download_dataset():
 
     if job_id in JOBS:
         CHUNK_DIR_NAME = 'dist'
-        for chunk in JOBS[job_id][0].client_params['dataset']['distribution']['clients']:
+
+        if JOBS[job_id][0].hierarchical:
+            client_split_key = 'splits'
+        else:
+            client_split_key = 'clients'
+
+        for chunk in JOBS[job_id][0].client_params['dataset']['distribution'][client_split_key]:
             CHUNK_DIR_NAME += f'-{chunk}'
 
         DATASET_PREP_MOD = JOBS[job_id][0].dataset_params['prep']['file']

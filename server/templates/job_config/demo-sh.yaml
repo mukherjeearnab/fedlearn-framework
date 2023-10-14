@@ -47,6 +47,8 @@ middleware_params:
 server_params:
   aggregator: fed_avg
 
+  model_file: simple_mnist
+
   train_params: # training parameters
     rounds: 1
 

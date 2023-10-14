@@ -39,9 +39,19 @@ def start_job(job_name: str, config_registry: dict, job_registry: dict) -> dict:
     # get available clients from the server registry
     client_list = get_alive_clients()
 
+    if 'hierarchical' in config and config['hierarchical']:
+        client_params = config['middleware_params']
+        hierarchical = True
+        num_clients = len(config['middleware_params']['individual_configs'])
+    else:
+        client_params = config['client_params']
+        hierarchical = False
+        num_clients = config['client_params']['num_clients']
+
     # create a new job instance
     exec_handler = JobExecHandler(project_name=job_name,
-                                  client_params=config['client_params'],
+                                  hierarchical=hierarchical,
+                                  client_params=client_params,
                                   server_params=config['server_params'],
                                   dataset_params=config['dataset_params'])
 
@@ -52,7 +62,7 @@ def start_job(job_name: str, config_registry: dict, job_registry: dict) -> dict:
     logger.info(f'Created Job Instance for Job {job_name}.')
 
     # assign the required number of clients to the job
-    for i in range(config['client_params']['num_clients']):
+    for i in range(num_clients):
         exec_handler.add_client(client_list[i]['id'])
         logger.info(f'Assigning client to job {client_list[i]}')
     logger.info('Successfully assigned clients to job.')
@@ -130,7 +140,7 @@ def load_model_and_get_params(config: dict):
 
     # load the model module
     model_module = load_module(
-        'model_module', config['client_params']['model_params']['model_file']['content'])
+        'model_module', config['server_params']['model_file']['content'])
 
     # reset torch seed
     reset_seed()

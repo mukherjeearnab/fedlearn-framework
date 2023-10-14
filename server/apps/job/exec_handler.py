@@ -20,7 +20,7 @@ class JobExecHandler:
     JobExecHandler Class
     '''
 
-    def __init__(self, project_name: str, client_params: dict, server_params: dict, dataset_params: dict, load_from_db=False):
+    def __init__(self, project_name: str, hierarchical: bool, client_params: dict, server_params: dict, dataset_params: dict, load_from_db=False):
         '''
         constructor
         '''
@@ -28,6 +28,8 @@ class JobExecHandler:
         self.modification_lock = Semaphore()
 
         self.project_name = project_name
+
+        self.hierarchical = hierarchical
 
         self.dataset_params = dataset_params
 
@@ -91,7 +93,10 @@ class JobExecHandler:
         '''
         Returns the number of clients for the Job Instance
         '''
-        return self.client_params['num_clients']
+        if self.hierarchical:
+            return len(self.client_params['individual_configs'])
+        else:
+            return self.client_params['num_clients']
 
     def get_job_status(self, param: str):
         '''
