@@ -56,6 +56,8 @@ def job_process(middleware_id: str, job_id: str, job_manifest: dict, server_url:
     # Step 0: Select Device
     device = get_device()
 
+    logger.info(f'In Process Thread for Job [{job_id}]')
+
     # some logging vars
     global_round = 1
 
@@ -63,7 +65,7 @@ def job_process(middleware_id: str, job_id: str, job_manifest: dict, server_url:
     #    0. Listen to Upstream server for Job Manifest. (already done)
     #    1. Download Upstream Job Manifest. (already done)
     #    2. Prepare Middleware Job Manifest.
-    exec_status = load_job(job_id, job_manifest)
+    exec_status = load_job(job_id)
 
     if not exec_status:
         logger.error('Job Loading Failed. Exiting...')
@@ -71,7 +73,7 @@ def job_process(middleware_id: str, job_id: str, job_manifest: dict, server_url:
 
     #    3. Serve Job Manifest (middleware) to Downstream Clients.
     #    4. Wait for Downstream Clients to send ACK of job manifest.
-    start_job(job_id, job_manifest)
+    start_job(job_id)
 
     #    5. Send ACK of job manifest to Upstream Server.
     update_middleware_status(middleware_id, job_id, 1, server_url)

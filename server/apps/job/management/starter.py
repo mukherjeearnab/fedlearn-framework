@@ -55,7 +55,8 @@ def start_job(job_name: str, config_registry: dict, job_registry: dict) -> dict:
                                   server_params=config['server_params'],
                                   dataset_params=config['dataset_params'])
 
-    param_handler = JobParamHandler(project_name=job_name)
+    param_handler = JobParamHandler(project_name=job_name,
+                                    hierarchical=hierarchical)
 
     job_registry[job_name] = (exec_handler, param_handler)
 

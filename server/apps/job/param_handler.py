@@ -21,7 +21,7 @@ class JobParamHandler:
     JobParamHandler Class
     '''
 
-    def __init__(self, project_name: str, load_from_db=False):
+    def __init__(self, project_name: str, hierarchical: bool, load_from_db=False):
         '''
         constructor
         '''
@@ -30,7 +30,8 @@ class JobParamHandler:
 
         self.project_name = project_name
 
-        self.exec_handler = JobExecHandler(self.project_name, {}, {}, {}, True)
+        self.exec_handler = JobExecHandler(
+            self.project_name, hierarchical, {}, {}, {}, True)
 
         self.exec_params = {
             'client_model_params': [],  # state_dict()

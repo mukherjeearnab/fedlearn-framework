@@ -66,6 +66,7 @@ class JobExecHandler:
                 f'No such FedLearn Project named [{self.project_name}] exists!')
         else:
             self.project_name = payload['project_name']
+            self.hierarchical = payload['hierarchical']
             self.dataset_params = payload['dataset_params']
             self.client_params = payload['client_params']
             self.server_params = payload['server_params']
@@ -74,6 +75,7 @@ class JobExecHandler:
     def _update_state(self):
         data = {
             'project_name': self.project_name,
+            'hierarchical': self.hierarchical,
             'dataset_params': self.dataset_params,
             'client_params': self.client_params,
             'server_params': self.server_params,
