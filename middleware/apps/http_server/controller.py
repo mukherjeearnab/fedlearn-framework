@@ -10,16 +10,12 @@ from apps.http_server.root import app
 # import environment variables
 load_dotenv()
 
-# SERVER_PORT = int(os.getenv('SERVER_PORT'))
-# print(type(SERVER_PORT))
-
 
 def run_server():
     '''
     Method to create a thread for the server process
     '''
-    SERVER_PORT = int(input('Enter HTTP server port: '))
-    app_globals.set('SERVER_PORT', SERVER_PORT)
+    SERVER_PORT = app_globals.get('HTTP_SERVER_PORT')
     app.run(port=SERVER_PORT, debug=False, threaded=True, host='0.0.0.0')
 
 

@@ -79,7 +79,11 @@ class ClientManager:
         self._read_state()
 
         self.client_count += 1
-        client_id = f'client-{self.client_count}'
+
+        if 'is_middleware' in client_info and client_info['is_middleware']:
+            client_id = f'middleware-{self.client_count}'
+        else:
+            client_id = f'client-{self.client_count}'
 
         client = {
             'id': client_id,

@@ -28,13 +28,14 @@ def get_val():
     get value of key
     '''
     key = request.args['key']
+    user = request.args['client']
 
     # WRITE_LOCK.wait()
 
-    if not keyValueStore.check(key):
+    if not keyValueStore.check(key, user):
         return jsonify({'res': 404})
 
-    value = keyValueStore.get(key)
+    value = keyValueStore.get(key, user)
 
     return jsonify({'value': value, 'res': 200})
 
@@ -45,13 +46,14 @@ def delete_val():
     get value of key
     '''
     key = request.args['key']
+    user = request.args['client']
 
     # WRITE_LOCK.wait()
 
-    if not keyValueStore.check(key):
+    if not keyValueStore.check(key, user):
         return jsonify({'value': False, 'res': 404})
 
-    keyValueStore.delete(key)
+    keyValueStore.delete(key, user)
 
     return jsonify({'value': True, 'res': 200})
 
@@ -63,12 +65,13 @@ def set_val():
     '''
     data = request.get_json()
     key, value = data['key'], data['value']
+    user = data['client']
 
     if key not in WRITE_LOCKS:
         WRITE_LOCKS[key] = threading.Lock()
     WRITE_LOCKS[key].acquire()
 
-    keyValueStore.set(key, value)
+    keyValueStore.set(key, value, user)
 
     WRITE_LOCKS[key].release()
     return jsonify({'res': 200})

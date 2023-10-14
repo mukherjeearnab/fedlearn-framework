@@ -4,7 +4,7 @@ Application Logic for Client Management
 from helpers.kvstore import kv_get, kv_set
 from helpers.semaphore import Semaphore
 from helpers.logging import logger
-from apps.job.exec_handler import JobExecHandler
+from apps.job.handlers.exec import JobExecHandler
 
 CLIENT_STAGE = {
     0: 'Client Online',

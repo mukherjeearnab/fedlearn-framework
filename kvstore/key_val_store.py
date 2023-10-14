@@ -7,30 +7,43 @@ class KeyValueStore:
     '''
     Key Val Store Class
     '''
-    def __init__(self):
-        self.table = dict()
 
-    def get(self, key: str) -> str:
+    def __init__(self):
+        self.user_tables = dict()
+
+    def get(self, key: str, user: str) -> str:
         '''
         Get Value
         '''
-        return self.table[key]
+        return self.user_tables[user][key]
 
-    def set(self, key: str, value: str) -> None:
+    def set(self, key: str, value: str, user: str) -> None:
         '''
         Set Value
         '''
-        self.table[key] = value
+        # init table for user if not exist
+        if user not in self.user_tables:
+            self.user_tables[user] = dict()
 
-    def delete(self, key: str) -> None:
+        self.user_tables[user][key] = value
+
+    def delete(self, key: str, user: str) -> None:
         '''
         Delete Value
         '''
-        del self.table[key]
 
-    def check(self, key: str) -> bool:
+        # init table for user if not exist
+        if user not in self.user_tables:
+            self.user_tables[user] = dict()
+
+        del self.user_tables[user][key]
+
+    def check(self, key: str, user: str) -> bool:
         '''
         Check if Key has been Set
         '''
-        return key in self.table
-            
+        # init table for user if not exist
+        if user not in self.user_tables:
+            self.user_tables[user] = dict()
+
+        return key in self.user_tables[user]

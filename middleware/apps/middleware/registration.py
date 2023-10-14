@@ -14,7 +14,8 @@ def register_middleware(mme_server_url: str) -> dict:
     url = f'{mme_server_url}/client_manager/register'
 
     body = {
-        'sysinfo': get_system_info()
+        'sysinfo': get_system_info(),
+        'is_middleware': True
     }
 
     logger.info(

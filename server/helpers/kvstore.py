@@ -21,7 +21,7 @@ def kv_get(key: str) -> Any:
     '''
     while True:
         try:
-            reply = get(f'{KVS_URL}/get', {'key': key})
+            reply = get(f'{KVS_URL}/get', {'key': key, 'client': 'server'})
             break
         except Exception as e:
             logger.error(
@@ -40,7 +40,8 @@ def kv_set(key: str, value: Any) -> None:
     '''
     while True:
         try:
-            post(f'{KVS_URL}/set', {'key': key, 'value': json.dumps(value)})
+            post(f'{KVS_URL}/set', {'key': key, 'value': json.dumps(value),
+                                    'client': 'server'})
             break
         except Exception as e:
             logger.error(
@@ -54,7 +55,7 @@ def kv_delete(key: str) -> Any:
     '''
     while True:
         try:
-            reply = get(f'{KVS_URL}/delete', {'key': key})
+            reply = get(f'{KVS_URL}/delete', {'key': key, 'client': 'server'})
             break
         except Exception as e:
             logger.error(

@@ -4,6 +4,7 @@ Application Logic for Client Management
 from time import time
 from helpers.kvstore import kv_get, kv_set
 from helpers.semaphore import Semaphore
+from helpers.logging import logger
 
 
 CLIENT_MAN_KEY = 'client_man_db'
@@ -92,6 +93,8 @@ class ClientManager:
 
         self._update_state()
         UPDATE_LOCK.release()
+
+        logger.info(f'Registered Downstream Client {client_id}.')
 
         return client['id']
 

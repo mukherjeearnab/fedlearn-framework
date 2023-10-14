@@ -7,9 +7,9 @@ from time import sleep
 from dotenv import load_dotenv
 from global_kvset import app_globals
 from helpers.logging import logger
+from apps.http_server.controller import start_server
 from apps.middleware.keep_alive import keep_alive_process
 from apps.middleware.registration import register_middleware
-from apps.http_server.controller import start_server
 
 
 log = logging.getLogger('werkzeug')
@@ -20,6 +20,10 @@ SINGLE_COMMANDS = ['exit']
 
 # import environment variables
 load_dotenv()
+
+SERVER_PORT = int(input('Enter HTTP server port: ').strip())
+app_globals.set('LOOPBACK_URL', f'http://localhost:{SERVER_PORT}')
+app_globals.set('HTTP_SERVER_PORT', SERVER_PORT)
 
 DELAY = float(os.getenv('DELAY'))
 

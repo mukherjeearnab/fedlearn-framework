@@ -12,7 +12,6 @@ from apps.client.api import get_alive_clients
 # import environment variables
 load_dotenv()
 
-SERVER_PORT = int(os.getenv('SERVER_PORT'))
 DELAY = float(os.getenv('DELAY'))
 
 

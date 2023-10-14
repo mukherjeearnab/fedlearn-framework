@@ -13,7 +13,6 @@ from helpers.logging import logger
 # import environment variables
 load_dotenv()
 
-SERVER_PORT = int(os.getenv('SERVER_PORT'))
 DELAY = float(os.getenv('DELAY'))
 
 
