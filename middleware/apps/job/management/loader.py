@@ -15,7 +15,7 @@ load_dotenv()
 DELAY = float(os.getenv('DELAY'))
 
 
-def load_job(job_name: str, config: dict):
+def load_job(job_name: str, config: dict, config_registry: dict):
     '''
     Load the Job Config and perform some preliminary validation.
     '''
@@ -28,6 +28,8 @@ def load_job(job_name: str, config: dict):
 
     # get available clients from the server registry
     client_list = get_alive_clients()
+
+    config_registry[job_name] = config
 
     # check if sufficient clients are available or not, else return
     if len(client_list) < config['client_params']['num_clients']:

@@ -25,7 +25,7 @@ class PerformanceLog(object):
             date=datetime.datetime.now())
         self.project_path = f"./projects/{self.project_name}-{self.project_time}/"
 
-        self._save_config()
+        # self._save_config()
 
     def add_perflog(self, client_id: str, round_num: int, metrics: dict, time_delta: float) -> None:
         '''

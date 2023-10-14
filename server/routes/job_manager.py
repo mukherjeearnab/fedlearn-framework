@@ -80,12 +80,12 @@ def start_job_route():
     '''
     job_id = request.args['job_id']
 
-    try:
-        start_job(job_id, CONFIGS, JOBS)
-        job_state = JOBS[job_id][0].get_state()
-    except Exception as e:
-        logger.error(f'Failed to Load Job Instance {e}')
-        job_state = {'message': 'Job instance not found'}
+    # try:
+    start_job(job_id, CONFIGS, JOBS)
+    job_state = JOBS[job_id][0].get_state()
+    # except Exception as e:
+    #     logger.error(f'Failed to Start Job Instance {e}')
+    #     job_state = {'message': 'Job instance not found'}
 
     return jsonify(job_state)
 

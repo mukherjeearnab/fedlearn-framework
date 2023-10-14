@@ -28,16 +28,19 @@ def root():
     return jsonify(data)
 
 
-@blueprint.route('/load')
+@blueprint.route('/load', methods=['POST'])
 def load_job_route():
     '''
     init route, called by server to initialize the job into the state machine
     '''
-    job_id = request.args['job_id']
+    payload = request.get_json()
+
+    job_id = payload['job_id']
+    job_manifest = payload['job_manifest']
 
     STATE_LOCK.acquire()
     try:
-        exec_status = load_job(job_id, CONFIGS)
+        exec_status = load_job(job_id, job_manifest, CONFIGS)
     except Exception as e:
         logger.error(f'Failed to Load Job Instance {e}')
         exec_status = False

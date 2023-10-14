@@ -65,7 +65,7 @@ def job_process(middleware_id: str, job_id: str, job_manifest: dict, server_url:
     #    0. Listen to Upstream server for Job Manifest. (already done)
     #    1. Download Upstream Job Manifest. (already done)
     #    2. Prepare Middleware Job Manifest.
-    exec_status = load_job(job_id)
+    exec_status = load_job(job_id, job_manifest)
 
     if not exec_status:
         logger.error('Job Loading Failed. Exiting...')

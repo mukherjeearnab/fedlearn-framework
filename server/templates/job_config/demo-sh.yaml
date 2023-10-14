@@ -46,11 +46,11 @@ middleware_params:
 
 server_params:
   aggregator: fed_avg
-
   model_file: simple_mnist
+  test_file: multi_cel_simple
 
   train_params: # training parameters
-    rounds: 1
+    rounds: 3
 
     extra_params: # extra training parameters
       fed_avg_momentum: 0.1

@@ -2,6 +2,7 @@
 HTTP comms module, with simplified syntax to avoid code repetition
 '''
 import requests
+from urllib.request import urlretrieve
 
 
 def get(url: str, params: dict) -> dict:

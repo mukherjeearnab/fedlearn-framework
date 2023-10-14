@@ -47,17 +47,26 @@ def aggregator_process(job_name: str, model):
     # start training
     allow_start_training(job_name)
 
-    # load the test dataset
-    DATASET_PREP_MOD = state['dataset_params']['prep']['file']
-    DATASET_DIST_MOD = state['client_params']['dataset']['distribution']['distributor']['file']
+    if 'hierarchical' in state and state['hierarchical']:
+        client_config = state['client_params']
+        client_split_key = 'splits'
+    else:
+        client_config = state['client_params']
+        client_split_key = 'clients'
+
     CHUNK_DIR_NAME = 'dist'
-    for chunk in state['client_params']['dataset']['distribution']['clients']:
+    for chunk in client_config['dataset']['distribution'][client_split_key]:
         CHUNK_DIR_NAME += f'-{chunk}'
+
+    # load the test dataset path
+    DATASET_PREP_MOD = state['dataset_params']['prep']['file']
+    DATASET_DIST_MOD = client_config['dataset']['distribution']['distributor']['file']
     DATASET_CHUNK_PATH = f"./datasets/deploy/{DATASET_PREP_MOD}/chunks/{DATASET_DIST_MOD}/{CHUNK_DIR_NAME}"
+
     # load the test dataset from disk
     test_dataset = torch_read('global_test.tuple', DATASET_CHUNK_PATH)
     test_loader = tensor_to_data_loader(
-        test_dataset, state['client_params']['train_params']['batch_size'])
+        test_dataset, state['client_params']['individual_configs'][0]['train_params']['batch_size'])
 
     # record start time
     start_time = time()
@@ -113,7 +122,7 @@ def aggregator_process(job_name: str, model):
 
             # run the aggregator function and obtain new global model
             curr_model = aggregator_module.aggregator(curr_model, client_params,
-                                                      state['client_params']['dataset']['distribution']['clients'])
+                                                      state['client_params']['dataset']['distribution'][client_split_key])
 
             # move to device, i.e., cpu or gpu
             curr_model = curr_model.to(device)
@@ -130,7 +139,7 @@ def aggregator_process(job_name: str, model):
             # logic to test the model with the aggregated parameters
 
             testing_module = load_module(
-                'testing_module', state['client_params']['model_params']['test_file']['content'])
+                'testing_module', state['server_params']['test_file']['content'])
             metrics = testing_module.test_runner(
                 curr_model, test_loader, device)
 

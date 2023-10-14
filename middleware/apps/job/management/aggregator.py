@@ -29,6 +29,8 @@ def aggregate_downstream_params(job_name: str, test_loader, device):
     # get the initial model parameters
     _, curr_model = load_model_and_get_params(state)
 
+    curr_model = curr_model.to(device)
+
     # load the model module
     aggregator_module = load_module(
         'agg_module', state['server_params']['aggregator']['content'])

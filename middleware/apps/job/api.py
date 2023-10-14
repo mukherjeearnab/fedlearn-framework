@@ -7,12 +7,12 @@ from helpers.http import get, post
 from global_kvset import app_globals
 
 
-def load_job(job_name: str):
+def load_job(job_name: str, job_manifest: dict):
     '''
     Call the Job Load Route and load the job
     '''
-    res = get(f'{app_globals.get("LOOPBACK_URL")}/job_manager/load',
-              {'job_id': job_name})
+    res = post(f'{app_globals.get("LOOPBACK_URL")}/job_manager/load',
+               {'job_id': job_name, 'job_manifest': job_manifest})
     return res['exec_status']
 
 
