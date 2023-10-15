@@ -82,14 +82,20 @@ class ClientManager:
 
         if 'is_middleware' in client_info and client_info['is_middleware']:
             client_id = f'middleware-{self.client_count}'
+            is_middleware = True
+            http_port = client_info['http_port']
         else:
             client_id = f'client-{self.client_count}'
+            is_middleware = False
+            http_port = -1
 
         client = {
             'id': client_id,
             'hostname': client_info['sysinfo']['hostname'],
             'ip_address': ip_address,
-            'last_ping': int(time())
+            'last_ping': int(time()),
+            'is_middleware': is_middleware,
+            'http_port': http_port
         }
 
         self.clients_info[client_id] = client
