@@ -107,14 +107,14 @@ def job_process(middleware_id: str, job_id: str, job_manifest: dict, server_url:
     global_params = download_global_params(job_id, server_url)
     # previous_params = global_params
 
+    #    2. Set Global Params for Downstream Clients to download.
+    set_downstream_central_model_params(job_id, global_params)
+
     while True:
         # record start time
         start_time = time()
 
-        #  4.2. Set Global Params for Downstream Clients to download.
-        set_downstream_central_model_params(job_id, global_params)
-
-        #    3. Set Middleware Process Phase to 1, for all Downstream Clients.
+        #    4.3. Set Middleware Process Phase to 1, for all Downstream Clients.
         allow_start_training(job_id)
 
         #    4. Wait for Downstream Clients to send ACK and Downstream Client Stage to be 3.
@@ -138,6 +138,8 @@ def job_process(middleware_id: str, job_id: str, job_manifest: dict, server_url:
         upload_client_params(curr_params, middleware_id, job_id, server_url)
         update_middleware_status(middleware_id, job_id, 4, server_url)
 
+        logger.info(f'Completed Downstream Round {global_round}.')
+
         # caclulate total time for 1 round
         end_time = time()
         # find the time delta for round and convert the microseconds to milliseconds
@@ -152,21 +154,26 @@ def job_process(middleware_id: str, job_id: str, job_manifest: dict, server_url:
         process_phase, global_round, _ = listen_for_param_download_training(
             job_id, server_url, global_round)
 
-        # Step 11. If Upstream Server Process Phase is 1, repeat steps 4.2-11,
+        # Step 11. If Upstream Server Process Phase is 1, repeat steps 4.3-11,
         #          else SET Downstream Client (middleware) Process Phase to 3, and terminate process.
         if process_phase == 1:
             # update previous parameters
             # previous_params = curr_params
+            pass
 
-            # Step 6: Download global parameters from server.
-            global_params = download_global_params(job_id, server_url)
+        # Download global parameters from server.
+        global_params = download_global_params(job_id, server_url)
+
+        #  4.2. Set Global Params for Downstream Clients to download.
+        set_downstream_central_model_params(job_id, global_params)
 
         # else if Process Phase is 3 SET Downstream Client (middleware) Process Phase to 3, and terminate process.
         if process_phase == 3:
             logger.info(f'Job [{job_id}] terminated. Exiting Process.')
-            update_middleware_status(middleware_id, job_id, 5, server_url)
 
             # also terminate job for downstream clients
             terminate_training(job_id)
+
+            update_middleware_status(middleware_id, job_id, 5, server_url)
 
             break
