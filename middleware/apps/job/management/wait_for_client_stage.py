@@ -26,10 +26,14 @@ def wait_for_client_stage(job_name: str, client_stage: int):
 
     ######################################################################################
     # wait for clients to ACK dataset, i.e., wait until client stage becomes 2
+    i_cs = -1
     while True:
-        logger.info(
-            f'Waiting for ClientStage to be [{client_stage}] {CLIENT_STAGE[client_stage]}')
         state = get_job(job_name)
+
+        if i_cs != state['job_status']['client_stage']:
+            logger.info(
+                f'Waiting for ClientStage to be [{client_stage}] {CLIENT_STAGE[client_stage]}')
+            i_cs = state['job_status']['client_stage']
 
         if state['job_status']['client_stage'] == client_stage:
             break

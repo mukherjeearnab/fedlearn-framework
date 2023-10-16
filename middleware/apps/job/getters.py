@@ -60,8 +60,6 @@ def get_job_manifest(middleware_id: str, job_id: str, server_url: str):
                 'dataset_params': manifest['dataset_params']
             }
 
-            print(job_manifest)
-
             # start new job thread
             job_proc = Process(target=job_process,
                                args=(

@@ -19,7 +19,7 @@ def load_job(job_name: str, config: dict, config_registry: dict):
     '''
     Load the Job Config and perform some preliminary validation.
     '''
-    logger.info(f'Loaded Job Config: \n{job_name}')
+    logger.info(f'Loaded Job Config: {job_name}')
 
     # # prepare dataset for clients to download
     # logger.info(f'Starting Dataset Preperation for Job {job_name}')

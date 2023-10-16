@@ -80,10 +80,14 @@ def start_job(job_name: str, config_registry: dict, job_registry: dict) -> dict:
 
     ######################################################################################
     # wait for clients to ACK job sheet, i.e., wait until client stage becomes 1
+    i_cs = -1
     while True:
-        logger.info(
-            'Waiting for ClientStage to be [1] ClientReadyWithJobSheet')
         state = exec_handler.get_state()
+
+        if i_cs != state['job_status']['client_stage']:
+            logger.info(
+                'Waiting for ClientStage to be [1] ClientReadyWithJobSheet')
+            i_cs = state['job_status']['client_stage']
 
         if state['job_status']['client_stage'] == 1:
             break
@@ -98,9 +102,14 @@ def start_job(job_name: str, config_registry: dict, job_registry: dict) -> dict:
 
     ######################################################################################
     # wait for clients to ACK dataset, i.e., wait until client stage becomes 2
+    i_cs = -1
     while True:
-        logger.info('Waiting for ClientStage to be [2] ClientReadyWithDataset')
         state = exec_handler.get_state()
+
+        if i_cs != state['job_status']['client_stage']:
+            logger.info(
+                'Waiting for ClientStage to be [2] ClientReadyWithDataset')
+            i_cs = state['job_status']['client_stage']
 
         if state['job_status']['client_stage'] == 2:
             break
