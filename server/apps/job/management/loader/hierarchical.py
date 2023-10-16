@@ -2,6 +2,7 @@
 Module Loader for Single Level Federated Learning
 '''
 
+from copy import deepcopy
 from helpers.file import read_py_module
 
 
@@ -11,6 +12,8 @@ def load_module_files(config: dict) -> dict:
     as strings and adds them to the configuration dictionary.
     '''
 
+    config = deepcopy(config)
+
     # read middleware_params.dataset.distribution.distributor
     config['middleware_params']['dataset']['distribution']['distributor'] = {
         'file': config['middleware_params']['dataset']['distribution']['distributor'],
@@ -18,7 +21,50 @@ def load_module_files(config: dict) -> dict:
             f"./templates/distribution/{config['middleware_params']['dataset']['distribution']['distributor']}")
     }
 
-    for middleware in config['middleware_params']['individual_configs']:
+    # recursively load middleware_params modules
+    recursive_loader(config['middleware_params'])
+
+    # read server_params.aggregator
+    config['server_params']['aggregator'] = {
+        'file': config['server_params']['aggregator'],
+        'content': read_py_module(
+            f"./templates/aggregator/{config['server_params']['aggregator']}")
+    }
+
+    # read server_params.model_file
+    config['server_params']['model_file'] = {
+        'file': config['server_params']['model_file'],
+        'content': read_py_module(
+            f"./templates/models/{config['server_params']['model_file']}")
+    }
+
+    # read server_params.test_file
+    config['server_params']['test_file'] = {
+        'file': config['server_params']['test_file'],
+        'content': read_py_module(
+            f"./templates/testing/{config['server_params']['test_file']}")
+    }
+
+    # read dataset_params.prep
+    config['dataset_params']['prep'] = {
+        'file': config['dataset_params']['prep'],
+        'content': read_py_module(
+            f"./templates/dataset_prep/{config['dataset_params']['prep']}")
+    }
+
+    return config
+
+
+def recursive_loader(middleware_params: dict):
+    '''
+    Recursively Load the hierarchical structure configs for the middlewares
+    '''
+    for i, middleware in enumerate(middleware_params['individual_configs']):
+        if 'individual_configs' in middleware:
+            recursive_loader(middleware)
+
+        middleware = deepcopy(middleware)
+
         # read client_params.aggregation.aggregator
         middleware['aggregation']['aggregator'] = {
             'file': middleware['aggregation']['aggregator'],
@@ -68,32 +114,4 @@ def load_module_files(config: dict) -> dict:
                 f"./templates/testing/{middleware['model_params']['test_file']}")
         }
 
-    # read server_params.aggregator
-    config['server_params']['aggregator'] = {
-        'file': config['server_params']['aggregator'],
-        'content': read_py_module(
-            f"./templates/aggregator/{config['server_params']['aggregator']}")
-    }
-
-    # read server_params.model_file
-    config['server_params']['model_file'] = {
-        'file': config['server_params']['model_file'],
-        'content': read_py_module(
-            f"./templates/models/{config['server_params']['model_file']}")
-    }
-
-    # read server_params.test_file
-    config['server_params']['test_file'] = {
-        'file': config['server_params']['test_file'],
-        'content': read_py_module(
-            f"./templates/testing/{config['server_params']['test_file']}")
-    }
-
-    # read dataset_params.prep
-    config['dataset_params']['prep'] = {
-        'file': config['dataset_params']['prep'],
-        'content': read_py_module(
-            f"./templates/dataset_prep/{config['dataset_params']['prep']}")
-    }
-
-    return config
+        middleware_params[i] = middleware

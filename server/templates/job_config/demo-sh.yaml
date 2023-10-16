@@ -1,48 +1,67 @@
 hierarchical: true
+
+dataset_configs:
+  - &random_dist_1c
+    dataset: # dataset hyperparameters and configs
+      preprocessor: default
+      distribution:
+        distributor: random_dist
+        clients:
+          - 1.0
+
+train_test_split_configs:
+  - &80_20_split
+    train: 0.8
+    test: 0.2
+
+middleware_configs:
+  - &1c_fedavg_simple
+    aggregation:
+      aggregator: fed_avg
+
+      extra_params: # extra aggregation parameters
+        fed_avg_momentum: 0.1
+
+    train_test_split: # train test split config
+      <<: *80_20_split
+
+    model_params: # model and training files and configs
+      model_file: simple_mnist
+      parameter_mixer: default
+      training_loop_file: simple_loop
+      test_file: multi_cel_simple
+
+    train_params: # training parameters
+      learning_rate: 0.01
+      batch_size: 50
+      local_epochs: 5
+
+      extra_params:
+        lr_decay: 1
+
 middleware_params:
   dataset:
     distribution:
       distributor: random_dist
       splits:
-        - 1.0
+        - 0.8
+        - 0.2
 
   train_test_split: # train test split config
-    train: 0.8
-    test: 0.2
+    <<: *80_20_split
 
   individual_configs:
     - num_clients: 1
+      <<: *random_dist_1c
+      <<: *1c_fedavg_simple
 
-      aggregation:
-        aggregator: fed_avg
-
-        extra_params: # extra aggregation parameters
-          fed_avg_momentum: 0.1
-
-      train_test_split: # train test split config
-        train: 0.8
-        test: 0.2
-
-      dataset: # dataset hyperparameters and configs
-        preprocessor: default
-        distribution:
-          distributor: random_dist
-          clients:
-            - 1.0
-
-      model_params: # model and training files and configs
-        model_file: simple_mnist
-        parameter_mixer: default
-        training_loop_file: simple_loop
-        test_file: multi_cel_simple
-
-      train_params: # training parameters
-        learning_rate: 0.01
-        batch_size: 50
-        local_epochs: 5
-
-        extra_params:
-          lr_decay: 1
+    - num_clients: 1
+      <<: *random_dist_1c
+      <<: *1c_fedavg_simple
+      individual_configs:
+        - num_clients: 1
+          <<: *random_dist_1c
+          <<: *1c_fedavg_simple
 
 server_params:
   aggregator: fed_avg
