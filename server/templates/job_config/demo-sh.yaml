@@ -45,8 +45,8 @@ middleware_params:
     distribution:
       distributor: random_dist
       splits:
-        - 0.8
         - 0.2
+        - 0.8
 
   train_test_split: # train test split config
     <<: *80_20_split
@@ -59,6 +59,11 @@ middleware_params:
     - num_clients: 2
       <<: *random_dist_2c_80_20
       <<: *fedavg_simple
+
+      individual_configs:
+        - num_clients: 1
+          <<: *random_dist_2c_80_20
+          <<: *fedavg_simple
 
 server_params:
   aggregator: fed_avg

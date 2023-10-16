@@ -30,98 +30,98 @@ def prepare_dataset_for_deployment(middleware_id: str, job_id: str, config: dict
 
     # Step 1
     # if root dataset is not already present, prepare it
-    if not check_OK_file(DATASET_ROOT_PATH):
+    # if not check_OK_file(DATASET_ROOT_PATH):
 
-        file_name = f'{middleware_id}.tuple'
-        dataset_path = f'./datasets/{job_id}'
+    file_name = f'{middleware_id}.tuple'
+    dataset_path = f'./datasets/{job_id}'
 
-        # obtain the dataset as data and labels
-        (train_set, test_set) = torch_read(file_name, dataset_path)
+    # obtain the dataset as data and labels
+    (train_set, test_set) = torch_read(file_name, dataset_path)
 
-        # saving dataset file to disk
-        try:
-            # save the train dataset to disk
-            torch_write(f'{middleware_id}-train_dataset.tuple',
-                        DATASET_ROOT_PATH, train_set)
-            logger.info('Saved training dataset to disk!')
+    # saving dataset file to disk
+    try:
+        # save the train dataset to disk
+        torch_write(f'{middleware_id}-train_dataset.tuple',
+                    DATASET_ROOT_PATH, train_set)
+        logger.info('Saved training dataset to disk!')
 
-            # if test dataset is available, save it to disk
-            if test_set is not None:
-                torch_write(f'{middleware_id}-test_dataset.tuple',
-                            DATASET_ROOT_PATH, test_set)
-                logger.info('Saved testing dataset to disk!')
+        # if test dataset is available, save it to disk
+        if test_set is not None:
+            torch_write(f'{middleware_id}-test_dataset.tuple',
+                        DATASET_ROOT_PATH, test_set)
+            logger.info('Saved testing dataset to disk!')
 
-            # set the OK file
-            set_OK_file(DATASET_ROOT_PATH)
-            logger.info('Prepared Root Dataset Saved Successfully!')
-        except Exception as e:
-            logger.error(
-                f'Error Saving Prepared Dataset to disk! {e}')
+        # set the OK file
+        set_OK_file(DATASET_ROOT_PATH)
+        logger.info('Prepared Root Dataset Saved Successfully!')
+    except Exception as e:
+        logger.error(
+            f'Error Saving Prepared Dataset to disk! {e}')
+    # else:
+    logger.info('Root Dataset already present. Loading it from disk.')
+    train_set = torch_read(
+        f'{middleware_id}-train_dataset.tuple', DATASET_ROOT_PATH)
+    if file_exists(f'{DATASET_ROOT_PATH}/{middleware_id}-test_dataset.tuple'):
+        test_set = torch_read(
+            f'{middleware_id}-test_dataset.tuple', DATASET_ROOT_PATH)
     else:
-        logger.info('Root Dataset already present. Loading it from disk.')
-        train_set = torch_read(
-            f'{middleware_id}-train_dataset.tuple', DATASET_ROOT_PATH)
-        if file_exists(f'{DATASET_ROOT_PATH}/{middleware_id}-test_dataset.tuple'):
-            test_set = torch_read(
-                f'{middleware_id}-test_dataset.tuple', DATASET_ROOT_PATH)
-        else:
-            test_set = None
+        test_set = None
 
     # Step 2
     # if chunk datasets are already not prepared, then prepare them
-    if not check_OK_file(DATASET_CHUNK_PATH):
-        # load the dataset prep module
-        distributor_module = load_module(
-            'distributor', config['client_params']['dataset']['distribution']['distributor']['content'])
+    # if not check_OK_file(DATASET_CHUNK_PATH):
+    # load the dataset prep module
+    distributor_module = load_module(
+        'distributor', config['client_params']['dataset']['distribution']['distributor']['content'])
 
-        # obtain the dataset as data and labels
-        train_chunks = distributor_module.distribute_into_client_chunks(train_set,
-                                                                        config['client_params']['dataset']['distribution']['clients'])
-        if test_set is not None:
-            test_chunks = distributor_module.distribute_into_client_chunks(test_set,
-                                                                           config['client_params']['dataset']['distribution']['clients'])
+    # obtain the dataset as data and labels
+    train_chunks = distributor_module.distribute_into_client_chunks(train_set,
+                                                                    config['client_params']['dataset']['distribution']['clients'])
+    if test_set is not None:
+        test_chunks = distributor_module.distribute_into_client_chunks(test_set,
+                                                                       config['client_params']['dataset']['distribution']['clients'])
 
-        # if test set is not available, split the chunks into train and test sets
-        if test_set is None:
-            split_ratio = list(
-                config['client_params']['train_test_split'].values())
-            chunks = [train_test_split(chunk, split_ratio)
-                      for chunk in train_chunks]
-        else:  # if test set is available, merge the train-test chunks into one
-            chunks = list(zip(train_chunks, test_chunks))
+    # if test set is not available, split the chunks into train and test sets
+    if test_set is None:
+        split_ratio = list(
+            config['client_params']['train_test_split'].values())
+        chunks = [train_test_split(chunk, split_ratio)
+                  for chunk in train_chunks]
+    else:  # if test set is available, merge the train-test chunks into one
+        chunks = list(zip(train_chunks, test_chunks))
 
-        # create the global test set
-        global_test_set = create_central_testset(
-            [chunk[1] for chunk in chunks])
+    # create the global test set
+    global_test_set = create_central_testset(
+        [chunk[1] for chunk in chunks])
 
-        # saving chunks and global test dataset to disk
-        try:
-            # save the chunks dataset to disk
-            for i in range(config['client_params']['num_clients']):
-                # client = f'client-{i+1}'
-                # save the dataset to disk
-                torch_write(f'{middleware_id}-{i}.tuple',
-                            DATASET_CHUNK_PATH,
-                            chunks[i])
-
-                logger.info(
-                    f'Saved Chunk for {i+1}th Client with size {len(chunks[i][0][1])}, {len(chunks[i][1][1])}')
-
-            # saving global test dataset to disk
-            torch_write(f'{middleware_id}-global_test.tuple',
+    # saving chunks and global test dataset to disk
+    try:
+        # save the chunks dataset to disk
+        for i in range(config['client_params']['num_clients']):
+            # client = f'client-{i+1}'
+            # save the dataset to disk
+            torch_write(f'{middleware_id}-{i}.tuple',
                         DATASET_CHUNK_PATH,
-                        global_test_set)
+                        chunks[i])
 
             logger.info(
-                f'Saved Global Test Set with size {len(global_test_set[1])}')
+                f'Saved Chunk for {i+1}th Client with size {len(chunks[i][0][1])}, {len(chunks[i][1][1])}')
 
-            # set the OK file
-            set_OK_file(DATASET_CHUNK_PATH)
-            logger.info(
-                'Dataset Client Chunks and Global Set Saved Successfully!')
-        except Exception as e:
-            logger.error(
-                f'Error Saving Chunked Dataset to disk! {e}')
+        # saving global test dataset to disk
+        torch_write(f'{middleware_id}-global_test.tuple',
+                    DATASET_CHUNK_PATH,
+                    global_test_set)
+
+        logger.info(
+            f'Saved Global Test Set with size {len(global_test_set[1])}')
+
+        # set the OK file
+        set_OK_file(DATASET_CHUNK_PATH)
+        logger.info(
+            'Dataset Client Chunks and Global Set Saved Successfully!')
+    except Exception as e:
+        logger.error(
+            f'Error Saving Chunked Dataset to disk! {e}')
 
 
 def train_test_split(dataset: tuple, split_weights: list) -> tuple:
