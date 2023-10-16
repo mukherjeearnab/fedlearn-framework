@@ -1,13 +1,14 @@
 hierarchical: true
 
 dataset_configs:
-  - &random_dist_1c
+  - &random_dist_2c_80_20
     dataset: # dataset hyperparameters and configs
       preprocessor: default
       distribution:
         distributor: random_dist
         clients:
-          - 1.0
+          - 0.8
+          - 0.2
 
 train_test_split_configs:
   - &80_20_split
@@ -15,7 +16,7 @@ train_test_split_configs:
     test: 0.2
 
 middleware_configs:
-  - &1c_fedavg_simple
+  - &fedavg_simple
     aggregation:
       aggregator: fed_avg
 
@@ -44,20 +45,20 @@ middleware_params:
     distribution:
       distributor: random_dist
       splits:
-        - 1.0
+        - 0.8
+        - 0.2
 
   train_test_split: # train test split config
     <<: *80_20_split
 
   individual_configs:
-    - num_clients: 1
-      <<: *random_dist_1c
-      <<: *1c_fedavg_simple
+    - num_clients: 2
+      <<: *random_dist_2c_80_20
+      <<: *fedavg_simple
 
-      individual_configs:
-        - num_clients: 1
-          <<: *random_dist_1c
-          <<: *1c_fedavg_simple
+    - num_clients: 2
+      <<: *random_dist_2c_80_20
+      <<: *fedavg_simple
 
 server_params:
   aggregator: fed_avg

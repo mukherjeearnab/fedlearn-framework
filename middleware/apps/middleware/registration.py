@@ -29,8 +29,11 @@ def register_middleware(mme_server_url: str) -> dict:
 
     parent_prefix = middleware_regid['id'].split('-')[0]
     node_id = middleware_regid['id'].split('-')[-1]
+
+    app_globals.set("MIDDLEWARE_ID", middleware_regid['id'])
     app_globals.set("PARENT_NODE_PREFIX", f'{parent_prefix}_mw{node_id}')
     app_globals.save()
+
     logger.info(
         f'Setting PARENT_NODE_PREFIX to [{app_globals.get("PARENT_NODE_PREFIX")}]')
 

@@ -41,12 +41,14 @@ def prepare_dataset_for_deployment(middleware_id: str, job_id: str, config: dict
         # saving dataset file to disk
         try:
             # save the train dataset to disk
-            torch_write('train_dataset.tuple', DATASET_ROOT_PATH, train_set)
+            torch_write(f'{middleware_id}-train_dataset.tuple',
+                        DATASET_ROOT_PATH, train_set)
             logger.info('Saved training dataset to disk!')
 
             # if test dataset is available, save it to disk
             if test_set is not None:
-                torch_write('test_dataset.tuple', DATASET_ROOT_PATH, test_set)
+                torch_write(f'{middleware_id}-test_dataset.tuple',
+                            DATASET_ROOT_PATH, test_set)
                 logger.info('Saved testing dataset to disk!')
 
             # set the OK file
@@ -57,9 +59,11 @@ def prepare_dataset_for_deployment(middleware_id: str, job_id: str, config: dict
                 f'Error Saving Prepared Dataset to disk! {e}')
     else:
         logger.info('Root Dataset already present. Loading it from disk.')
-        train_set = torch_read('train_dataset.tuple', DATASET_ROOT_PATH)
-        if file_exists(f'{DATASET_ROOT_PATH}/test_dataset.tuple'):
-            test_set = torch_read('test_dataset.tuple', DATASET_ROOT_PATH)
+        train_set = torch_read(
+            f'{middleware_id}-train_dataset.tuple', DATASET_ROOT_PATH)
+        if file_exists(f'{DATASET_ROOT_PATH}/{middleware_id}-test_dataset.tuple'):
+            test_set = torch_read(
+                f'{middleware_id}-test_dataset.tuple', DATASET_ROOT_PATH)
         else:
             test_set = None
 
@@ -96,7 +100,7 @@ def prepare_dataset_for_deployment(middleware_id: str, job_id: str, config: dict
             for i in range(config['client_params']['num_clients']):
                 # client = f'client-{i+1}'
                 # save the dataset to disk
-                torch_write(f'{i}.tuple',
+                torch_write(f'{middleware_id}-{i}.tuple',
                             DATASET_CHUNK_PATH,
                             chunks[i])
 
@@ -104,7 +108,7 @@ def prepare_dataset_for_deployment(middleware_id: str, job_id: str, config: dict
                     f'Saved Chunk for {i+1}th Client with size {len(chunks[i][0][1])}, {len(chunks[i][1][1])}')
 
             # saving global test dataset to disk
-            torch_write('global_test.tuple',
+            torch_write(f'{middleware_id}-global_test.tuple',
                         DATASET_CHUNK_PATH,
                         global_test_set)
 

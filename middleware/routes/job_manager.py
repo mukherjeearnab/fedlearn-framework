@@ -3,7 +3,7 @@ Client Management Routing Module
 '''
 import threading
 from flask import Blueprint, jsonify, request, send_file
-# from helpers.semaphore import Semaphore
+from global_kvset import app_globals
 from helpers.logging import logger
 from helpers.kvstore import kv_delete
 from apps.job.management.loader import load_job
@@ -312,6 +312,8 @@ def download_dataset():
     job_id = request.args['job_id']
     status = 200
 
+    app_globals.load()
+
     if job_id in JOBS:
         CHUNK_DIR_NAME = 'dist'
         for chunk in JOBS[job_id][0].client_params['dataset']['distribution']['clients']:
@@ -326,7 +328,7 @@ def download_dataset():
             if client['client_id'] == client_id:
                 chunk_id = i
 
-        file_name = f'{chunk_id}.tuple'
+        file_name = f'{app_globals.get("MIDDLEWARE_ID")}-{chunk_id}.tuple'
         file_path = f'{DATASET_CHUNK_PATH}/{file_name}'
 
         return send_file(file_path, mimetype='application/octet-stream',
