@@ -5,7 +5,7 @@ from time import time
 from helpers.kvstore import kv_get, kv_set
 from helpers.semaphore import Semaphore
 from helpers.logging import logger
-
+from global_kvset import app_globals
 
 CLIENT_MAN_KEY = 'client_man_db'
 UPDATE_LOCK = Semaphore()
@@ -80,13 +80,25 @@ class ClientManager:
         self._read_state()
 
         self.client_count += 1
-        client_id = f'client-{self.client_count}'
+
+        app_globals.load()
+
+        if 'is_middleware' in client_info and client_info['is_middleware']:
+            client_id = f'{app_globals.get("PARENT_NODE_PREFIX")}-middleware-{self.client_count}'
+            is_middleware = True
+            http_port = client_info['http_port']
+        else:
+            client_id = f'{app_globals.get("PARENT_NODE_PREFIX")}-client-{self.client_count}'
+            is_middleware = False
+            http_port = -1
 
         client = {
             'id': client_id,
             'hostname': client_info['sysinfo']['hostname'],
             'ip_address': ip_address,
-            'last_ping': int(time())
+            'last_ping': int(time()),
+            'is_middleware': is_middleware,
+            'http_port': http_port
         }
 
         self.clients_info[client_id] = client

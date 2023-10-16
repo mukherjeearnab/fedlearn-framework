@@ -1,5 +1,21 @@
+import pickle
+
+
 class Globals:
     app_globals = {}
+
+    def load(self):
+        '''
+        Load the App Globals Dict from File
+        '''
+
+        self.app_globals = pickle.load(open("./temp/global_state.temp", "rb"))
+
+    def save(self):
+        '''
+        Save The Global State to File
+        '''
+        pickle.dump(self.app_globals, open("./temp/global_state.temp", "wb"))
 
     def get(self, key: str):
         '''

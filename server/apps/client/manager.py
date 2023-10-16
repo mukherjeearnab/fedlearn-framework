@@ -11,6 +11,7 @@ UPDATE_LOCK = Semaphore()
 
 # Client alove threshold in seconds
 ALIVE_THRESHOLD = 10
+PARENT_NODE_PREFIX = 'ms'
 
 
 class ClientManager:
@@ -81,11 +82,11 @@ class ClientManager:
         self.client_count += 1
 
         if 'is_middleware' in client_info and client_info['is_middleware']:
-            client_id = f'middleware-{self.client_count}'
+            client_id = f'{PARENT_NODE_PREFIX}-middleware-{self.client_count}'
             is_middleware = True
             http_port = client_info['http_port']
         else:
-            client_id = f'client-{self.client_count}'
+            client_id = f'{PARENT_NODE_PREFIX}-client-{self.client_count}'
             is_middleware = False
             http_port = -1
 
