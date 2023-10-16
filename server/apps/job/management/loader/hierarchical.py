@@ -12,8 +12,6 @@ def load_module_files(config: dict) -> dict:
     as strings and adds them to the configuration dictionary.
     '''
 
-    config = deepcopy(config)
-
     # read middleware_params.dataset.distribution.distributor
     config['middleware_params']['dataset']['distribution']['distributor'] = {
         'file': config['middleware_params']['dataset']['distribution']['distributor'],
@@ -114,4 +112,4 @@ def recursive_loader(middleware_params: dict):
                 f"./templates/testing/{middleware['model_params']['test_file']}")
         }
 
-        middleware_params[i] = middleware
+        middleware_params['individual_configs'][i] = middleware

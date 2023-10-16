@@ -58,10 +58,6 @@ middleware_params:
     - num_clients: 1
       <<: *random_dist_1c
       <<: *1c_fedavg_simple
-      individual_configs:
-        - num_clients: 1
-          <<: *random_dist_1c
-          <<: *1c_fedavg_simple
 
 server_params:
   aggregator: fed_avg
