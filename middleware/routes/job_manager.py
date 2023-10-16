@@ -8,6 +8,7 @@ from helpers.logging import logger
 from helpers.kvstore import kv_delete
 from apps.job.management.loader import load_job
 from apps.job.management.starter import start_job
+from apps.client.api import delete_job_at_middlewares
 
 ROUTE_NAME = 'job-manager'
 blueprint = Blueprint(ROUTE_NAME, __name__)
@@ -61,6 +62,10 @@ def delete_job_route():
     try:
         # if job is terminated, only then it can be deleted
         if JOBS[job_id][0].job_status['process_phase'] == 3:
+            for client in JOBS[job_id][0].job_status['client_info']:
+                if client['is_middleware']:
+                    delete_job_at_middlewares(client['client_id'], job_id)
+
             kv_delete(job_id)
             del JOBS[job_id]
             del CONFIGS[job_id]

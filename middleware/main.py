@@ -5,7 +5,7 @@ import os
 import logging
 from time import sleep
 from dotenv import load_dotenv
-from global_kvset import app_globals
+import prompt
 from helpers.logging import logger
 from apps.http_server.controller import start_server
 from apps.middleware.keep_alive import keep_alive_process
@@ -21,9 +21,6 @@ SINGLE_COMMANDS = ['exit']
 # import environment variables
 load_dotenv()
 
-SERVER_PORT = int(input('Enter HTTP server port: ').strip())
-app_globals.set('LOOPBACK_URL', f'http://localhost:{SERVER_PORT}')
-app_globals.set('HTTP_SERVER_PORT', SERVER_PORT)
 
 DELAY = float(os.getenv('DELAY'))
 
@@ -31,6 +28,10 @@ DELAY = float(os.getenv('DELAY'))
 CLIENT_STATE = {
     'server_url': os.getenv('MANAGEMENT_SERVER')
 }
+
+prompt.management_server_prompt(CLIENT_STATE)
+
+prompt.http_server_prompt()
 
 
 # global variables

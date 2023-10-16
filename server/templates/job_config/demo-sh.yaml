@@ -32,7 +32,7 @@ middleware_configs:
       test_file: multi_cel_simple
 
     train_params: # training parameters
-      learning_rate: 0.01
+      learning_rate: 0.001
       batch_size: 50
       local_epochs: 5
 
@@ -44,8 +44,7 @@ middleware_params:
     distribution:
       distributor: random_dist
       splits:
-        - 0.8
-        - 0.2
+        - 1.0
 
   train_test_split: # train test split config
     <<: *80_20_split
@@ -55,9 +54,10 @@ middleware_params:
       <<: *random_dist_1c
       <<: *1c_fedavg_simple
 
-    - num_clients: 1
-      <<: *random_dist_1c
-      <<: *1c_fedavg_simple
+      individual_configs:
+        - num_clients: 1
+          <<: *random_dist_1c
+          <<: *1c_fedavg_simple
 
 server_params:
   aggregator: fed_avg
@@ -65,7 +65,7 @@ server_params:
   test_file: multi_cel_simple
 
   train_params: # training parameters
-    rounds: 1
+    rounds: 3
 
     extra_params: # extra training parameters
       fed_avg_momentum: 0.1

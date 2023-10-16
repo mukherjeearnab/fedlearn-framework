@@ -4,6 +4,7 @@ Client Main Module
 import os
 from time import sleep
 from dotenv import load_dotenv
+import prompt
 from helpers import torch as _
 from helpers.logging import logger
 from apps.client.keep_alive import keep_alive_process
@@ -20,15 +21,7 @@ CLIENT_STATE = {
     'server_url': os.getenv('MANAGEMENT_SERVER')
 }
 
-override_url = input(
-    'Enter Management Server URL or PORT (Leave empty to use the default from .env): ').strip()
-
-if len(override_url) > 0:
-    if override_url.isdigit():
-        CLIENT_STATE['server_url'] = f'http://localhost:{override_url}'
-    else:
-        CLIENT_STATE['server_url'] = f'http://{override_url}'
-
+prompt.management_server_prompt(CLIENT_STATE)
 
 # global variables
 JOBS = {

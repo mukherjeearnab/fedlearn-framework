@@ -197,7 +197,7 @@ class JobExecHandler:
         self.modification_lock.release()
         return exec_status
 
-    def add_client(self, client_id: str) -> bool:
+    def add_client(self, client_id: str, is_middleware: bool) -> bool:
         '''
         Adds a Client to the list of clients for the current job, only if job_status.process_phase is 0.
         '''
@@ -210,7 +210,8 @@ class JobExecHandler:
         if self.job_status['process_phase'] == 0:
             self.job_status['client_info'].append({
                 'client_id': client_id,
-                'status': 0
+                'status': 0,
+                'is_middleware': is_middleware
             })
 
             # method suffixed with update state and lock release
