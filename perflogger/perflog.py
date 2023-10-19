@@ -5,7 +5,7 @@ import os
 import datetime
 import json
 import yaml
-from helpers.file import write_file
+from helpers.file import write_file, create_dir_struct
 
 
 class PerformanceLog(object):
@@ -25,7 +25,10 @@ class PerformanceLog(object):
             date=datetime.datetime.now())
         self.project_path = f"./projects/{self.project_name}-{self.project_time}/"
 
-        # self._save_config()
+        if 'hierarchical' in self.config and self.config['hierarchical']:
+            self._save_config_hierarchical()
+        else:
+            self._save_config_single()
 
     def add_perflog(self, client_id: str, round_num: int, metrics: dict, time_delta: float) -> None:
         '''
@@ -109,7 +112,7 @@ class PerformanceLog(object):
         write_file('perflog.csv', self.project_path,
                    csv_string)
 
-    def _save_config(self) -> None:
+    def _save_config_single(self) -> None:
 
         # write client_params.dataset.preprocessor
         write_file('preprocessor.py', f'{self.project_path}/modules',
@@ -173,6 +176,113 @@ class PerformanceLog(object):
         # write the initial global parameters
         write_file('0.json', f'{self.project_path}/params',
                    json.dumps(self.config['exec_params']['central_model_param'], indent=4))
+
+    def _save_config_hierarchical(self) -> None:
+
+        # write client_params.dataset.distribution.distributor
+        write_file('distributor.py', f'{self.project_path}/modules',
+                   self.config['client_params']['dataset']['distribution']['distributor']['content'])
+        self.config['client_params']['dataset']['distribution']['distributor'] = \
+            self.config['client_params']['dataset']['distribution']['distributor']['file']
+
+        # recursively load middleware_params modules
+        self._recursive_config_dumper(
+            self.config['client_params'], f'{self.project_path}/modules')
+
+        # write server_params.aggregator
+        write_file('aggregator.py', f'{self.project_path}/modules',
+                   self.config['server_params']['aggregator']['content'])
+        self.config['server_params']['aggregator'] = \
+            self.config['server_params']['aggregator']['file']
+
+        # write server_params.model_file
+        write_file('model_file.py', f'{self.project_path}/modules',
+                   self.config['server_params']['model_file']['content'])
+        self.config['server_params']['model_file'] = \
+            self.config['server_params']['model_file']['file']
+
+        # write server_params.test_file
+        write_file('test_file.py', f'{self.project_path}/modules',
+                   self.config['server_params']['test_file']['content'])
+        self.config['server_params']['test_file'] = \
+            self.config['server_params']['test_file']['file']
+
+        # write dataset_params.prep
+        write_file('dataset_prep.py', f'{self.project_path}/modules',
+                   self.config['dataset_params']['prep']['content'])
+        self.config['dataset_params']['prep'] = \
+            self.config['dataset_params']['prep']['file']
+
+        # write the final config file
+        config = {
+            'project_name': self.config['project_name'],
+            'dataset_params': self.config['dataset_params'],
+            'client_params': self.config['client_params'],
+            'server_params': self.config['server_params']
+        }
+
+        write_file('config.yaml', f'{self.project_path}',
+                   yaml.dump(config, default_flow_style=False))
+
+        # write the initial global parameters
+        write_file('0.json', f'{self.project_path}/params',
+                   json.dumps(self.config['exec_params']['central_model_param'], indent=4))
+
+    def _recursive_config_dumper(self, middleware_params: dict, dir: str):
+        '''
+        Recursively Load the hierarchical structure configs for the middlewares
+        '''
+
+        for i, middleware in enumerate(middleware_params['individual_configs']):
+            middleware_dir = os.path.join(dir, f'mw{i}')
+            create_dir_struct(middleware_dir)
+
+            if 'individual_configs' in middleware:
+                self._recursive_config_dumper(middleware, middleware_dir)
+
+            # write client_params.aggregation.aggregator
+            write_file('aggregator.py', middleware_dir,
+                       middleware['aggregation']['aggregator']['content'])
+            middleware['aggregation']['aggregator'] = \
+                middleware['aggregation']['aggregator']['file']
+
+            # write client_params.dataset.preprocessor
+            write_file('preprocessor.py', middleware_dir,
+                       middleware['dataset']['preprocessor']['content'])
+            middleware['dataset']['preprocessor'] = \
+                middleware['dataset']['preprocessor']['file']
+
+            # write client_params.dataset.distribution.distributor
+            write_file('distributor.py', middleware_dir,
+                       middleware['dataset']['distribution']['distributor']['content'])
+            middleware['dataset']['distribution']['distributor'] = \
+                middleware['dataset']['distribution']['distributor']['file']
+
+            # write  model_params.model_file
+            write_file('model_file.py', middleware_dir,
+                       middleware['model_params']['model_file']['content'])
+            middleware['model_params']['model_file'] = \
+                middleware['model_params']['model_file']['file']
+
+            # write   model_params.parameter_mixer
+            write_file('parameter_mixer.py', middleware_dir,
+                       middleware['model_params']['parameter_mixer']['content'])
+            middleware['model_params']['parameter_mixer'] = \
+                middleware['model_params']['parameter_mixer']['file']
+
+            # write model_params.training_loop_file
+            write_file('training_loop_file.py', middleware_dir,
+                       middleware['model_params']['training_loop_file']['content'])
+            middleware['model_params']['training_loop_file'] = \
+                middleware['model_params']['training_loop_file']['file']
+
+            # write model_params.test_file
+            write_file('test_file.py', middleware_dir,
+                       middleware['model_params']['test_file']['content'])
+            middleware['model_params']['test_file'] = \
+                middleware['model_params']['test_file']['file']
+
+            middleware_params['individual_configs'][i] = middleware
 
     def _confusion_matrix_to_str(self, matrix: list) -> str:
         '''
