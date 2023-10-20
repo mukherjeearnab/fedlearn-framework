@@ -60,6 +60,20 @@ def load_module_files(config: dict) -> dict:
             f"./templates/aggregator/{config['server_params']['aggregator']}")
     }
 
+    # read server_params.model_file
+    config['server_params']['model_file'] = {
+        'file': config['server_params']['model_file'],
+        'content': read_py_module(
+            f"./templates/models/{config['server_params']['model_file']}")
+    }
+
+    # read server_params.test_file
+    config['server_params']['test_file'] = {
+        'file': config['server_params']['test_file'],
+        'content': read_py_module(
+            f"./templates/testing/{config['server_params']['test_file']}")
+    }
+
     # read dataset_params.prep
     config['dataset_params']['prep'] = {
         'file': config['dataset_params']['prep'],

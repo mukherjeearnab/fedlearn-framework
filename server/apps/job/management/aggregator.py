@@ -50,9 +50,11 @@ def aggregator_process(job_name: str, model):
     if 'hierarchical' in state and state['hierarchical']:
         client_config = state['client_params']
         client_split_key = 'splits'
+        batch_size = state['client_params']['individual_configs'][0]['train_params']['batch_size']
     else:
         client_config = state['client_params']
         client_split_key = 'clients'
+        batch_size = state['client_params']['train_params']['batch_size']
 
     CHUNK_DIR_NAME = 'dist'
     for chunk in client_config['dataset']['distribution'][client_split_key]:
@@ -66,7 +68,7 @@ def aggregator_process(job_name: str, model):
     # load the test dataset from disk
     test_dataset = torch_read('global_test.tuple', DATASET_CHUNK_PATH)
     test_loader = tensor_to_data_loader(
-        test_dataset, state['client_params']['individual_configs'][0]['train_params']['batch_size'])
+        test_dataset, batch_size)
 
     # record start time
     start_time = time()
