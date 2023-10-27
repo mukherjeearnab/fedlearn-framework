@@ -35,13 +35,21 @@ def test_model(model, test_loader, device) -> dict:
     actuals = []
     preds = []
 
+    criterion = torch.nn.CrossEntropyLoss()
+
     with torch.no_grad():
 
-        for inputs, labels in test_loader:
+        val_loss = 0.0
+
+        for i, (inputs, labels) in enumerate(test_loader, 1):
             # move tensors to the device, cpu or gpu
             inputs, labels = inputs.to(device), labels.to(device)
 
             outputs = model(inputs)
+
+            loss = criterion(outputs, labels)
+            val_loss += loss.item()
+
             _, predicted = torch.max(outputs.data, 1)
             # val_total += labels.size(0)
             # val_correct += (predicted == labels).sum().item()
@@ -49,7 +57,13 @@ def test_model(model, test_loader, device) -> dict:
             actuals += labels.tolist()
             preds += predicted.tolist()
 
+            print(f'Processing batch {i} out of {len(test_loader)}', end='\r')
+
+        average_loss = val_loss / len(test_loader)
+
     results = get_metrics(actuals, preds)
+
+    results['loss'] = average_loss
 
     return results
 

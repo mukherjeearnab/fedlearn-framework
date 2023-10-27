@@ -1,5 +1,5 @@
 client_params:
-  num_clients: 2
+  num_clients: 1
 
   train_test_split: # train test split config
     train: 0.8
@@ -11,38 +11,34 @@ client_params:
       distributor: random_dist
       iid: True # if IID is true, it will skip the clients distribution ration in the next variable
       clients: # example client dataset distribution for 3 clients
-        - 0.8
-        - 0.2
-  
+        - 1.0
+
   model_params: # model and training files and configs
     model_file: simple_mnist
     parameter_mixer: default
-    training_loop_file: simple_loop
+    training_loop_file: cel_simple
     test_file: multi_cel_simple
-
 
   train_params: # training parameters
     learning_rate: 0.01
     batch_size: 50
-    local_epochs: 5
-    
+    local_epochs: 1
+
     extra_params:
-      fed_prox: 
+      fed_prox:
         mu: 0.3
       lr_decay: 1
 
-  
-
 server_params:
   aggregator: fed_avg
+  model_file: simple_mnist
+  test_file: multi_cel_simple
 
   train_params: # training parameters
     rounds: 3
 
     extra_params: # extra training parameters
       fed_avg_momentum: 0.1
-    
 
 dataset_params:
   prep: mnist_def
-

@@ -31,7 +31,7 @@ middleware_params:
       model_params: # model and training files and configs
         model_file: simple_mnist
         parameter_mixer: default
-        training_loop_file: simple_loop
+        training_loop_file: cel_simple
         test_file: multi_cel_simple
 
       train_params: # training parameters
@@ -65,7 +65,7 @@ middleware_params:
       model_params: # model and training files and configs
         model_file: simple_mnist
         parameter_mixer: default
-        training_loop_file: simple_loop
+        training_loop_file: cel_simple
         test_file: multi_cel_simple
 
       train_params: # training parameters

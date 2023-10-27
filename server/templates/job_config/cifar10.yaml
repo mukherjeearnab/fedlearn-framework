@@ -1,5 +1,5 @@
 client_params:
-  num_clients: 2
+  num_clients: 1
 
   train_test_split: # train test split config
     train: 0.8
@@ -8,35 +8,37 @@ client_params:
   dataset: # dataset hyperparameters and configs
     preprocessor: default
     distribution:
-      distributor: random_dist
+      distributor: non_iid_dist_extreme
       iid: True # if IID is true, it will skip the clients distribution ration in the next variable
       clients: # example client dataset distribution for 3 clients
-        - 0.95
-        - 0.05
+        - 1.0
 
   model_params: # model and training files and configs
-    model_file: simple_mnist
+    model_file: simple_cnn_cifar
     parameter_mixer: default
     training_loop_file: cel_simple
-    test_file: simple_test
+    test_file: multi_cel_simple
 
   train_params: # training parameters
-    learning_rate: 0.01
-    batch_size: 50
-    local_epochs: 5
+    learning_rate: 0.1
+    batch_size: 128
+    local_epochs: 1
 
     extra_params:
-      prox_mu: 0.3
+      fed_prox:
+        mu: 0.3
       lr_decay: 1
 
 server_params:
   aggregator: fed_avg
+  model_file: simple_cnn_cifar
+  test_file: multi_cel_simple
 
   train_params: # training parameters
-    rounds: 10
+    rounds: 20
 
     extra_params: # extra training parameters
       fed_avg_momentum: 0.1
 
 dataset_params:
-  prep: mnist_def
+  prep: cifar_def

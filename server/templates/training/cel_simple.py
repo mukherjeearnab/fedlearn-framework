@@ -24,12 +24,11 @@ def train_loop(num_epochs: int, learning_rate: float,
     optimizer = optim.SGD(local_model.parameters(), lr=learning_rate)
 
     # Epoch loop
-    for _ in range(num_epochs):
-        running_loss = 0.0
-
-        # Training loop
+    for epoch in range(num_epochs):
         local_model.train()
-        for _, (inputs, labels) in enumerate(train_loader, 0):
+        total_loss = 0.0
+
+        for i, (inputs, labels) in enumerate(train_loader, 1):
 
             # move tensors to the device, cpu or gpu
             inputs, labels = inputs.to(device), labels.to(device)
@@ -39,9 +38,9 @@ def train_loop(num_epochs: int, learning_rate: float,
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
-            running_loss += loss.item()
+            total_loss += loss.item()
 
-        # report training loss here
-        # if i % 100 == 99:
-        #     print(f"[Epoch {epoch+1}, Batch {i+1}] Loss: {running_loss/100:.3f}")
-        #     running_loss = 0.0
+            print(f'Processing Batch {i}/{len(train_loader)}.', end='\r')
+
+        average_loss = total_loss / len(train_loader)
+        print(f"Epoch [{epoch + 1}/{num_epochs}] - Loss: {average_loss:.4f}")
