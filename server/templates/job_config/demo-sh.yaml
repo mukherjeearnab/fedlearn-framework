@@ -9,6 +9,16 @@ dataset_configs:
         clients:
           - 0.8
           - 0.2
+
+  - &extreme_noniid_2c_80_20
+    dataset: # dataset hyperparameters and configs
+      preprocessor: default
+      distribution:
+        distributor: non_iid_dist_extreme
+        clients:
+          - 0.8
+          - 0.2
+
   - &1c_whole
     dataset: # dataset hyperparameters and configs
       preprocessor: default
@@ -34,18 +44,43 @@ middleware_configs:
       <<: *80_20_split
 
     model_params: # model and training files and configs
-      model_file: simple_mnist
+      model_file: simple_cnn_cifar
       parameter_mixer: default
       training_loop_file: cel_simple
       test_file: multi_cel_simple
 
     train_params: # training parameters
-      learning_rate: 0.001
+      learning_rate: 0.01
       batch_size: 50
-      local_epochs: 5
+      local_epochs: 6
 
       extra_params:
         lr_decay: 1
+
+  - &fedprox_simple
+    aggregation:
+      aggregator: fed_avg
+
+      extra_params: # extra aggregation parameters
+        fed_avg_momentum: 0.1
+
+    train_test_split: # train test split config
+      <<: *80_20_split
+
+    model_params: # model and training files and configs
+      model_file: simple_cnn_cifar
+      parameter_mixer: default
+      training_loop_file: fed_prox_loop
+      test_file: multi_cel_simple
+
+    train_params: # training parameters
+      learning_rate: 0.01
+      batch_size: 50
+      local_epochs: 6
+
+      extra_params:
+        fed_prox:
+          mu: 0.3
 
 middleware_params:
   dataset:
@@ -59,26 +94,27 @@ middleware_params:
     <<: *80_20_split
 
   individual_configs:
-    - num_clients: 1
-      <<: *1c_whole
-      <<: *fedavg_simple
+    - num_clients: 2
+      <<: *extreme_noniid_2c_80_20
+      # <<: *fedavg_simple
+      <<: *fedprox_simple
       num_epochs: 2
 
-    - num_clients: 1
-      <<: *1c_whole
+    - num_clients: 2
+      <<: *random_dist_2c_80_20
       <<: *fedavg_simple
-      num_epochs: 2 # number of isolated training rounds before middleware submits to upstream server.
+      num_epochs: 1 # number of isolated training rounds before middleware submits to upstream server.
 
 server_params:
   aggregator: fed_avg
-  model_file: simple_mnist
+  model_file: simple_cnn_cifar
   test_file: multi_cel_simple
 
   train_params: # training parameters
-    rounds: 3
+    rounds: 10
 
     extra_params: # extra training parameters
       fed_avg_momentum: 0.1
 
 dataset_params:
-  prep: mnist_def
+  prep: cifar_def
