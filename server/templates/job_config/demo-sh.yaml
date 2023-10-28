@@ -9,6 +9,13 @@ dataset_configs:
         clients:
           - 0.8
           - 0.2
+  - &1c_whole
+    dataset: # dataset hyperparameters and configs
+      preprocessor: default
+      distribution:
+        distributor: random_dist
+        clients:
+          - 1.0
 
 train_test_split_configs:
   - &80_20_split
@@ -52,18 +59,15 @@ middleware_params:
     <<: *80_20_split
 
   individual_configs:
-    - num_clients: 2
-      <<: *random_dist_2c_80_20
+    - num_clients: 1
+      <<: *1c_whole
       <<: *fedavg_simple
+      num_epochs: 2
 
-    - num_clients: 2
-      <<: *random_dist_2c_80_20
+    - num_clients: 1
+      <<: *1c_whole
       <<: *fedavg_simple
-
-      individual_configs:
-        - num_clients: 1
-          <<: *random_dist_2c_80_20
-          <<: *fedavg_simple
+      num_epochs: 2 # number of isolated training rounds before middleware submits to upstream server.
 
 server_params:
   aggregator: fed_avg

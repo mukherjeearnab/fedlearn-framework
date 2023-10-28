@@ -62,7 +62,7 @@ class PerformanceLog(object):
         for key in self.metric_names:
             if key in ['confusion_matrix', 'classification_report']:
                 continue
-            record += f'{metrics[key]},'
+            record += f'{metrics[key]:.6f},'
 
         self._save_extra_metrics(client_id, round_num, metrics)
 

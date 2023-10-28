@@ -61,6 +61,13 @@ def job_process(middleware_id: str, job_id: str, job_manifest: dict, server_url:
     # some logging vars
     global_round = 1
 
+    if 'num_epochs' in job_manifest['client_params'] and job_manifest['client_params']['num_epochs'] > 1:
+        downstream_epochs = job_manifest['client_params']['num_epochs']
+        downstream_round = 1
+    else:
+        downstream_epochs = 1
+        downstream_round = 1
+
     # Step 1. ACK of job manifest to server, and update middleware (client) status to 1.
     #    0. Listen to Upstream server for Job Manifest. (already done)
     #    1. Download Upstream Job Manifest. (already done)
@@ -121,7 +128,9 @@ def job_process(middleware_id: str, job_id: str, job_manifest: dict, server_url:
         wait_for_client_stage(job_id, 3)
 
         # Step 5. ACK of global parameters to Upstream server, and update middleware (client) status to 3.
-        update_middleware_status(middleware_id, job_id, 3, server_url)
+        # only executed if the current downstream round is the first downstream round
+        if downstream_round == 1:
+            update_middleware_status(middleware_id, job_id, 3, server_url)
 
         # Step 6. Wait for Downstream Clients to Train.
         #    1. Wait for Downstream Clients to upload their Parameters to Middleware, as Downstream Client Stage will turn 4.
@@ -135,10 +144,14 @@ def job_process(middleware_id: str, job_id: str, job_manifest: dict, server_url:
             job_id, test_loader, device)
 
         # Step 8. Send back Aggregated Model Parameters to Upstream Server and ACK of model update, and update middleware (client) status to 4.
-        upload_client_params(curr_params, middleware_id, job_id, server_url)
-        update_middleware_status(middleware_id, job_id, 4, server_url)
+        # only executed if the current downstream round is the final downstream round
+        if downstream_round == downstream_epochs:
+            upload_client_params(
+                curr_params, middleware_id, job_id, server_url)
+            update_middleware_status(middleware_id, job_id, 4, server_url)
 
-        logger.info(f'Completed Downstream Round {global_round}.')
+        logger.info(
+            f'Completed Downstream Round {global_round}-{downstream_round}.')
 
         # caclulate total time for 1 round
         end_time = time()
@@ -147,33 +160,49 @@ def job_process(middleware_id: str, job_id: str, job_manifest: dict, server_url:
         logger.info(f'Total Round Time Delta: {time_delta} ms')
 
         # Step 8A. Also Upload the Aggregated Model Test Metrics to PerfLogger.
-        upload_perflog_metrics(job_id, metrics, curr_params, time_delta)
+        upload_perflog_metrics(middleware_id, job_id, metrics, curr_params,
+                               time_delta)
 
         # Step 10. Listen to check when Upstream Server Process Phase change to 1 or 3.
-        listen_to_client_stage(4, job_id, server_url)
-        process_phase, global_round, _ = listen_for_param_download_training(
-            job_id, server_url, global_round)
+        # only executed if the current downstream round is the final downstream round
+        if downstream_round == downstream_epochs:
+            # reset downstream round on the final round's end
+            downstream_round = 1
 
-        # Step 11. If Upstream Server Process Phase is 1, repeat steps 4.3-11,
-        #          else SET Downstream Client (middleware) Process Phase to 3, and terminate process.
-        if process_phase == 1:
-            # update previous parameters
-            # previous_params = curr_params
-            pass
+            listen_to_client_stage(4, job_id, server_url)
+            process_phase, global_round, _ = listen_for_param_download_training(
+                job_id, server_url, global_round)
 
-        # Download global parameters from server.
-        global_params = download_global_params(job_id, server_url)
+            # Step 11. If Upstream Server Process Phase is 1, repeat steps 4.3-11,
+            #          else SET Downstream Client (middleware) Process Phase to 3, and terminate process.
+            if process_phase == 1:
+                # update previous parameters
+                # previous_params = curr_params
+                pass
 
-        #  4.2. Set Global Params for Downstream Clients to download.
-        set_downstream_central_model_params(job_id, global_params)
+            # Download global parameters from server.
+            global_params = download_global_params(job_id, server_url)
 
-        # else if Process Phase is 3 SET Downstream Client (middleware) Process Phase to 3, and terminate process.
-        if process_phase == 3:
-            logger.info(f'Job [{job_id}] terminated. Exiting Process.')
+            #  4.2. Set Global Params for Downstream Clients to download.
+            set_downstream_central_model_params(job_id, global_params)
 
-            # also terminate job for downstream clients
-            terminate_training(job_id)
+            # else if Process Phase is 3 SET Downstream Client (middleware) Process Phase to 3, and terminate process.
+            if process_phase == 3:
+                logger.info(f'Job [{job_id}] terminated. Exiting Process.')
 
-            update_middleware_status(middleware_id, job_id, 5, server_url)
+                # also terminate job for downstream clients
+                terminate_training(job_id)
 
-            break
+                update_middleware_status(middleware_id, job_id, 5, server_url)
+
+                break
+        else:
+            # if the next round is a downstream round,
+            # set the current params aggregated as global params for downstream clients
+            global_params = curr_params
+
+            #  4.2. Set Global Params for Downstream Clients to download.
+            set_downstream_central_model_params(job_id, global_params)
+
+            # increment downstream round on the non-final round's end
+            downstream_round += 1
