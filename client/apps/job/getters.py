@@ -2,6 +2,7 @@
 Job Getters Module
 '''
 from multiprocessing import Process
+from copy import deepcopy
 from helpers.logging import logger
 from helpers.http import get
 from apps.job.process import job_process
@@ -33,6 +34,10 @@ def get_jobs_from_server(client_id: str, jobs_registry: dict, server_url: str):
             # start job process
             job_proc = get_job_manifest(client_id, job_id, server_url)
 
+            if job_proc is None:
+                jobs_registry['job_ids'].remove(job_id)
+                continue
+
             # add job process to registry
             jobs_registry['jobs'][job_id]['process'] = job_proc
 
@@ -48,18 +53,23 @@ def get_job_manifest(client_id: str, job_id: str, server_url: str):
 
     manifest = get(url, {'job_id': job_id})
 
+    my_job = False
+
     for client in manifest['job_status']['client_info']:
-        if client['client_id'] == client_id:
-            logger.info(f'Starting Job Process for Job [{job_id}]')
+        if client['client_id'] == client_id and manifest['job_status']['download_jobsheet'] == True:
+            my_job = True
 
-            # start new job thread
-            job_proc = Process(target=job_process,
-                               args=(client_id, job_id, manifest, server_url), name=f'job_{job_id}')
+    if my_job:
+        logger.info(f'Starting Job Process for Job [{job_id}]')
 
-            # start job process
-            job_proc.start()
+        # start new job thread
+        job_proc = Process(target=job_process,
+                           args=(client_id, job_id, manifest, server_url), name=f'job_{job_id}')
 
-            # return the job process
-            return job_proc
+        # start job process
+        job_proc.start()
+
+        # return the job process
+        return job_proc
 
     return None
