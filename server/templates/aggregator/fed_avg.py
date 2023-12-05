@@ -5,12 +5,13 @@ import copy
 import torch
 
 
-def aggregator(model, client_params: list, client_weights: list, kwargs=None):
+def aggregator(model, client_params: list, client_weights: list, extra_data: dict, kwargs=None):
     """
     Performs weighted sum of the client parameters, and returns the new model. 
     """
 
-    # if any keyword arguments are passed
+    # if any extra_data and keyword arguments are passed
+    _ = extra_data
     _ = kwargs
 
     with torch.no_grad():

@@ -34,12 +34,12 @@ client_params:
       lr_decay: 1
 
 server_params:
-  aggregator: fed_avg
+  aggregator: fed_avg_m
   model_file: *model_file
   test_file: *test_file
 
   train_params: # training parameters
-    rounds: 10
+    rounds: 20
 
     extra_params: # extra training parameters
       fed_avg_momentum: 0.1
