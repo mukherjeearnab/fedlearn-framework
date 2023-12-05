@@ -13,7 +13,7 @@ def aggregator(model, client_params: list, client_weights: list, extra_data: dic
     # if any extra_data and keyword arguments are passed
     _ = extra_data
     # _ = kwargs
-    beta = 0.7
+    beta = kwargs['fed_avg_momentum']
     EXTRADATA_V = 'fedavgm_vmom'
 
     with torch.no_grad():

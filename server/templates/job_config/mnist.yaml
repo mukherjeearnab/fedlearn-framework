@@ -1,5 +1,5 @@
 client_params:
-  num_clients: 4
+  num_clients: 8
 
   train_test_split: # train test split config
     train: 0.8
@@ -10,10 +10,14 @@ client_params:
     distribution:
       distributor: diritchlet_dist
       clients: # example client dataset distribution for 3 clients
-        - 0.25
-        - 0.25
-        - 0.25
-        - 0.25
+        - 0.125
+        - 0.125
+        - 0.125
+        - 0.125
+        - 0.125
+        - 0.125
+        - 0.125
+        - 0.125
       extra_params:
         diritchlet_alpha: 0.5
 
@@ -24,7 +28,7 @@ client_params:
     test_file: &test_file multi_cel_simple
 
   train_params: # training parameters
-    learning_rate: 0.01
+    learning_rate: 0.0001
     batch_size: 32
     local_epochs: 5
 
@@ -39,7 +43,7 @@ server_params:
   test_file: *test_file
 
   train_params: # training parameters
-    rounds: 20
+    rounds: 200
 
     extra_params: # extra training parameters
       fed_avg_momentum: 0.1

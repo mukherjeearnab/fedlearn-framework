@@ -37,7 +37,6 @@ def aggregator_process(job_name: str, model):
 
     # extra_data dict to store temporary training information
     extra_data = {}
-    kwargs = {}
 
     # curr_model = deepcopy(model)
     curr_model = model.to(device)
@@ -128,7 +127,7 @@ def aggregator_process(job_name: str, model):
 
             # run the aggregator function and obtain new global model
             curr_model = aggregator_module.aggregator(curr_model, client_params,
-                                                      state['client_params']['dataset']['distribution'][client_split_key], extra_data, kwargs)
+                                                      state['client_params']['dataset']['distribution'][client_split_key], extra_data, state['server_params']['train_params']['extra_params'])
 
             # move to device, i.e., cpu or gpu
             curr_model = curr_model.to(device)
