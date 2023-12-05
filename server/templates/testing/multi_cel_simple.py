@@ -16,7 +16,7 @@ def test_runner(model, test_loader, device):
     results = test_model(model, test_loader, device)
 
     logger.info(
-        f"Model Test Report:\n{results['classification_report']}")
+        f"Model Test Report:\n{results['classification_report']}\nLoss: {results['loss']}")
 
     return results
 

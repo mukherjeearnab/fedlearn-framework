@@ -21,7 +21,7 @@ def train_loop(num_epochs: int, learning_rate: float,
     local_model = local_model.to(device)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(local_model.parameters(), lr=learning_rate)
+    optimizer = optim.Adam(local_model.parameters(), lr=learning_rate)
 
     # Epoch loop
     for epoch in range(num_epochs):

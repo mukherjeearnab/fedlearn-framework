@@ -18,13 +18,13 @@ client_params:
         diritchlet_alpha: 0.5
 
   model_params: # model and training files and configs
-    model_file: &model_file 10c_mobilenet
+    model_file: &model_file simple_mnist
     parameter_mixer: default
     training_loop_file: cel_simple
     test_file: &test_file multi_cel_simple
 
   train_params: # training parameters
-    learning_rate: 0.001
+    learning_rate: 0.01
     batch_size: 32
     local_epochs: 5
 
@@ -39,10 +39,10 @@ server_params:
   test_file: *test_file
 
   train_params: # training parameters
-    rounds: 25
+    rounds: 10
 
     extra_params: # extra training parameters
       fed_avg_momentum: 0.1
 
 dataset_params:
-  prep: cifar_def
+  prep: mnist_def
