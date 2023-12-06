@@ -5,7 +5,7 @@ returns as a list of tensors
 import torch
 
 
-def distribute_into_client_chunks(dataset: tuple, client_weights: list) -> list:
+def distribute_into_client_chunks(dataset: tuple, client_weights: list, train=False) -> list:
     '''
     Creates random chunks by splitting the original dataset into 
     len(client_weights) chunks, based on the client weights.
@@ -50,4 +50,4 @@ def distribute_into_client_chunks(dataset: tuple, client_weights: list) -> list:
 
         client_chunks.append(client_chunk)
 
-    return client_chunks
+    return client_chunks, client_weights

@@ -23,9 +23,19 @@ def prepare_dataset_for_deployment(config: dict):
         client_config = config['client_params']
         client_split_key = 'clients'
 
+    # Dynamic Distribution Flag, where distribution weights are not predefined
+    dynamic_distribution = False
+    if client_split_key not in client_config['dataset']['distribution']:
+        dynamic_distribution = True
+        client_config['dataset']['distribution'][client_split_key] = [
+            0.1 for _ in range(num_clients)]
+
     CHUNK_DIR_NAME = 'dist'
-    for chunk in client_config['dataset']['distribution'][client_split_key]:
-        CHUNK_DIR_NAME += f'-{chunk}'
+    if dynamic_distribution:
+        CHUNK_DIR_NAME += f'-{num_clients}'
+    else:
+        for chunk in client_config['dataset']['distribution'][client_split_key]:
+            CHUNK_DIR_NAME += f'-{chunk}'
 
     # print('CHUNK_DIR_NAME', CHUNK_DIR_NAME)
     DATASET_PREP_MOD = config['dataset_params']['prep']['file']
@@ -35,7 +45,9 @@ def prepare_dataset_for_deployment(config: dict):
 
     # create the directory structures
     create_dir_struct(DATASET_ROOT_PATH)
-    create_dir_struct(DATASET_CHUNK_PATH)
+    # dont create chunk dir id dynamic distribution
+    if not dynamic_distribution:
+        create_dir_struct(DATASET_CHUNK_PATH)
 
     # Step 1
     # if root dataset is not already present, prepare it
@@ -74,17 +86,29 @@ def prepare_dataset_for_deployment(config: dict):
 
     # Step 2
     # if chunk datasets are already not prepared, then prepare them
-    if not check_OK_file(DATASET_CHUNK_PATH):
+    if (not check_OK_file(DATASET_CHUNK_PATH)) or dynamic_distribution:
         # load the dataset prep module
         distributor_module = load_module(
             'distributor', client_config['dataset']['distribution']['distributor']['content'])
 
         # obtain the dataset as data and labels
-        train_chunks = distributor_module.distribute_into_client_chunks(train_set,
-                                                                        client_config['dataset']['distribution'][client_split_key])
+        train_chunks, new_client_weights = distributor_module.distribute_into_client_chunks(train_set,
+                                                                                            client_config['dataset']['distribution'][client_split_key], train=True)
+        client_config['dataset']['distribution'][client_split_key] = new_client_weights
+
+        # if dynamic distribution, update the dist chunk dir name with updated weights
+        if dynamic_distribution:
+            CHUNK_DIR_NAME_UPDATE = 'dist'
+            for chunk in client_config['dataset']['distribution'][client_split_key]:
+                CHUNK_DIR_NAME_UPDATE += f'-{chunk}'
+
+            DATASET_CHUNK_PATH = DATASET_CHUNK_PATH.replace(
+                CHUNK_DIR_NAME, CHUNK_DIR_NAME_UPDATE)
+            create_dir_struct(DATASET_CHUNK_PATH)
+
         if test_set is not None:
-            test_chunks = distributor_module.distribute_into_client_chunks(test_set,
-                                                                           client_config['dataset']['distribution'][client_split_key])
+            test_chunks, _ = distributor_module.distribute_into_client_chunks(test_set,
+                                                                              client_config['dataset']['distribution'][client_split_key])
 
         # if test set is not available, split the chunks into train and test sets
         if test_set is None:

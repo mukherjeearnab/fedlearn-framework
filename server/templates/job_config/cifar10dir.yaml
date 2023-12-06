@@ -1,5 +1,5 @@
 client_params:
-  num_clients: 4
+  num_clients: 10
 
   train_test_split: # train test split config
     train: 0.8
@@ -9,28 +9,23 @@ client_params:
     preprocessor: default
     distribution:
       distributor: diritchlet_dist
-      clients: # example client dataset distribution for 3 clients
-        - 0.25
-        - 0.25
-        - 0.25
-        - 0.25
       extra_params:
         diritchlet_alpha: 0.5
 
   model_params: # model and training files and configs
     model_file: &model_file 10c_mobilenet
     parameter_mixer: default
-    training_loop_file: cel_simple
+    training_loop_file: fed_prox_loop
     test_file: &test_file multi_cel_simple
 
   train_params: # training parameters
-    learning_rate: 0.001
+    learning_rate: 0.0001
     batch_size: 32
     local_epochs: 5
 
     extra_params:
       fed_prox:
-        mu: 0.1
+        mu: 0.01
       lr_decay: 1
 
 server_params:
@@ -39,10 +34,10 @@ server_params:
   test_file: *test_file
 
   train_params: # training parameters
-    rounds: 25
+    rounds: 200
 
     extra_params: # extra training parameters
-      fed_avg_momentum: 0.1
+      fed_avg_momentum: 0.9
 
 dataset_params:
   prep: cifar_def

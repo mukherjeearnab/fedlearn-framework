@@ -7,7 +7,7 @@ import numpy as np
 from collections import Counter
 
 
-def distribute_into_client_chunks(dataset: tuple, client_weights: list) -> list:
+def distribute_into_client_chunks(dataset: tuple, client_weights: list, train=False) -> list:
     '''
     Creates client chunks by splitting the original dataset into 
     len(client_weights) chunks, based on the diritchlet distribution.
@@ -45,7 +45,12 @@ def distribute_into_client_chunks(dataset: tuple, client_weights: list) -> list:
 
         client_chunks.append(client_chunk)
 
-    return client_chunks
+    # create new client weights
+    new_client_weights = [len(label_chunk) for label_chunk in label_chunks]
+    new_client_weights = [float(total)/sum(new_client_weights)
+                          for total in new_client_weights]
+
+    return client_chunks, new_client_weights
 
 
 def split_noniid(train_idcs, train_labels, alpha, n_clients):

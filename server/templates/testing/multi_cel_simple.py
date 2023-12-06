@@ -1,6 +1,7 @@
 '''
 Model Testing Module
 '''
+import math
 import torch
 from sklearn import metrics
 from helpers.logging import logger
@@ -63,7 +64,7 @@ def test_model(model, test_loader, device) -> dict:
 
     results = get_metrics(actuals, preds)
 
-    results['loss'] = average_loss
+    results['loss'] = average_loss if not math.isnan(average_loss) else -420.0
 
     return results
 
