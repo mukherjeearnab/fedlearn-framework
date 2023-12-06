@@ -42,7 +42,7 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
 
     # Step 2: Listen to download_dataset to turn true, then download dataset.
     # 2.1 listen to download dataset flag
-    listen_to_dataset_download_flag(job_id, server_url)
+    listen_to_dataset_download_flag(job_id, server_url, client_id)
 
     # 2.2 create the directory structure for the download
     file_name = f'{client_id}.tuple'
@@ -69,7 +69,7 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
     update_client_status(client_id, job_id, 2, server_url)
 
     # wait for client stage be 2
-    listen_to_client_stage(2, job_id, server_url)
+    listen_to_client_stage(2, job_id, server_url, client_id)
 
     # It is a good idea to initialize the local and global model with initial params here.
     local_model = init_model(job_manifest['client_params']
@@ -80,7 +80,7 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
     previous_params = get_base64_state_dict(local_model)
 
     # Step 5: Listen to check when process phase turns 1.
-    listen_to_start_training(job_id, server_url)
+    listen_to_start_training(job_id, server_url, client_id)
 
     # Step 6: Download global parameters from server.
     global_params = download_global_params(job_id, server_url)
@@ -99,7 +99,7 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
         update_client_status(client_id, job_id, 3, server_url)
 
         # wait for client stage be 3
-        listen_to_client_stage(3, job_id, server_url)
+        listen_to_client_stage(3, job_id, server_url, client_id)
 
         # Step 8: Perform local training.
         # Step 8.1: Perform the Parameter Mixing
@@ -138,14 +138,14 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
         update_client_status(client_id, job_id, 4, server_url)
 
         # wait for client stage be 4
-        listen_to_client_stage(4, job_id, server_url)
+        listen_to_client_stage(4, job_id, server_url, client_id)
 
         # Step 10: Listen to check when process phase change to 2.
         # listen_for_central_aggregation(job_id, server_url)
 
         # Step 11: Listen to check when process phase change to 1 or 3.
         process_phase, global_round, abort_signal = listen_for_param_download_training(
-            job_id, server_url, global_round)
+            job_id, server_url, global_round, client_id)
 
         # update round count
         # global_round += 1

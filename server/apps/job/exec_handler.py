@@ -196,6 +196,7 @@ class JobExecHandler:
 
         # method logic
         self.job_status['abort'] = True
+        self.job_status['process_phase'] = 3
 
         # method suffixed with update state and lock release
         self._update_state()

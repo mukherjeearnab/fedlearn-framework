@@ -3,6 +3,7 @@ Module Containing Server Listeners for Flags and Signals
 '''
 from time import sleep
 import os
+from apps.client.status import update_client_status
 from helpers.logging import logger
 from helpers.http import get
 from dotenv import load_dotenv
@@ -13,7 +14,7 @@ load_dotenv()
 DELAY = float(os.getenv('DELAY'))
 
 
-def listen_to_dataset_download_flag(job_id: str, server_url: str):
+def listen_to_dataset_download_flag(job_id: str, server_url: str, client_id: str):
     '''
     Method to listen to server to wait for dataset to get prepared,
     and move on with downloading the dataset
@@ -25,6 +26,9 @@ def listen_to_dataset_download_flag(job_id: str, server_url: str):
             url = f'{server_url}/job_manager/get_exec'
 
             manifest = get(url, {'job_id': job_id})
+
+            listen_abort(job_id, client_id, server_url,
+                         manifest['job_status']['abort'])
 
             if i_dd != manifest['job_status']['download_dataset']:
                 logger.info(
@@ -42,7 +46,7 @@ def listen_to_dataset_download_flag(job_id: str, server_url: str):
         sleep(DELAY)
 
 
-def listen_to_start_training(job_id: str, server_url: str):
+def listen_to_start_training(job_id: str, server_url: str, client_id: str):
     '''
     Method to listen to server to wait to start training,
     i.e., Process Phase to change to 1
@@ -55,6 +59,9 @@ def listen_to_start_training(job_id: str, server_url: str):
             url = f'{server_url}/job_manager/get_exec'
 
             manifest = get(url, {'job_id': job_id})
+
+            listen_abort(job_id, client_id, server_url,
+                         manifest['job_status']['abort'])
 
             if i_pp != manifest['job_status']['process_phase']:
                 logger.info(
@@ -72,7 +79,7 @@ def listen_to_start_training(job_id: str, server_url: str):
         sleep(DELAY)
 
 
-def listen_for_central_aggregation(job_id: str, server_url: str):
+def listen_for_central_aggregation(job_id: str, server_url: str, client_id: str):
     '''
     Method to listen to server to wait for central aggregation,
     i.e., Process Phase to change to 2
@@ -85,6 +92,9 @@ def listen_for_central_aggregation(job_id: str, server_url: str):
             url = f'{server_url}/job_manager/get_exec'
 
             manifest = get(url, {'job_id': job_id})
+
+            listen_abort(job_id, client_id, server_url,
+                         manifest['job_status']['abort'])
 
             if i_pp != manifest['job_status']['process_phase']:
                 logger.info(
@@ -101,7 +111,7 @@ def listen_for_central_aggregation(job_id: str, server_url: str):
         sleep(DELAY)
 
 
-def listen_to_client_stage(client_stage: int, job_id: str, server_url: str):
+def listen_to_client_stage(client_stage: int, job_id: str, server_url: str, client_id: str):
     '''
     Method to listen to client stage
     '''
@@ -112,6 +122,9 @@ def listen_to_client_stage(client_stage: int, job_id: str, server_url: str):
             url = f'{server_url}/job_manager/get_exec'
 
             manifest = get(url, {'job_id': job_id})
+
+            listen_abort(job_id, client_id, server_url,
+                         manifest['job_status']['abort'])
 
             if i_cs != manifest['job_status']['client_stage']:
                 logger.info(
@@ -128,7 +141,7 @@ def listen_to_client_stage(client_stage: int, job_id: str, server_url: str):
         sleep(DELAY)
 
 
-def listen_for_param_download_training(job_id: str, server_url: str, local_round: int) -> int:
+def listen_for_param_download_training(job_id: str, server_url: str, local_round: int, client_id: str) -> int:
     '''
     Method to listen to server to wait to start training or terminate,
     i.e., Process Phase to change to 1 or 3
@@ -141,6 +154,9 @@ def listen_for_param_download_training(job_id: str, server_url: str, local_round
             url = f'{server_url}/job_manager/get_exec'
 
             manifest = get(url, {'job_id': job_id})
+
+            listen_abort(job_id, client_id, server_url,
+                         manifest['job_status']['abort'])
 
             if i_pp != manifest['job_status']['process_phase'] or i_gr != manifest['job_status']['global_round']:
                 logger.info(
@@ -160,3 +176,14 @@ def listen_for_param_download_training(job_id: str, server_url: str, local_round
         sleep(DELAY)
 
     return manifest['job_status']['process_phase'], manifest['job_status']['global_round'], manifest['job_status']['abort']
+
+
+def listen_abort(job_id: str, client_id: str, server_url: str, abort_signal: bool):
+    '''
+    Exit job process if abort signal is received
+    '''
+    if abort_signal:
+        logger.info(
+            f'Received Abort Signal. Exiting Job Process for [{job_id}].')
+        update_client_status(client_id, job_id, 5, server_url)
+        exit()
