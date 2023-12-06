@@ -14,6 +14,8 @@ def train_loop(num_epochs: int, learning_rate: float,
     The Training Loop Function. It trains the model of num_epochs.
     '''
 
+    mu = extra_params['fed_prox']['mu']
+
     # move the local_model to the device, cpu or gpu
     global_model = global_model.to(device)
     local_model = local_model.to(device)
@@ -33,10 +35,21 @@ def train_loop(num_epochs: int, learning_rate: float,
             optimizer.zero_grad()
             outputs = local_model(inputs)
 
+            if mu > 0 and epoch > 0:
+                # Add proximal term to loss (FedProx)
+                w_diff = torch.tensor(0., device=device)
+                for w, w_t in zip(local_model.parameters(), global_model.parameters()):
+                    w_diff += torch.pow(torch.norm(w.data - w_t.data), 2)
+                    # w.grad.data += self.args.mu * (w.data - w_t.data)
+
+                    if w.grad is not None:
+                        w.grad.data += mu * (w_t.data - w.data)
+                loss += mu / 2. * w_diff
+
             loss = criterion(outputs, labels)
 
-            loss += (extra_params['fed_prox']['mu']/2) * \
-                difference_models_norm_2(local_model, global_model)
+            # loss += (extra_params['fed_prox']['mu']/2) * \
+            #     difference_models_norm_2(local_model, global_model)
 
             loss.backward()
 
@@ -49,14 +62,14 @@ def train_loop(num_epochs: int, learning_rate: float,
         print(f"Epoch [{epoch + 1}/{num_epochs}] - Loss: {average_loss:.4f}")
 
 
-def difference_models_norm_2(model_1, model_2):
-    """Return the norm 2 difference between the two model parameters
-    """
+# def difference_models_norm_2(model_1, model_2):
+#     """Return the norm 2 difference between the two model parameters
+#     """
 
-    tensor_1 = list(model_1.parameters())
-    tensor_2 = list(model_2.parameters())
+#     tensor_1 = list(model_1.parameters())
+#     tensor_2 = list(model_2.parameters())
 
-    norm = sum([torch.sum((tensor_1[i]-tensor_2[i])**2)
-                for i in range(len(tensor_1))])
+#     norm = sum([torch.sum((tensor_1[i]-tensor_2[i])**2)
+#                 for i in range(len(tensor_1))])
 
-    return norm
+#     return norm

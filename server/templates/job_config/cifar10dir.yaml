@@ -15,7 +15,7 @@ client_params:
   model_params: # model and training files and configs
     model_file: &model_file 10c_mobilenet
     parameter_mixer: default
-    training_loop_file: fed_prox_loop
+    training_loop_file: cel_fed_prox
     test_file: &test_file multi_cel_simple
 
   train_params: # training parameters
@@ -25,8 +25,7 @@ client_params:
 
     extra_params:
       fed_prox:
-        mu: 0.01
-      lr_decay: 1
+        mu: 1.0
 
 server_params:
   aggregator: fed_avg
@@ -37,7 +36,7 @@ server_params:
     rounds: 200
 
     extra_params: # extra training parameters
-      fed_avg_momentum: 0.9
+      fed_avg_momentum: 0.1
 
 dataset_params:
   prep: cifar_def
