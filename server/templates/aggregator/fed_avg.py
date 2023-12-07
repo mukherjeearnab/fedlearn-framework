@@ -5,7 +5,7 @@ import copy
 import torch
 
 
-def aggregator(model, client_params: list, client_weights: list, extra_data: dict, kwargs=None):
+def aggregator(model, client_params: list, client_weights: list, extra_data: dict, device='cpu', kwargs=None):
     """
     Performs weighted sum of the client parameters, and returns the new model. 
     """
@@ -23,11 +23,15 @@ def aggregator(model, client_params: list, client_weights: list, extra_data: dic
 
         # Initialize global parameters to zeros
         for param_name, param in new_global_params.items():
+            param = param.to(device)
             param.zero_()
 
         # Aggregate client updates
         for client_state_dict, weight in zip(client_params, client_weights):
             for param_name, param in client_state_dict.items():
+                # move client param to gpu
+                param = param.to(device)
+
                 new_global_params[param_name] += (weight * param).type(
                     new_global_params[param_name].dtype)
 

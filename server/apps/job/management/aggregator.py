@@ -14,7 +14,7 @@ from helpers.torch import get_device
 from helpers.file import torch_read
 from helpers.converters import tensor_to_data_loader
 from helpers.perflog import add_params, add_record, save_logs
-from apps.job.api import get_job, allow_start_training, terminate_training, set_central_model_params
+from apps.job.api import get_job, allow_start_training, terminate_training, set_central_model_params, set_abort
 
 
 # import environment variables
@@ -126,8 +126,13 @@ def aggregator_process(job_name: str, model):
                 # client_params[index] = convert_list_to_tensor(param)
 
             # run the aggregator function and obtain new global model
-            curr_model = aggregator_module.aggregator(curr_model, client_params,
-                                                      state['client_params']['dataset']['distribution'][client_split_key], extra_data, state['server_params']['train_params']['extra_params'])
+            try:
+                curr_model = aggregator_module.aggregator(curr_model, client_params,
+                                                          state['client_params']['dataset']['distribution'][client_split_key], extra_data, device, state['server_params']['train_params']['extra_params'])
+            except Exception as e:
+                logger.info(f'Error in Aggregator File: {e}. Terminating...')
+                set_abort(job_name)
+                break
 
             # move to device, i.e., cpu or gpu
             curr_model = curr_model.to(device)

@@ -5,7 +5,7 @@ import copy
 import torch
 
 
-def aggregator(model, client_params: list, client_weights: list, extra_data: dict, kwargs=None):
+def aggregator(model, client_params: list, client_weights: list, extra_data: dict, device='cpu', kwargs=None):
     """
     Performs weighted sum of the client parameters, and returns the new model. 
     """
@@ -29,12 +29,14 @@ def aggregator(model, client_params: list, client_weights: list, extra_data: dic
 
         # Initialize global parameters to zeros
         for param_name, param in new_global_params.items():
+            param = param.to(device)
             param.zero_()
 
         # Initialize v_momentum to zero if not already in extradata
         if 'fedavgm_vmom' not in extra_data:
             v_momenutm = copy.deepcopy(global_params)
             for param_name, param in v_momenutm.items():
+                param = param.to(device)
                 param.zero_()
         else:
             v_momenutm = extra_data[EXTRADATA_V]
@@ -42,11 +44,16 @@ def aggregator(model, client_params: list, client_weights: list, extra_data: dic
         # Aggregate client updates (basically FedAvg)
         for client_state_dict, weight in zip(client_params, client_weights):
             for param_name, param in client_state_dict.items():
+                # move client param to gpu
+                param = param.to(device)
+
                 new_global_params[param_name] += (weight * param).type(
                     new_global_params[param_name].dtype)
 
         # compute the gradient (dw = w_old - w_new)
         for param_name, param in new_global_params.items():
+            global_params[param_name] = global_params[param_name].to(device)
+
             gradient[param_name] = torch.sub(
                 global_params[param_name], new_global_params[param_name])
 

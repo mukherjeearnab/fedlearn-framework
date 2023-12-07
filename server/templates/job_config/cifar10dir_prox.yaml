@@ -34,7 +34,7 @@ server_params:
   test_file: *test_file
 
   train_params: # training parameters
-    rounds: 500
+    rounds: 200
 
     extra_params: # extra training parameters
       fed_avg_momentum: 0.9
