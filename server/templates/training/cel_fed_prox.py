@@ -21,7 +21,7 @@ def train_loop(num_epochs: int, learning_rate: float,
     local_model = local_model.to(device)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(local_model.parameters(), lr=learning_rate)
+    optimizer = optim.Adam(local_model.parameters(), lr=learning_rate)
 
     # Epoch loop
     for epoch in range(num_epochs):
@@ -35,6 +35,8 @@ def train_loop(num_epochs: int, learning_rate: float,
             optimizer.zero_grad()
             outputs = local_model(inputs)
 
+            loss = criterion(outputs, labels)
+
             if mu > 0 and epoch > 0:
                 # Add proximal term to loss (FedProx)
                 w_diff = torch.tensor(0., device=device)
@@ -42,11 +44,9 @@ def train_loop(num_epochs: int, learning_rate: float,
                     w_diff += torch.pow(torch.norm(w.data - w_t.data), 2)
                     # w.grad.data += self.args.mu * (w.data - w_t.data)
 
-                    if w.grad is not None:
-                        w.grad.data += mu * (w_t.data - w.data)
+                    # if w.grad is not None:
+                    #     w.grad.data += mu * (w_t.data - w.data)
                 loss += mu / 2. * w_diff
-
-            loss = criterion(outputs, labels)
 
             # loss += (extra_params['fed_prox']['mu']/2) * \
             #     difference_models_norm_2(local_model, global_model)
