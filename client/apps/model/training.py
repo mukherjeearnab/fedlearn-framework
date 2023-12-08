@@ -85,7 +85,7 @@ def parameter_mixing(current_global_params: dict, previous_local_params: dict, m
     return params
 
 
-def train_model(job_manifest: dict, train_loader, local_model, global_model, device) -> dict:
+def train_model(job_manifest: dict, train_loader, local_model, global_model, prev_local_model, device) -> dict:
     '''
     Execute the Training Loop
     '''
@@ -103,7 +103,7 @@ def train_model(job_manifest: dict, train_loader, local_model, global_model, dev
 
     # train the model
     train_loop_module.train_loop(num_epochs, learning_rate, train_loader,
-                                 local_model, global_model,
+                                 local_model, global_model, prev_local_model,
                                  extra_params, device)
 
     logger.info(f'Completed Local Training with {num_epochs} EPOCHS')

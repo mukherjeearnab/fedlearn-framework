@@ -8,12 +8,12 @@ import torch.optim as optim
 
 def train_loop(num_epochs: int, learning_rate: float,
                train_loader: torch.utils.data.dataloader.DataLoader,
-               local_model, global_model,
+               local_model, global_model, prev_local_model,
                extra_params: dict, device='cpu') -> None:
     '''
     The Training Loop Function. It trains the model of num_epochs.
     '''
-
+    _ = prev_local_model
     _ = global_model
     _ = extra_params
 

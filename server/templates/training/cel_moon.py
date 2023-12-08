@@ -14,15 +14,19 @@ def train_loop(num_epochs: int, learning_rate: float,
     The Training Loop Function. It trains the local_model of num_epochs.
     '''
 
-    _ = prev_local_model
-    _ = global_model
-    _ = extra_params
+    # hyperparameters
+    temperature = extra_params['moon']['temp']
+    mu = extra_params['moon']['mu']
 
     # move the local_model to the device, cpu or gpu
     local_model = local_model.to(device)
+    global_model = global_model.to(device)
+    prev_local_model = prev_local_model.to(device)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(local_model.parameters(), lr=learning_rate)
+
+    cos = torch.nn.CosineSimilarity(dim=-1)
 
     # Epoch loop
     for epoch in range(num_epochs):
@@ -35,8 +39,23 @@ def train_loop(num_epochs: int, learning_rate: float,
             inputs, labels = inputs.to(device), labels.to(device)
 
             optimizer.zero_grad()
-            outputs = local_model(inputs)
-            loss = criterion(outputs, labels)
+            proj_l, pred_l = local_model.forward_with_projection(inputs)
+            proj_g, _ = global_model.forward_with_projection(inputs)
+            proj_pl, _ = prev_local_model.forward_with_projection(inputs)
+
+            posi = cos(proj_l, proj_g)
+            logits = posi.reshape(-1, 1)
+            nega = cos(proj_l, proj_pl)
+            logits = torch.cat((logits, nega.reshape(-1, 1)), dim=1)
+
+            logits /= temperature
+            mask = torch.zeros(inputs.size(0)).cuda().long()
+
+            contrastive_loss = mu * criterion(logits, mask)
+
+            loss = criterion(pred_l, labels)
+            loss += contrastive_loss
+
             loss.backward()
             optimizer.step()
             total_loss += loss.item()

@@ -75,16 +75,17 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
     local_model = init_model(job_manifest['client_params']
                              ['model_params']['model_file']['content'])
     global_model = deepcopy(local_model)
+    prev_local_model = deepcopy(local_model)
 
     # obtain parameters of the model
-    previous_params = get_base64_state_dict(local_model)
+    previous_params = get_base64_state_dict(prev_local_model)
 
     # Step 5: Listen to check when process phase turns 1.
     listen_to_start_training(job_id, server_url, client_id)
 
     # Step 6: Download global parameters from server.
     global_params = download_global_params(job_id, server_url)
-    previous_params = global_params
+    # previous_params = global_params
 
     # some logging vars
     global_round = 1
@@ -112,9 +113,12 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
         # Step 8.2.2: Update the local model parameters
         set_base64_state_dict(global_model, global_params)
 
+        # Step 8.2.3: Update the local model parameters
+        set_base64_state_dict(prev_local_model, previous_params)
+
         # Step 8.3: Training Loop
         train_model(job_manifest, train_loader,
-                    local_model, global_model, device)
+                    local_model, global_model, prev_local_model, device)
 
         # Step 8.4: Obtain trained model parameters
         curr_params = get_base64_state_dict(local_model)
