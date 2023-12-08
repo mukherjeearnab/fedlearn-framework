@@ -3,6 +3,7 @@ Client Main Module
 '''
 import os
 from time import sleep
+import argparse
 from dotenv import load_dotenv
 import prompt
 from helpers import torch as _
@@ -16,12 +17,24 @@ load_dotenv()
 
 DELAY = float(os.getenv('DELAY'))
 
+parser = argparse.ArgumentParser()
+parser.add_argument("-s", "--server")
+parser.add_argument("-d", "--default", action="store_true")
+args = parser.parse_args()
+
+
 # fetch mme server url
 CLIENT_STATE = {
     'server_url': os.getenv('MANAGEMENT_SERVER')
 }
 
-prompt.management_server_prompt(CLIENT_STATE)
+if args.default and args.server:
+    print("Cannot use both --default and --server. Exiting...")
+    exit()
+if (not args.default) and (not args.server):
+    prompt.management_server_prompt(CLIENT_STATE)
+if args.server:
+    prompt.override_server_url(args.server, CLIENT_STATE)
 
 # global variables
 JOBS = {
