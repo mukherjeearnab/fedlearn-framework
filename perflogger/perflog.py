@@ -155,6 +155,18 @@ class PerformanceLog(object):
                    self.config['server_params']['aggregator']['content'])
         self.config['server_params']['aggregator'] = \
             self.config['server_params']['aggregator']['file']
+        
+        # write server_params.model_file
+        write_file('server.model_file.py', f'{self.project_path}/modules',
+                   self.config['server_params']['model_file']['content'])
+        self.config['server_params']['model_file'] = \
+            self.config['server_params']['model_file']['file']
+
+        # write server_params.test_file
+        write_file('server.test_file.py', f'{self.project_path}/modules',
+                   self.config['server_params']['test_file']['content'])
+        self.config['server_params']['test_file'] = \
+            self.config['server_params']['test_file']['file']
 
         # write dataset_params.prep
         write_file('dataset_prep.py', f'{self.project_path}/modules',
