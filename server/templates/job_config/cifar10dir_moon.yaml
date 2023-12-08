@@ -1,5 +1,5 @@
 client_params:
-  num_clients: 2
+  num_clients: 10
 
   train_test_split: # train test split config
     train: 0.8

@@ -15,7 +15,7 @@ class MobileNetWithProjection(nn.Module):
         self.mobilenet.classifier[-1] = nn.Identity()
 
         self.projector = nn.Linear(1280, 512)
-        self.classifier = nn.Linear(512, 10)
+        self.classifier = nn.Linear(1280, 10)
 
     def forward(self, x):
         f = self.mobilenet(x)
