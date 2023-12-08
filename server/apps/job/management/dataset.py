@@ -1,6 +1,7 @@
 '''
 The Dataset Preperation Module for Jobs
 '''
+import traceback
 import torch
 from helpers.logging import logger
 from helpers.file import torch_write, torch_read
@@ -54,11 +55,15 @@ def prepare_dataset_for_deployment(config: dict):
     # if root dataset is not already present, prepare it
     if not check_OK_file(DATASET_ROOT_PATH):
         # load the dataset prep module
-        dataset_prep_module = load_module(
-            'dataset_prep', config['dataset_params']['prep']['content'])
+        try:
+            dataset_prep_module = load_module(
+                'dataset_prep', config['dataset_params']['prep']['content'])
 
-        # obtain the dataset as data and labels
-        (train_set, test_set) = dataset_prep_module.prepare_dataset()
+            # obtain the dataset as data and labels
+            (train_set, test_set) = dataset_prep_module.prepare_dataset()
+        except Exception:
+            logger.info(
+                f'Error Executing Dataset Prep Module.\n{traceback.format_exc()}')
 
         # saving dataset file to disk
         try:
@@ -74,9 +79,9 @@ def prepare_dataset_for_deployment(config: dict):
             # set the OK file
             set_OK_file(DATASET_ROOT_PATH)
             logger.info('Prepared Root Dataset Saved Successfully!')
-        except Exception as e:
+        except Exception:
             logger.error(
-                f'Error Saving Prepared Dataset to disk! {e}')
+                f'Error Saving Prepared Dataset to disk!\n{traceback.format_exc()}')
     else:
         logger.info('Root Dataset already present. Loading it from disk.')
         train_set = torch_read('train_dataset.tuple', DATASET_ROOT_PATH)
@@ -89,13 +94,18 @@ def prepare_dataset_for_deployment(config: dict):
     # if chunk datasets are already not prepared, then prepare them
     if (not check_OK_file(DATASET_CHUNK_PATH)) or dynamic_distribution:
         # load the dataset prep module
-        distributor_module = load_module(
-            'distributor', client_config['dataset']['distribution']['distributor']['content'])
+        try:
+            distributor_module = load_module(
+                'distributor', client_config['dataset']['distribution']['distributor']['content'])
 
-        # obtain the dataset as data and labels
-        train_chunks, new_client_weights = distributor_module.distribute_into_client_chunks(train_set,
-                                                                                            client_config['dataset']['distribution'][client_split_key], extra_params, train=True)
-        client_config['dataset']['distribution'][client_split_key] = new_client_weights
+            # obtain the dataset as data and labels
+            train_chunks, new_client_weights = distributor_module.distribute_into_client_chunks(train_set,
+                                                                                                client_config['dataset']['distribution'][client_split_key], extra_params, train=True)
+            client_config['dataset']['distribution'][client_split_key] = new_client_weights
+        except:
+            logger.info(
+                f'Error Executing Dataset Distributor. Terminating...\n{traceback.format_exc()}')
+            return
 
         # if dynamic distribution, update the dist chunk dir name with updated weights
         if dynamic_distribution:
@@ -149,9 +159,9 @@ def prepare_dataset_for_deployment(config: dict):
             set_OK_file(DATASET_CHUNK_PATH)
             logger.info(
                 'Dataset Client Chunks and Global Set Saved Successfully!')
-        except Exception as e:
+        except Exception:
             logger.error(
-                f'Error Saving Chunked Dataset to disk! {e}')
+                f'Error Saving Chunked Dataset to disk!\n{traceback.format_exc()}')
 
 
 def train_test_split(dataset: tuple, split_weights: list) -> tuple:

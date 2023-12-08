@@ -2,6 +2,7 @@
 middleware Status Management Module
 '''
 import os
+import traceback
 from time import sleep
 from helpers.http import get, post
 from helpers.logging import logger
@@ -58,7 +59,7 @@ def listen_to_middleware_status(middleware_id: str, job_id: str, server_url: str
             if middleware['client_id'] == middleware_id:
                 return middleware['status']
 
-    except Exception as e:
-        logger.error(f'Failed to middleware Stage. {e}')
+    except Exception:
+        logger.error(f'Failed to middleware Stage.\n{traceback.format_exc()}')
 
     return -1

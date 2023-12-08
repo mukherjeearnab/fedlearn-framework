@@ -2,6 +2,7 @@
 Client Management Routing Module
 '''
 import threading
+import traceback
 from flask import Blueprint, jsonify, request, send_file
 # from helpers.semaphore import Semaphore
 from helpers.logging import logger
@@ -37,10 +38,10 @@ def load_job_route():
     job_id = request.args['job_id']
 
     STATE_LOCK.acquire()
-    # try:
-    load_job(job_id, CONFIGS)
-    # except Exception as e:
-    #     logger.error(f'Failed to Load Job Instance {e}')
+    try:
+        load_job(job_id, CONFIGS)
+    except Exception:
+        logger.error(f'Failed to Load Job Instance.\n{traceback.format_exc()}')
 
     STATE_LOCK.release()
 
@@ -55,23 +56,24 @@ def delete_job_route():
     job_id = request.args['job_id']
 
     STATE_LOCK.acquire()
-    # try:
-    # if job is terminated, only then it can be deleted
-    if JOBS[job_id][0].job_status['process_phase'] == 3:
-        for client in JOBS[job_id][0].job_status['client_info']:
-            if client['is_middleware']:
-                delete_job_at_middlewares(client['client_id'], job_id)
+    try:
+        # if job is terminated, only then it can be deleted
+        if JOBS[job_id][0].job_status['process_phase'] == 3:
+            for client in JOBS[job_id][0].job_status['client_info']:
+                if client['is_middleware']:
+                    delete_job_at_middlewares(client['client_id'], job_id)
 
-        kv_delete(job_id)
-        del JOBS[job_id]
-        del CONFIGS[job_id]
-        logger.info(f'Job [{job_id}] deleted successfully!')
-    else:
+            kv_delete(job_id)
+            del JOBS[job_id]
+            del CONFIGS[job_id]
+            logger.info(f'Job [{job_id}] deleted successfully!')
+        else:
+            logger.error(
+                f'Failed to Delete Job Instance {job_id}. Reason: Job Is not Terminated.')
+            logger.info(f'Please Wait for Job [{job_id}] to terminate.')
+    except Exception:
         logger.error(
-            f'Failed to Delete Job Instance {job_id}. Reason: Job Is not Terminated.')
-        logger.info(f'Please Wait for Job [{job_id}] to terminate.')
-    # except Exception as e:
-        # logger.error(f'Failed to Delete Job Instance. {e}')
+            f'Failed to Delete Job Instance.\n{traceback.format_exc()}')
 
     STATE_LOCK.release()
 
@@ -85,12 +87,13 @@ def start_job_route():
     '''
     job_id = request.args['job_id']
 
-    # try:
-    start_job(job_id, CONFIGS, JOBS)
-    job_state = JOBS[job_id][0].get_state()
-    # except Exception as e:
-    #     logger.error(f'Failed to Start Job Instance {e}')
-    #     job_state = {'message': 'Job instance not found'}
+    try:
+        start_job(job_id, CONFIGS, JOBS)
+        job_state = JOBS[job_id][0].get_state()
+    except Exception:
+        logger.error(
+            f'Failed to Start Job Instance.\n{traceback.format_exc()}')
+        job_state = {'message': 'Job instance not found'}
 
     return jsonify(job_state)
 

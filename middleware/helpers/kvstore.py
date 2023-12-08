@@ -3,6 +3,7 @@ Key Value Store Module
 '''
 import json
 import os
+import traceback
 from typing import Any
 from time import sleep
 from global_kvset import app_globals
@@ -25,9 +26,9 @@ def kv_get(key: str) -> Any:
             reply = get(f'{KVS_URL}/get', {'key': key,
                         'client': f'middleware-{app_globals.get("HTTP_SERVER_PORT")}'})
             break
-        except Exception as e:
+        except Exception:
             logger.error(
-                f'KVStore Database Connection Error! Retrying in 30s. {e}')
+                f'KVStore Database Connection Error! Retrying in 30s.\n{traceback.format_exc()}')
             sleep(DELAY*6)
 
     if reply['res'] == 404:
@@ -45,9 +46,9 @@ def kv_set(key: str, value: Any) -> None:
             post(f'{KVS_URL}/set', {'key': key, 'value': json.dumps(value),
                  'client': f'middleware-{app_globals.get("HTTP_SERVER_PORT")}'})
             break
-        except Exception as e:
+        except Exception:
             logger.error(
-                f'KVStore Database Connection Error! Retrying in 30s. {e}')
+                f'KVStore Database Connection Error! Retrying in 30s.\n{traceback.format_exc()}')
             sleep(DELAY*6)
 
 
@@ -60,9 +61,9 @@ def kv_delete(key: str) -> Any:
             reply = get(f'{KVS_URL}/delete', {'key': key,
                         'client': f'middleware-{app_globals.get("HTTP_SERVER_PORT")}'})
             break
-        except Exception as e:
+        except Exception:
             logger.error(
-                f'KVStore Database Connection Error! Retrying in 30s. {e}')
+                f'KVStore Database Connection Error! Retrying in 30s.\n{traceback.format_exc()}')
             sleep(DELAY*6)
 
     if reply['res'] == 404:

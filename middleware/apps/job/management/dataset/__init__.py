@@ -1,6 +1,7 @@
 '''
 The Dataset Preperation Module for Jobs
 '''
+import traceback
 import torch
 from helpers.logging import logger
 from helpers.file import torch_write, torch_read
@@ -54,9 +55,9 @@ def prepare_dataset_for_deployment(middleware_id: str, job_id: str, config: dict
         # set the OK file
         set_OK_file(DATASET_ROOT_PATH)
         logger.info('Prepared Root Dataset Saved Successfully!')
-    except Exception as e:
+    except Exception:
         logger.error(
-            f'Error Saving Prepared Dataset to disk! {e}')
+            f'Error Saving Prepared Dataset to disk!\n{traceback.format_exc()}')
     # else:
     logger.info('Root Dataset already present. Loading it from disk.')
     train_set = torch_read(
@@ -119,9 +120,9 @@ def prepare_dataset_for_deployment(middleware_id: str, job_id: str, config: dict
         set_OK_file(DATASET_CHUNK_PATH)
         logger.info(
             'Dataset Client Chunks and Global Set Saved Successfully!')
-    except Exception as e:
+    except Exception:
         logger.error(
-            f'Error Saving Chunked Dataset to disk! {e}')
+            f'Error Saving Chunked Dataset to disk!\n{traceback.format_exc()}')
 
 
 def train_test_split(dataset: tuple, split_weights: list) -> tuple:

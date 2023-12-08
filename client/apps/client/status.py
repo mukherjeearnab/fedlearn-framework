@@ -2,6 +2,7 @@
 Client Status Management Module
 '''
 import os
+import traceback
 from time import sleep
 from helpers.http import get, post
 from helpers.logging import logger
@@ -57,7 +58,8 @@ def listen_to_client_status(client_id: str, job_id: str, server_url: str):
             if client['client_id'] == client_id:
                 return client['status']
 
-    except Exception as e:
-        logger.error(f'Failed to Client Stage. {e}')
+    except Exception:
+        logger.error(
+            f'Failed to listen Client Stage.\n{traceback.format_exc()}')
 
     return -1

@@ -3,8 +3,8 @@ The Aggregator Module
 '''
 
 import os
+import traceback
 from time import sleep, time
-from copy import deepcopy
 from dotenv import load_dotenv
 from helpers.logging import logger
 from helpers.dynamod import load_module
@@ -102,8 +102,14 @@ def aggregator_process(job_name: str, model):
             logger.info(f'Starting Aggregation Process for job [{job_name}]')
 
             # load the model module
-            aggregator_module = load_module(
-                'agg_module', state['server_params']['aggregator']['content'])
+            try:
+                aggregator_module = load_module(
+                    'agg_module', state['server_params']['aggregator']['content'])
+            except Exception:
+                logger.info(
+                    f'Error loading Aggregator File. Terminating...\n{traceback.format_exc()}')
+                set_abort(job_name)
+                break
 
             # prepare the client params based on index
             param_state = get_job(job_name, params=True)
@@ -129,8 +135,9 @@ def aggregator_process(job_name: str, model):
             try:
                 curr_model = aggregator_module.aggregator(curr_model, client_params,
                                                           state['client_params']['dataset']['distribution'][client_split_key], extra_data, device, state['server_params']['train_params']['extra_params'])
-            except Exception as e:
-                logger.info(f'Error in Aggregator File: {e}. Terminating...')
+            except Exception:
+                logger.info(
+                    f'Error Executing Aggregator. Terminating...\n{traceback.format_exc()}')
                 set_abort(job_name)
                 break
 
@@ -147,11 +154,16 @@ def aggregator_process(job_name: str, model):
                 f"Completed Global Round {state['job_status']['global_round']} out of {state['server_params']['train_params']['rounds']}")
 
             # logic to test the model with the aggregated parameters
-
-            testing_module = load_module(
-                'testing_module', state['server_params']['test_file']['content'])
-            metrics = testing_module.test_runner(
-                curr_model, test_loader, device)
+            try:
+                testing_module = load_module(
+                    'testing_module', state['server_params']['test_file']['content'])
+                metrics = testing_module.test_runner(
+                    curr_model, test_loader, device)
+            except Exception:
+                logger.info(
+                    f'Error Executing Model Tester. Terminating...\n{traceback.format_exc()}')
+                set_abort(job_name)
+                break
 
             # sleep(DELAY)
 

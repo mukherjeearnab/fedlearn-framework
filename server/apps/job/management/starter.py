@@ -3,6 +3,7 @@ The Job Starter Module
 '''
 
 import os
+import traceback
 from time import sleep
 from multiprocessing import Process
 from dotenv import load_dotenv
@@ -118,7 +119,13 @@ def start_job(job_name: str, config_registry: dict, job_registry: dict) -> dict:
     ######################################################################################
 
     # get the initial model parameters
-    params, model = load_model_and_get_params(config)
+    try:
+        params, model = load_model_and_get_params(config)
+    except:
+        logger.info(
+            f'Error Loading Model. Aborting...\n{traceback.format_exc()}')
+        exec_handler.set_abort()
+        return {'aggregator_proc': None, 'exec': False}
 
     # set the initial model parameters
     param_handler.set_central_model_params(params)

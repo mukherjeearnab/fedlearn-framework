@@ -3,6 +3,7 @@ Module Containing Server Listeners for Flags and Signals
 '''
 from time import sleep
 import os
+import traceback
 from apps.client.status import update_client_status
 from helpers.logging import logger
 from helpers.http import get
@@ -39,9 +40,9 @@ def listen_to_dataset_download_flag(job_id: str, server_url: str, client_id: str
             if manifest['job_status']['download_dataset']:
                 break
 
-        except Exception as e:
+        except Exception:
             logger.error(
-                f'Failed to fetch Dataset Download Flag. {e}')
+                f'Failed to fetch Dataset Download Flag.\n{traceback.format_exc()}')
 
         sleep(DELAY)
 
@@ -72,9 +73,9 @@ def listen_to_start_training(job_id: str, server_url: str, client_id: str):
             if manifest['job_status']['process_phase'] == 1:
                 break
 
-        except Exception as e:
+        except Exception:
             logger.error(
-                f'Failed to fetch Process Phase. {e}')
+                f'Failed to fetch Process Phase.\n{traceback.format_exc()}')
 
         sleep(DELAY)
 
@@ -105,8 +106,8 @@ def listen_for_central_aggregation(job_id: str, server_url: str, client_id: str)
             if manifest['job_status']['process_phase'] == 2:
                 break
 
-        except Exception as e:
-            logger.error(f'Failed to Process Phase. {e}')
+        except Exception:
+            logger.error(f'Failed to Process Phase.\n{traceback.format_exc()}')
 
         sleep(DELAY)
 
@@ -135,8 +136,8 @@ def listen_to_client_stage(client_stage: int, job_id: str, server_url: str, clie
             if manifest['job_status']['client_stage'] == client_stage:
                 break
 
-        except Exception as e:
-            logger.error(f'Failed to Client Stage. {e}')
+        except Exception:
+            logger.error(f'Failed to Client Stage.\n{traceback.format_exc()}')
 
         sleep(DELAY)
 
@@ -169,9 +170,9 @@ def listen_for_param_download_training(job_id: str, server_url: str, local_round
             if (manifest['job_status']['process_phase'] == 1 or manifest['job_status']['process_phase'] == 3) and manifest['job_status']['global_round'] == local_round+1:
                 break
 
-        except Exception as e:
+        except Exception:
             logger.error(
-                f'Failed to fetch job status state. {e}')
+                f'Failed to fetch job status state.\n{traceback.format_exc()}')
 
         sleep(DELAY)
 

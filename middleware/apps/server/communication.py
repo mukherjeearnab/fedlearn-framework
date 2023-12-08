@@ -2,6 +2,7 @@
 Module Containing Download and Upload Methods for Server Comms
 '''
 import os
+import traceback
 from helpers.logging import logger
 from helpers.http import get, post
 from dotenv import load_dotenv
@@ -31,8 +32,9 @@ def download_global_params(job_id: str, server_url: str):
         global_params_dict = manifest['exec_params']['central_model_param']
 
         global_params = global_params_dict
-    except Exception as e:
-        logger.error(f'Failed to fetch job status state. {e}')
+    except Exception:
+        logger.error(
+            f'Failed to fetch job status state.\n{traceback.format_exc()}')
 
     return global_params
 
@@ -53,5 +55,6 @@ def upload_client_params(params: dict, client_id: str, job_id: str, server_url: 
                    'client_params': params,
                    'job_id': job_id})
 
-    except Exception as e:
-        logger.error(f'Failed to fetch job status state. {e}')
+    except Exception:
+        logger.error(
+            f'Failed to fetch job status state.\n{traceback.format_exc()}')

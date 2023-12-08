@@ -2,6 +2,7 @@
 Client Management Routing Module
 '''
 import threading
+import traceback
 from flask import Blueprint, jsonify, request, send_file
 from global_kvset import app_globals
 from helpers.logging import logger
@@ -42,8 +43,8 @@ def load_job_route():
     STATE_LOCK.acquire()
     try:
         exec_status = load_job(job_id, job_manifest, CONFIGS)
-    except Exception as e:
-        logger.error(f'Failed to Load Job Instance {e}')
+    except Exception:
+        logger.error(f'Failed to Load Job Instance.\n{traceback.format_exc()}')
         exec_status = False
 
     STATE_LOCK.release()
@@ -74,8 +75,9 @@ def delete_job_route():
             logger.error(
                 f'Failed to Delete Job Instance {job_id}. Reason: Job Is not Terminated.')
             logger.info(f'Please Wait for Job [{job_id}] to terminate.')
-    except Exception as e:
-        logger.error(f'Failed to Delete Job Instance. {e}')
+    except Exception:
+        logger.error(
+            f'Failed to Delete Job Instance.\n{traceback.format_exc()}')
 
     STATE_LOCK.release()
 
@@ -92,8 +94,8 @@ def start_job_route():
     try:
         start_job(job_id, CONFIGS, JOBS)
         job_state = JOBS[job_id][0].get_state()
-    except Exception as e:
-        logger.error(f'Failed to Load Job Instance {e}')
+    except Exception:
+        logger.error(f'Failed to Load Job Instance.\n{traceback.format_exc()}')
         job_state = {'message': 'Job instance not found'}
 
     return jsonify(job_state)

@@ -2,6 +2,7 @@
 Job Process Module
 '''
 from time import time
+import traceback
 from helpers.logging import logger
 from helpers.torch import get_device
 from apps.job.api import load_job, start_job, allow_start_training, terminate_training
@@ -90,13 +91,32 @@ def job_process(middleware_id: str, job_id: str, job_manifest: dict, server_url:
     listen_to_dataset_download_flag(job_id, server_url)
 
     #    1. Download Upstream Dataset.
-    download_upstream_dataset(job_id, middleware_id, server_url)
+    try:
+        download_upstream_dataset(job_id, middleware_id, server_url)
+    except Exception:
+        logger.error(
+            f'Failed to Download Dataset for Job [{job_id}]. Exiting...\n{traceback.format_exc()}')
+        update_middleware_status(middleware_id, job_id, 5, server_url)
+        exit()
 
     #    2. Prepare Downstream Client Datasets (prepare chunks, distribute).
-    dataset_prepare_for_downstream_clients(middleware_id, job_id, job_manifest)
+    try:
+        dataset_prepare_for_downstream_clients(
+            middleware_id, job_id, job_manifest)
+    except Exception:
+        logger.error(
+            f'Failed to Prepare Dataset for Job [{job_id}]. Exiting...\n{traceback.format_exc()}')
+        update_middleware_status(middleware_id, job_id, 5, server_url)
+        exit()
 
     #    2A. Also Load the Test Dataset Loader
-    test_loader = load_test_dataset(job_id, job_manifest)
+    try:
+        test_loader = load_test_dataset(job_id, job_manifest)
+    except Exception:
+        logger.error(
+            f'Failed to Load Test Dataset for Job [{job_id}]. Exiting...\n{traceback.format_exc()}')
+        update_middleware_status(middleware_id, job_id, 5, server_url)
+        exit()
 
     #    3. Serve Dataset (middleware) to Downstream Clients (set Download flag of middleware).
     #    4. Wait for Downstream Clients to send ACK of Dataset.
@@ -140,8 +160,14 @@ def job_process(middleware_id: str, job_id: str, job_manifest: dict, server_url:
         # This is Auto Handled in Job Exec and Params Handler
 
         # Step 7. Perform Aggregation of Downstream Client Parameters.
-        curr_params, metrics = aggregate_downstream_params(
-            job_id, test_loader, device)
+        try:
+            curr_params, metrics = aggregate_downstream_params(
+                job_id, test_loader, device)
+        except Exception:
+            logger.error(
+                f'Failed to Exec Aggregator for Job [{job_id}]. Exiting...\n{traceback.format_exc()}')
+            update_middleware_status(middleware_id, job_id, 5, server_url)
+            exit()
 
         # Step 8. Send back Aggregated Model Parameters to Upstream Server and ACK of model update, and update middleware (client) status to 4.
         # only executed if the current downstream round is the final downstream round

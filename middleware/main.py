@@ -4,6 +4,7 @@ This is the Commandline interface for managing the server
 import os
 import logging
 from time import sleep
+import traceback
 from dotenv import load_dotenv
 import prompt
 from helpers.logging import logger
@@ -50,8 +51,8 @@ while True:  # loop through and wait for the server to be available for registra
             CLIENT_STATE['server_url'])
         logger.info(f"Registered client with {CLIENT_STATE['reginfo']}")
         break
-    except Exception as e:
-        logger.warning(f'Failed to register client. {e}')
+    except Exception:
+        logger.warning(f'Failed to register client.\n{traceback.format_exc()}')
         sleep(DELAY*12)
 
 # 2. Start KeepAlive Process to listen to jobs from server

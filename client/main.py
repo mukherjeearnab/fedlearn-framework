@@ -4,6 +4,7 @@ Client Main Module
 import os
 from time import sleep
 import argparse
+import traceback
 from dotenv import load_dotenv
 import prompt
 from helpers import torch as _
@@ -48,8 +49,8 @@ while True:  # loop through and wait for the server to be available for registra
         CLIENT_STATE['reginfo'] = register_client(CLIENT_STATE['server_url'])
         logger.info(f"Registered client with {CLIENT_STATE['reginfo']}")
         break
-    except Exception as e:
-        logger.warning(f'Failed to register client. {e}')
+    except Exception:
+        logger.warning(f'Failed to register client.\n{traceback.format_exc()}')
         sleep(DELAY*12)
 
 keep_alive_process(JOBS, CLIENT_STATE)

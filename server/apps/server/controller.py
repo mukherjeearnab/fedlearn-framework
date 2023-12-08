@@ -15,7 +15,7 @@ parser.add_argument("-p", "--port")
 args = parser.parse_args()
 
 SERVER_PORT = int(args.port if args.port else os.getenv('SERVER_PORT'))
-print(SERVER_PORT)
+# print(SERVER_PORT)
 
 
 def run_server():

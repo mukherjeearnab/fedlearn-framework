@@ -3,6 +3,7 @@ Job Process Module
 '''
 from time import time
 from copy import deepcopy
+import traceback
 from helpers.logging import logger
 from helpers.file import create_dir_struct
 from helpers.http import download_file
@@ -55,9 +56,15 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
 
     # Step 3: Preprocess dataset.
     # 3.1 preprocess dataset
-    (train_set, test_set) = data_preprocessing(file_name, dataset_path,
-                                               job_manifest['client_params']['dataset']['preprocessor']['content'])
-    #    list(job_manifest['client_params']['train_test_split'].values()))
+    try:
+        (train_set, test_set) = data_preprocessing(file_name, dataset_path,
+                                                   job_manifest['client_params']['dataset']['preprocessor']['content'])
+        #    list(job_manifest['client_params']['train_test_split'].values()))
+    except Exception:
+        logger.error(
+            f'Failed to run Dataset Proprocessing. Aborting Process for job [{job_id}]!\n{traceback.format_exc()}')
+        update_client_status(client_id, job_id, 5, server_url)
+        exit()
 
     # 3.2 create DataLoader Objects for train and test sets
     train_loader = tensor_to_data_loader(train_set,
@@ -72,8 +79,15 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
     listen_to_client_stage(2, job_id, server_url, client_id)
 
     # It is a good idea to initialize the local and global model with initial params here.
-    local_model = init_model(job_manifest['client_params']
-                             ['model_params']['model_file']['content'])
+    try:
+        local_model = init_model(job_manifest['client_params']
+                                 ['model_params']['model_file']['content'])
+    except Exception:
+        logger.error(
+            f'Failed to init Model. Aborting Process for job [{job_id}]!\n{traceback.format_exc()}')
+        update_client_status(client_id, job_id, 5, server_url)
+        exit()
+
     global_model = deepcopy(local_model)
     prev_local_model = deepcopy(local_model)
 
@@ -104,8 +118,14 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
 
         # Step 8: Perform local training.
         # Step 8.1: Perform the Parameter Mixing
-        curr_params = parameter_mixing(global_params, previous_params,
-                                       job_manifest['client_params']['model_params']['parameter_mixer']['content'])
+        try:
+            curr_params = parameter_mixing(global_params, previous_params,
+                                           job_manifest['client_params']['model_params']['parameter_mixer']['content'])
+        except Exception:
+            logger.error(
+                f'Failed to run Parameter Mixer. Aborting Process for job [{job_id}]!\n{traceback.format_exc()}')
+            update_client_status(client_id, job_id, 5, server_url)
+            break
 
         # Step 8.2.1: Update the local model parameters
         set_base64_state_dict(local_model, curr_params)
@@ -117,16 +137,29 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
         set_base64_state_dict(prev_local_model, previous_params)
 
         # Step 8.3: Training Loop
-        train_model(job_manifest, train_loader,
-                    local_model, global_model, prev_local_model, device)
+        try:
+            train_model(job_manifest, train_loader,
+                        local_model, global_model, prev_local_model, device)
+        except Exception:
+            logger.error(
+                f'Failed to train Model. Aborting Process for job [{job_id}]!\n{traceback.format_exc()}')
+            update_client_status(client_id, job_id, 5, server_url)
+            break
 
         # Step 8.4: Obtain trained model parameters
         curr_params = get_base64_state_dict(local_model)
 
         # Step 8.5: Test the trained model parameters with test dataset
-        testing_module = load_module(
-            'testing_module', job_manifest['client_params']['model_params']['test_file']['content'])
-        metrics = testing_module.test_runner(local_model, test_loader, device)
+        try:
+            testing_module = load_module(
+                'testing_module', job_manifest['client_params']['model_params']['test_file']['content'])
+            metrics = testing_module.test_runner(
+                local_model, test_loader, device)
+        except Exception:
+            logger.error(
+                f'Failed to run Testing Script. Aborting Process for job [{job_id}]!\n{traceback.format_exc()}')
+            update_client_status(client_id, job_id, 5, server_url)
+            break
 
         # caclulate total time for 1 round
         end_time = time()
