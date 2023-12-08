@@ -42,6 +42,7 @@ def prepare_dataset_for_deployment(config: dict):
     DATASET_DIST_MOD = client_config['dataset']['distribution']['distributor']['file']
     DATASET_ROOT_PATH = f"./datasets/deploy/{DATASET_PREP_MOD}/root"
     DATASET_CHUNK_PATH = f"./datasets/deploy/{DATASET_PREP_MOD}/chunks/{DATASET_DIST_MOD}/{CHUNK_DIR_NAME}"
+    extra_params = client_config['dataset']['distribution']['extra_params']
 
     # create the directory structures
     create_dir_struct(DATASET_ROOT_PATH)
@@ -93,7 +94,7 @@ def prepare_dataset_for_deployment(config: dict):
 
         # obtain the dataset as data and labels
         train_chunks, new_client_weights = distributor_module.distribute_into_client_chunks(train_set,
-                                                                                            client_config['dataset']['distribution'][client_split_key], train=True)
+                                                                                            client_config['dataset']['distribution'][client_split_key], extra_params, train=True)
         client_config['dataset']['distribution'][client_split_key] = new_client_weights
 
         # if dynamic distribution, update the dist chunk dir name with updated weights
@@ -108,7 +109,7 @@ def prepare_dataset_for_deployment(config: dict):
 
         if test_set is not None:
             test_chunks, _ = distributor_module.distribute_into_client_chunks(test_set,
-                                                                              client_config['dataset']['distribution'][client_split_key])
+                                                                              client_config['dataset']['distribution'][client_split_key],  extra_params)
 
         # if test set is not available, split the chunks into train and test sets
         if test_set is None:

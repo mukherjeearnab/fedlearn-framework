@@ -7,13 +7,16 @@ import numpy as np
 from collections import Counter
 
 
-def distribute_into_client_chunks(dataset: tuple, client_weights: list, train=False) -> list:
+def distribute_into_client_chunks(dataset: tuple, client_weights: list, extra_params: dict, train=False) -> list:
     '''
     Creates client chunks by splitting the original dataset into 
     len(client_weights) chunks, based on the diritchlet distribution.
     '''
+    alpha = extra_params['diritchlet']['alpha']
+    seed = extra_params['diritchlet']['seed']
+
     # set np seed for reproducibility
-    np.random.seed(0)
+    np.random.seed(seed)
 
     data, labels = dataset
 
@@ -24,7 +27,7 @@ def distribute_into_client_chunks(dataset: tuple, client_weights: list, train=Fa
 
     # obtain non-iid client indices for client chunks
     client_idcs = split_noniid(
-        indices, labels, alpha=0.5, n_clients=len(client_weights))
+        indices, labels, alpha=alpha, n_clients=len(client_weights))
 
     # create the client data and label chunks
     data_chunks = [torch.index_select(data, 0, torch.LongTensor(

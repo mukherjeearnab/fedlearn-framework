@@ -5,11 +5,12 @@ returns as a list of tensors
 import torch
 
 
-def distribute_into_client_chunks(dataset: tuple, client_weights: list, train=False) -> list:
+def distribute_into_client_chunks(dataset: tuple, client_weights: list, extra_params: dict, train=False) -> list:
     '''
     Creates random chunks by splitting the original dataset into 
     len(client_weights) chunks, based on the client weights.
     '''
+    _ = extra_params
 
     (data, labels) = dataset
 

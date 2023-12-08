@@ -1,5 +1,5 @@
 client_params:
-  num_clients: 10
+  num_clients: 2
 
   train_test_split: # train test split config
     train: 0.8
@@ -10,7 +10,9 @@ client_params:
     distribution:
       distributor: diritchlet_dist
       extra_params:
-        diritchlet_alpha: 0.5
+        diritchlet: 
+          alpha: 0.5
+          seed: 0
 
   model_params: # model and training files and configs
     model_file: &model_file 10c_mobilenet

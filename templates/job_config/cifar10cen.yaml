@@ -12,7 +12,9 @@ client_params:
       clients:
         - 1.0
       extra_params:
-        diritchlet_alpha: 0.5
+        diritchlet: 
+          alpha: 0.5
+          seed: 0
 
   model_params: # model and training files and configs
     model_file: &model_file 10c_mobilenet
