@@ -23,7 +23,7 @@ def load_job(job_name: str, config_registry: dict):
     Load the Job Config and perform some preliminary validation.
     '''
     # load the job config file
-    config = read_yaml_file(f'./templates/job_config/{job_name}.yaml')
+    config = read_yaml_file(f'../templates/job_config/{job_name}.yaml')
 
     logger.info(f'Reading Job Config: \n{job_name}')
 

@@ -16,7 +16,7 @@ def load_module_files(config: dict) -> dict:
     config['middleware_params']['dataset']['distribution']['distributor'] = {
         'file': config['middleware_params']['dataset']['distribution']['distributor'],
         'content': read_py_module(
-            f"./templates/distribution/{config['middleware_params']['dataset']['distribution']['distributor']}")
+            f"../templates/distribution/{config['middleware_params']['dataset']['distribution']['distributor']}")
     }
 
     # recursively load middleware_params modules
@@ -26,28 +26,28 @@ def load_module_files(config: dict) -> dict:
     config['server_params']['aggregator'] = {
         'file': config['server_params']['aggregator'],
         'content': read_py_module(
-            f"./templates/aggregator/{config['server_params']['aggregator']}")
+            f"../templates/aggregator/{config['server_params']['aggregator']}")
     }
 
     # read server_params.model_file
     config['server_params']['model_file'] = {
         'file': config['server_params']['model_file'],
         'content': read_py_module(
-            f"./templates/models/{config['server_params']['model_file']}")
+            f"../templates/models/{config['server_params']['model_file']}")
     }
 
     # read server_params.test_file
     config['server_params']['test_file'] = {
         'file': config['server_params']['test_file'],
         'content': read_py_module(
-            f"./templates/testing/{config['server_params']['test_file']}")
+            f"../templates/testing/{config['server_params']['test_file']}")
     }
 
     # read dataset_params.prep
     config['dataset_params']['prep'] = {
         'file': config['dataset_params']['prep'],
         'content': read_py_module(
-            f"./templates/dataset_prep/{config['dataset_params']['prep']}")
+            f"../templates/dataset_prep/{config['dataset_params']['prep']}")
     }
 
     return config
@@ -67,49 +67,49 @@ def recursive_loader(middleware_params: dict):
         middleware['aggregation']['aggregator'] = {
             'file': middleware['aggregation']['aggregator'],
             'content': read_py_module(
-                f"./templates/aggregator/{middleware['aggregation']['aggregator']}")
+                f"../templates/aggregator/{middleware['aggregation']['aggregator']}")
         }
 
         # read client_params.dataset.preprocessor
         middleware['dataset']['preprocessor'] = {
             'file': middleware['dataset']['preprocessor'],
             'content': read_py_module(
-                f"./templates/preprocess/{middleware['dataset']['preprocessor']}")
+                f"../templates/preprocess/{middleware['dataset']['preprocessor']}")
         }
 
         # read client_params.dataset.distribution.distributor
         middleware['dataset']['distribution']['distributor'] = {
             'file': middleware['dataset']['distribution']['distributor'],
             'content': read_py_module(
-                f"./templates/distribution/{middleware['dataset']['distribution']['distributor']}")
+                f"../templates/distribution/{middleware['dataset']['distribution']['distributor']}")
         }
 
         # read model_params.model_file
         middleware['model_params']['model_file'] = {
             'file': middleware['model_params']['model_file'],
             'content': read_py_module(
-                f"./templates/models/{middleware['model_params']['model_file']}")
+                f"../templates/models/{middleware['model_params']['model_file']}")
         }
 
         # read model_params.parameter_mixer
         middleware['model_params']['parameter_mixer'] = {
             'file': middleware['model_params']['parameter_mixer'],
             'content': read_py_module(
-                f"./templates/param_mixer/{middleware['model_params']['parameter_mixer']}")
+                f"../templates/param_mixer/{middleware['model_params']['parameter_mixer']}")
         }
 
         # read model_params.training_loop_file
         middleware['model_params']['training_loop_file'] = {
             'file': middleware['model_params']['training_loop_file'],
             'content': read_py_module(
-                f"./templates/training/{middleware['model_params']['training_loop_file']}")
+                f"../templates/training/{middleware['model_params']['training_loop_file']}")
         }
 
         # read model_params.test_file
         middleware['model_params']['test_file'] = {
             'file': middleware['model_params']['test_file'],
             'content': read_py_module(
-                f"./templates/testing/{middleware['model_params']['test_file']}")
+                f"../templates/testing/{middleware['model_params']['test_file']}")
         }
 
         middleware_params['individual_configs'][i] = middleware
