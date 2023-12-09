@@ -3,12 +3,19 @@ The Job Management API module
 '''
 
 import os
+import argparse
 from helpers.http import get, post
 from dotenv import load_dotenv
 
 load_dotenv()
 
-SERVER_URL = f'http://localhost:{int(os.getenv("SERVER_PORT"))}'
+parser = argparse.ArgumentParser()
+parser.add_argument("-p", "--port")
+args = parser.parse_args()
+
+SERVER_PORT = int(args.port if args.port else os.getenv('SERVER_PORT'))
+
+SERVER_URL = f'http://localhost:{SERVER_PORT}'
 
 
 def load_job(job_name: str):
