@@ -116,8 +116,13 @@ def get():
     '''
     job_id = request.args['job_id']
 
-    job_state = JOBS[job_id][0].get_state()
-    job_state['exec_params'] = JOBS[job_id][1].get_state()['exec_params']
+    try:
+        job_state = JOBS[job_id][0].get_state()
+        job_state['exec_params'] = JOBS[job_id][1].get_state()['exec_params']
+    except Exception:
+        logger.error(
+            f'Failed to GET Job Instance.\n{traceback.format_exc()}')
+        job_state = {'message': 'Job instance not found'}
 
     return jsonify(job_state)
 

@@ -4,6 +4,7 @@ The Job Loader Module
 
 import os
 import json
+import argparse
 from dotenv import load_dotenv
 from helpers.logging import logger
 from helpers.file import read_yaml_file
@@ -14,7 +15,11 @@ from apps.client.api import get_alive_clients
 # import environment variables
 load_dotenv()
 
-SERVER_PORT = int(os.getenv('SERVER_PORT'))
+parser = argparse.ArgumentParser()
+parser.add_argument("-p", "--port")
+args = parser.parse_args()
+
+SERVER_PORT = int(args.port if args.port else os.getenv('SERVER_PORT'))
 DELAY = float(os.getenv('DELAY'))
 
 

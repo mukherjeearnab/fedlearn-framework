@@ -3,6 +3,7 @@ The Job Starter Module
 '''
 
 import os
+import argparse
 import traceback
 from time import sleep
 from multiprocessing import Process
@@ -20,7 +21,11 @@ from helpers.torch import reset_seed
 # import environment variables
 load_dotenv()
 
-SERVER_PORT = int(os.getenv('SERVER_PORT'))
+parser = argparse.ArgumentParser()
+parser.add_argument("-p", "--port")
+args = parser.parse_args()
+
+SERVER_PORT = int(args.port if args.port else os.getenv('SERVER_PORT'))
 DELAY = float(os.getenv('DELAY'))
 
 
