@@ -9,7 +9,7 @@ import torch.optim as optim
 def train_loop(num_epochs: int, learning_rate: float,
                train_loader: torch.utils.data.dataloader.DataLoader,
                local_model, global_model, prev_local_model,
-               extra_params: dict, device='cpu') -> None:
+               extra_params: dict, extra_data: dict, device='cpu') -> None:
     '''
     The Training Loop Function. It trains the local_model of num_epochs.
     '''
@@ -17,6 +17,7 @@ def train_loop(num_epochs: int, learning_rate: float,
     _ = prev_local_model
     _ = global_model
     _ = extra_params
+    _ = extra_data
 
     # move the local_model to the device, cpu or gpu
     local_model = local_model.to(device)

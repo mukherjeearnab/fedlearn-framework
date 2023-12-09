@@ -103,6 +103,9 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
 
     # some logging vars
     global_round = 1
+    total_rounds = job_manifest['server_params']['train_params']['rounds']
+
+    extra_data = {'round_info': {'total_rounds': total_rounds}}
 
     # record start time
     start_time = time()
@@ -137,9 +140,10 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
         set_base64_state_dict(prev_local_model, previous_params)
 
         # Step 8.3: Training Loop
+        extra_data['round_info']['current_round'] = global_round
         try:
             train_model(job_manifest, train_loader,
-                        local_model, global_model, prev_local_model, device)
+                        local_model, global_model, prev_local_model, extra_data, device)
         except Exception:
             logger.error(
                 f'Failed to train Model. Aborting Process for job [{job_id}]!\n{traceback.format_exc()}')

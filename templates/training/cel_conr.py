@@ -9,7 +9,7 @@ import torch.optim as optim
 def train_loop(num_epochs: int, learning_rate: float,
                train_loader: torch.utils.data.dataloader.DataLoader,
                local_model, global_model, prev_local_model,
-               extra_params: dict, device='cpu') -> None:
+               extra_params: dict, extra_data: dict, device='cpu') -> None:
     '''
     The Training Loop Function. It trains the local_model of num_epochs.
     '''
@@ -17,6 +17,12 @@ def train_loop(num_epochs: int, learning_rate: float,
     # hyperparameters
     w_con = extra_params['conr']['w_con']
     w_sup = extra_params['conr']['w_sup']
+    decay = extra_params['conr']['decay']
+
+    # extra_data
+    curr_round, total_round = float(extra_data['round_info']['current_round']), float(
+        extra_data['round_info']['total_rounds'])
+    decay_value = 1 - ((curr_round-1)/total_round) if decay else 1.0
 
     # move the local_model to the device, cpu or gpu
     local_model = local_model.to(device)
@@ -44,7 +50,7 @@ def train_loop(num_epochs: int, learning_rate: float,
 
             contrast = cos(proj_l, proj_g)
 
-            con_loss = w_con * torch.mean(1 - contrast)
+            con_loss = (decay_value * w_con) * torch.mean(1 - contrast)
 
             sup_loss = w_sup * criterion(pred_l, labels)
 

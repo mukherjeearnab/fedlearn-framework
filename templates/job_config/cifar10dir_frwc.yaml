@@ -31,6 +31,7 @@ client_params:
       conr:
         w_sup: 1.0
         w_con: 1.0
+        decay: true
 
 server_params:
   aggregator: fed_rwa

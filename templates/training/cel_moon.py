@@ -9,10 +9,12 @@ import torch.optim as optim
 def train_loop(num_epochs: int, learning_rate: float,
                train_loader: torch.utils.data.dataloader.DataLoader,
                local_model, global_model, prev_local_model,
-               extra_params: dict, device='cpu') -> None:
+               extra_params: dict, extra_data: dict, device='cpu') -> None:
     '''
     The Training Loop Function. It trains the local_model of num_epochs.
     '''
+
+    _ = extra_data
 
     # hyperparameters
     temperature = extra_params['moon']['temp']
