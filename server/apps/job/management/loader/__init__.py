@@ -23,14 +23,14 @@ SERVER_PORT = int(args.port if args.port else os.getenv('SERVER_PORT'))
 DELAY = float(os.getenv('DELAY'))
 
 
-def load_job(job_name: str, config_registry: dict):
+def load_job(job_name: str, job_config: str, config_registry: dict):
     '''
     Load the Job Config and perform some preliminary validation.
     '''
     # load the job config file
-    config = read_yaml_file(f'../templates/job_config/{job_name}.yaml')
+    config = read_yaml_file(f'../templates/job_config/{job_config}.yaml')
 
-    logger.info(f'Reading Job Config: \n{job_name}')
+    logger.info(f'Reading Job Config: \n{job_config}')
 
     config_registry[job_name] = config
 

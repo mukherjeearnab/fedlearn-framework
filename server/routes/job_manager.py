@@ -36,10 +36,11 @@ def load_job_route():
     init route, called by server to initialize the job into the state machine
     '''
     job_id = request.args['job_id']
+    job_config = request.args['job_config']
 
     STATE_LOCK.acquire()
     try:
-        load_job(job_id, CONFIGS)
+        load_job(job_id, job_config, CONFIGS)
     except Exception:
         logger.error(f'Failed to Load Job Instance.\n{traceback.format_exc()}')
 

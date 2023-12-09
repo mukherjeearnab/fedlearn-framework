@@ -14,8 +14,8 @@ def handle_command(args: List[str]) -> None:
     '''
     Handle the Forwarded Commands
     '''
-    if args[0] == 'load':
-        load_job(job_name=args[1])
+    if len(args) == 4 and (args[0] == 'load' and args[2] == 'as'):
+        load_job(job_config=args[1], job_name=args[3])
 
     elif args[0] == 'start':
         start_job(job_name=args[1])

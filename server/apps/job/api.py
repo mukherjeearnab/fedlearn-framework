@@ -18,11 +18,12 @@ SERVER_PORT = int(args.port if args.port else os.getenv('SERVER_PORT'))
 SERVER_URL = f'http://localhost:{SERVER_PORT}'
 
 
-def load_job(job_name: str):
+def load_job(job_config: str, job_name: str):
     '''
     Call the Job Load Route and load the job
     '''
-    get(f'{SERVER_URL}/job_manager/load', {'job_id': job_name})
+    get(f'{SERVER_URL}/job_manager/load',
+        {'job_id': job_name, 'job_config': job_config})
 
 
 def delete_job(job_name: str):
