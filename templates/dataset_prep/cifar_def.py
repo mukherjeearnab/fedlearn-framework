@@ -23,7 +23,7 @@ def prepare_dataset():
         root='./datasets', train=True, transform=transform, download=True)
     # Create data loaders
     train_loader = torch.utils.data.DataLoader(
-        dataset=train_dataset, batch_size=len(train_dataset), shuffle=True)
+        dataset=train_dataset, batch_size=len(train_dataset), shuffle=False)
     # obtain the data and label tensors
     train_data, train_labels = next(iter(train_loader))
 
@@ -32,7 +32,7 @@ def prepare_dataset():
         root='./datasets', train=False, transform=transform, download=True)
     # Create data loaders
     test_loader = torch.utils.data.DataLoader(
-        dataset=test_dataset, batch_size=len(test_dataset), shuffle=True)
+        dataset=test_dataset, batch_size=len(test_dataset), shuffle=False)
     # obtain the data and label tensors
     test_data, test_labels = next(iter(test_loader))
 
