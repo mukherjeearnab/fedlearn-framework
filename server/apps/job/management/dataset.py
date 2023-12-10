@@ -115,6 +115,12 @@ def prepare_dataset_for_deployment(config: dict):
 
             DATASET_CHUNK_PATH = DATASET_CHUNK_PATH.replace(
                 CHUNK_DIR_NAME, CHUNK_DIR_NAME_UPDATE)
+
+            # check if already done with distribution
+            if check_OK_file(DATASET_CHUNK_PATH):
+                logger.info('Chunks already present. Skipping...')
+                return
+
             create_dir_struct(DATASET_CHUNK_PATH)
 
         if test_set is not None:
