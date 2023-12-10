@@ -10,8 +10,8 @@ client_params:
     distribution:
       distributor: diritchlet_dist
       extra_params:
-        diritchlet: 
-          alpha: 0.5
+        diritchlet:
+          alpha: 0.1
           seed: 0
 
   model_params: # model and training files and configs
@@ -27,9 +27,9 @@ client_params:
 
     extra_params:
       fed_prox:
-        mu: 0.01
+        mu: 0.1
       moon:
-        mu: 1.0
+        mu: 5.0
         temp: 0.5
       lr_decay: 1
 
@@ -39,10 +39,10 @@ server_params:
   test_file: *test_file
 
   train_params: # training parameters
-    rounds: 200
+    rounds: 100
 
     extra_params: # extra training parameters
-      fed_avg_momentum: 0.9
+      fed_avg_momentum: 0.1
 
 dataset_params:
   prep: cifar_def
