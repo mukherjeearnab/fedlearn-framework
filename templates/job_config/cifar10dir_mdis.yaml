@@ -17,7 +17,7 @@ client_params:
   model_params: # model and training files and configs
     model_file: &model_file 10c_mobilenet_wp
     parameter_mixer: default
-    training_loop_file: cel_conr
+    training_loop_file: cel_mdis
     test_file: &test_file multi_cel_simple
 
   train_params: # training parameters
@@ -28,13 +28,13 @@ client_params:
     extra_params:
       fed_prox:
         mu: 0.1
-      conr:
-        w_sup: 1.0
-        w_con: 1.0
-        decay: true
+      mdis:
+        w_dis: 1.0
+        cut: 0.1
+        cut_thresh: 3
 
 server_params:
-  aggregator: fed_rwa
+  aggregator: fed_avg
   model_file: *model_file
   test_file: *test_file
 
