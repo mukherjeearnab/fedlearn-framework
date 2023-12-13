@@ -16,6 +16,7 @@ def train_loop(num_epochs: int, learning_rate: float,
 
     # hyperparameters
     w_dis = extra_params['mdis']['w_dis']
+    w_dis_max = extra_params['mdis']['w_dis_max']
     update_cut = extra_params['mdis']['cut']
     update_threshold = extra_params['mdis']['cut_thresh']
 
@@ -80,5 +81,7 @@ def train_loop(num_epochs: int, learning_rate: float,
             else:
                 extra_data['loss_history']['redn_count'] = 0
                 extra_data['w_dis'] += update_cut
+                if extra_data['w_dis'] >= w_dis_max:
+                    extra_data['w_dis'] = w_dis_max
 
             extra_data['loss_history']['prev'] = average_loss

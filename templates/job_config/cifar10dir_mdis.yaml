@@ -11,7 +11,7 @@ client_params:
       distributor: diritchlet_dist
       extra_params:
         diritchlet:
-          alpha: 0.1
+          alpha: 0.5
           seed: 0
 
   model_params: # model and training files and configs
@@ -30,6 +30,7 @@ client_params:
         mu: 0.1
       mdis:
         w_dis: 1.0
+        w_dis_max: 2.0
         cut: 0.1
         cut_thresh: 3
 

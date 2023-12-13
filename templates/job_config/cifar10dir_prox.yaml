@@ -10,12 +10,12 @@ client_params:
     distribution:
       distributor: diritchlet_dist
       extra_params:
-        diritchlet: 
+        diritchlet:
           alpha: 0.5
           seed: 0
 
   model_params: # model and training files and configs
-    model_file: &model_file 10c_mobilenet
+    model_file: &model_file 10c_mobilenet_wp
     parameter_mixer: default
     training_loop_file: cel_fed_prox
     test_file: &test_file multi_cel_simple
@@ -27,7 +27,7 @@ client_params:
 
     extra_params:
       fed_prox:
-        mu: 0.001
+        mu: 0.01
       lr_decay: 1
 
 server_params:
@@ -36,7 +36,7 @@ server_params:
   test_file: *test_file
 
   train_params: # training parameters
-    rounds: 200
+    rounds: 100
 
     extra_params: # extra training parameters
       fed_avg_momentum: 0.9
