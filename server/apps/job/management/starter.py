@@ -3,7 +3,6 @@ The Job Starter Module
 '''
 
 import os
-import argparse
 import traceback
 from time import sleep
 from multiprocessing import Process
@@ -12,6 +11,7 @@ from apps.job.exec_handler import JobExecHandler
 from apps.job.param_handler import JobParamHandler
 from apps.client.api import get_alive_clients
 from apps.job.management.aggregator import aggregator_process
+from helpers.argsparse import args
 from helpers.logging import logger
 from helpers.dynamod import load_module
 from helpers.converters import get_base64_state_dict
@@ -21,9 +21,6 @@ from helpers.torch import reset_seed
 # import environment variables
 load_dotenv()
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-p", "--port")
-args = parser.parse_args()
 
 SERVER_PORT = int(args.port if args.port else os.getenv('SERVER_PORT'))
 DELAY = float(os.getenv('DELAY'))

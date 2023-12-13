@@ -2,16 +2,13 @@
 Client API Module
 '''
 import os
-import argparse
+from helpers.argsparse import args
 from helpers.http import get
 from dotenv import load_dotenv
 from helpers.logging import logger
 
 load_dotenv()
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-p", "--port")
-args = parser.parse_args()
 
 SERVER_PORT = int(args.port if args.port else os.getenv('SERVER_PORT'))
 

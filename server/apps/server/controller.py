@@ -2,17 +2,14 @@
 The Controller Module
 '''
 import os
-import argparse
 from multiprocessing import Process
 from dotenv import load_dotenv
+from helpers.argsparse import args
 from apps.server.root import app
 
 # import environment variables
 load_dotenv()
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-p", "--port")
-args = parser.parse_args()
 
 SERVER_PORT = int(args.port if args.port else os.getenv('SERVER_PORT'))
 # print(SERVER_PORT)

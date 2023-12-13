@@ -3,15 +3,11 @@ The Job Management API module
 '''
 
 import os
-import argparse
+from helpers.argsparse import args
 from helpers.http import get, post
 from dotenv import load_dotenv
 
 load_dotenv()
-
-parser = argparse.ArgumentParser()
-parser.add_argument("-p", "--port")
-args = parser.parse_args()
 
 SERVER_PORT = int(args.port if args.port else os.getenv('SERVER_PORT'))
 
