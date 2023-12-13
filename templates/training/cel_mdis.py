@@ -15,10 +15,11 @@ def train_loop(num_epochs: int, learning_rate: float,
     '''
 
     # hyperparameters
-    w_dis = extra_params['mdis']['w_dis']
-    w_dis_max = extra_params['mdis']['w_dis_max']
-    update_cut = extra_params['mdis']['cut']
-    update_threshold = extra_params['mdis']['cut_thresh']
+    w_dis = extra_params['mdis']['w_dis']['init']
+    w_dis_max = extra_params['mdis']['w_dis']['max']
+    w_dis_min = extra_params['mdis']['w_dis']['min']
+    decay_step = extra_params['mdis']['w_dis']['decay']['step']
+    decay_wait = extra_params['mdis']['w_dis']['decay']['wait']
 
     # extra_data
     extra_data['loss_history'] = {"prev": float(
@@ -72,15 +73,15 @@ def train_loop(num_epochs: int, learning_rate: float,
 
         if epoch == 0:
             if average_loss < extra_data['loss_history']['prev']:
-                if extra_data['loss_history']['redn_count'] >= update_threshold:
-                    extra_data['w_dis'] -= update_cut
-                    if extra_data['w_dis'] < 0:
-                        extra_data['w_dis'] = 0
+                if extra_data['loss_history']['redn_count'] >= decay_wait:
+                    extra_data['w_dis'] -= decay_step
+                    if extra_data['w_dis'] < w_dis_min:
+                        extra_data['w_dis'] = w_dis_min
                 else:
                     extra_data['loss_history']['redn_count'] += 1
             else:
                 extra_data['loss_history']['redn_count'] = 0
-                extra_data['w_dis'] += update_cut
+                extra_data['w_dis'] += decay_step
                 if extra_data['w_dis'] >= w_dis_max:
                     extra_data['w_dis'] = w_dis_max
 

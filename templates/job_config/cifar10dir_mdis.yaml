@@ -29,10 +29,13 @@ client_params:
       fed_prox:
         mu: 0.1
       mdis:
-        w_dis: 1.0
-        w_dis_max: 2.0
-        cut: 0.1
-        cut_thresh: 3
+        w_dis:
+          init: 1.0
+          max: 2.0
+          min: 0.1
+          decay:
+            step: 0.1
+            wait: 3
 
 server_params:
   aggregator: fed_avg
