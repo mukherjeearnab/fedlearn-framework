@@ -8,7 +8,7 @@ from helpers.logging import logger
 from helpers.file import create_dir_struct
 from helpers.http import download_file
 from helpers.converters import get_base64_state_dict, set_base64_state_dict, tensor_to_data_loader
-from helpers.torch import get_device
+from helpers.torch import get_device, reset_seed
 from helpers.perflog import add_record
 from helpers.dynamod import load_module
 from apps.client.status import update_client_status
@@ -35,8 +35,9 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
     12. If process phase is 1, repeat steps 6-11, else terminate process.
     '''
 
-    # Step 0: Select Device
+    # Step 0: Select Device and Reset Seed
     device = get_device()
+    reset_seed()
 
     # Step 1: ACK of job manifest to server, and update client status to 1.
     update_client_status(client_id, job_id, 1, server_url)
