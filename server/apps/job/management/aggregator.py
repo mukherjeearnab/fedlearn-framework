@@ -3,10 +3,10 @@ The Aggregator Module
 '''
 
 import os
-import argparse
 import traceback
 from time import sleep, time
 from dotenv import load_dotenv
+from helpers.argsparse import args
 from helpers.logging import logger
 from helpers.dynamod import load_module
 from helpers.converters import convert_base64_to_state_dict
@@ -21,9 +21,6 @@ from apps.job.api import get_job, allow_start_training, terminate_training, set_
 # import environment variables
 load_dotenv()
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-p", "--port")
-args = parser.parse_args()
 
 SERVER_PORT = int(args.port if args.port else os.getenv('SERVER_PORT'))
 DELAY = float(os.getenv('DELAY'))

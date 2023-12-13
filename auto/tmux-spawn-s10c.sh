@@ -2,6 +2,14 @@
 CUDA_DEV=$1
 CONDA_ENV=$2
 SERVER=$3
+REDIS=$4
+
+if [ $# -lt 3 ]
+then
+    echo "Not enough Args Supplied. Aborting..."
+    exit
+fi
+
 
 tmux new-session -d
 
@@ -41,7 +49,7 @@ done
 
 tmux select-pane -t 0
 tmux send-keys 'cd ../server' C-m
-tmux send-keys "python main.py -p $SERVER" C-m
+tmux send-keys "python main.py -p $SERVER $REDIS" C-m
 
 tmux select-pane -t 1
 tmux send-keys 'cd ../kvstore' C-m

@@ -3,6 +3,12 @@ CUDA_DEV=$1
 CONDA_ENV=$2
 SERVER=$3
 
+if [ $# -lt 3 ]
+then
+    echo "Not enough Args Supplied. Aborting..."
+    exit
+fi
+
 tmux new-session -d
 
 tmux split-window -v
