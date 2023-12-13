@@ -1,6 +1,7 @@
 '''
 Key Value Store Module
 '''
+import time
 import json
 import os
 import traceback
@@ -17,8 +18,11 @@ load_dotenv()
 KVS_URL = os.getenv('KVSTORE_URL')
 DELAY = float(os.getenv('DELAY'))
 
+epoch_time = int(time.time())
+
 if args.redis:
-    kvstore = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
+    kvstore = redis.Redis(host="localhost", port=6379,
+                          db=0, decode_responses=True)
 
 
 #########################
@@ -69,6 +73,7 @@ def kv_get_redis(key: str) -> Any:
     '''
     Get Value from Key
     '''
+    key = f'{epoch_time}-{key}'
     while True:
         try:
             reply = kvstore.get(key)
@@ -83,16 +88,18 @@ def kv_get_redis(key: str) -> Any:
 
     return json.loads(reply)
 
+
 def kv_set_redis(key: str, value: Any) -> None:
     '''
     Set Value with Key
     '''
+    key = f'{epoch_time}-{key}'
     while True:
         try:
             reply = kvstore.set(key, json.dumps(value))
 
             if not reply:
-                raise Exception(f'Failed to Set key [{key}]!') 
+                raise Exception(f'Failed to Set key [{key}]!')
             break
         except Exception:
             logger.error(
@@ -104,6 +111,7 @@ def kv_delete_redis(key: str) -> Any:
     '''
     Delete Value with Key
     '''
+    key = f'{epoch_time}-{key}'
     while True:
         try:
             reply = kvstore.getdel(key)
