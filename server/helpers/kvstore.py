@@ -6,6 +6,7 @@ import os
 import traceback
 from typing import Any
 from time import sleep
+import redis
 from helpers.http import get, post
 from helpers.logging import logger
 from dotenv import load_dotenv
@@ -15,6 +16,7 @@ load_dotenv()
 KVS_URL = os.getenv('KVSTORE_URL')
 DELAY = float(os.getenv('DELAY'))
 
+kvstore = redis.Redis(host="localhost", port=6379, db=0, decode_responses=True)
 
 def kv_get(key: str) -> Any:
     '''
@@ -22,18 +24,17 @@ def kv_get(key: str) -> Any:
     '''
     while True:
         try:
-            reply = get(f'{KVS_URL}/get', {'key': key, 'client': 'server'})
+            reply = kvstore.get(key)
             break
         except Exception:
             logger.error(
                 f'KVStore Database Connection Error! Retrying in 30s.\n{traceback.format_exc()}')
             sleep(DELAY*6)
 
-    if reply['res'] == 404:
+    if reply is None:
         return None
 
-    return json.loads(reply['value'])
-
+    return json.loads(reply)
 
 def kv_set(key: str, value: Any) -> None:
     '''
@@ -41,8 +42,10 @@ def kv_set(key: str, value: Any) -> None:
     '''
     while True:
         try:
-            post(f'{KVS_URL}/set', {'key': key, 'value': json.dumps(value),
-                                    'client': 'server'})
+            reply = kvstore.set(key, json.dumps(value))
+
+            if not reply:
+                raise Exception(f'Failed to Set key [{key}]!') 
             break
         except Exception:
             logger.error(
@@ -56,14 +59,14 @@ def kv_delete(key: str) -> Any:
     '''
     while True:
         try:
-            reply = get(f'{KVS_URL}/delete', {'key': key, 'client': 'server'})
+            reply = kvstore.getdel(key)
             break
         except Exception:
             logger.error(
                 f'KVStore Database Connection Error! Retrying in 30s.\n{traceback.format_exc()}')
             sleep(DELAY*6)
 
-    if reply['res'] == 404:
+    if reply is None:
         return None
 
-    return reply['value']
+    return json.loads(reply)
