@@ -56,7 +56,7 @@ def train_loop(num_epochs: int, learning_rate: float,
             cposi = torch.pow(torch.norm((proj_l - proj_g)), 2)
             cnega = torch.pow(torch.norm((proj_l - proj_pl)), 2)
 
-            con_loss = w_mdis * (cposi/cnega)
+            con_loss = w_mdis * (cposi/(cposi+cnega))
 
             sup_loss = criterion(pred_l, labels)
 
