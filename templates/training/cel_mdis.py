@@ -35,6 +35,7 @@ def train_loop(num_epochs: int, learning_rate: float,
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(local_model.parameters(), lr=learning_rate)
+    euc_dist = torch.nn.PairwiseDistance()
 
     # Epoch loop
     for epoch in range(num_epochs):
@@ -53,10 +54,15 @@ def train_loop(num_epochs: int, learning_rate: float,
             proj_g, _ = global_model.forward_with_projection(inputs)
             proj_pl, _ = prev_local_model.forward_with_projection(inputs)
 
-            cposi = torch.pow(torch.norm((proj_l - proj_g)), 2)
-            cnega = torch.pow(torch.norm((proj_l - proj_pl)), 2)
+            posi = euc_dist(proj_l, proj_g)
+            logits = posi.reshape(-1, 1)
+            nega = euc_dist(proj_l, proj_pl)
+            logits = torch.cat((logits, nega.reshape(-1, 1)), dim=1)
 
-            con_loss = w_mdis * (cposi/(cposi+cnega))
+            mask = torch.zeros(inputs.size(0)).long()
+            mask.to(device)
+
+            con_loss = w_mdis * criterion(logits, mask)
 
             sup_loss = criterion(pred_l, labels)
 
