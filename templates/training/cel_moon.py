@@ -49,10 +49,11 @@ def train_loop(num_epochs: int, learning_rate: float,
             logits = posi.reshape(-1, 1)
             nega = cos(proj_l, proj_pl)
             logits = torch.cat((logits, nega.reshape(-1, 1)), dim=1)
+            logits = logits.to(device)
 
             logits /= temperature
             mask = torch.zeros(inputs.size(0)).long()
-            mask.to(device)
+            mask = mask.to(device)
 
             contrastive_loss = mu * criterion(logits, mask)
 
