@@ -29,6 +29,9 @@ client_params:
       fed_prox:
         mu: 0.1
       mdis:
+        pre_params:
+          global: 2
+          local: 3
         w_dis:
           init: 5.0
           max: 5.0

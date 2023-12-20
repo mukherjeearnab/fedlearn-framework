@@ -1,6 +1,7 @@
 '''
 Simple Neural Network Training Loop Module
 '''
+from copy import deepcopy
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -33,9 +34,23 @@ def train_loop(num_epochs: int, learning_rate: float,
     global_model = global_model.to(device)
     prev_local_model = prev_local_model.to(device)
 
+    if 'prev_globals' not in extra_data:
+        extra_data['prev_globals'] = list()
+    else:
+        if len(extra_data['prev_globals']) > extra_params['mdis']['pre_params']['global']:
+            extra_data['prev_globals'] = extra_data['prev_globals'][1:]
+        extra_data['prev_globals'].append(deepcopy(global_model))
+
+    if 'prev_locals' not in extra_data:
+        extra_data['prev_locals'] = [deepcopy(prev_local_model)]
+    else:
+        if len(extra_data['prev_locals']) > extra_params['mdis']['pre_params']['local']:
+            extra_data['prev_locals'] = extra_data['prev_locals'][1:]
+        extra_data['prev_locals'].append(deepcopy(prev_local_model))
+
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(local_model.parameters(), lr=learning_rate)
-    euc_dist = torch.nn.PairwiseDistance()
+    cos = torch.nn.CosineSimilarity(dim=-1)
 
     # Epoch loop
     for epoch in range(num_epochs):
@@ -52,13 +67,26 @@ def train_loop(num_epochs: int, learning_rate: float,
             optimizer.zero_grad()
             proj_l, pred_l = local_model.forward_with_projection(inputs)
             proj_g, _ = global_model.forward_with_projection(inputs)
-            proj_pl, _ = prev_local_model.forward_with_projection(inputs)
 
-            posi = euc_dist(proj_l, proj_g)
+            posi = cos(proj_l, proj_g)
             logits = posi.reshape(-1, 1)
-            nega = euc_dist(proj_l, proj_pl)
-            logits = torch.cat((logits, nega.reshape(-1, 1)), dim=1)
+
+            for model in extra_data['prev_globals']:
+                # model.to(device)
+                proj, _ = model.forward_with_projection(inputs)
+                nega = cos(proj_l, proj)
+                logits = torch.cat((logits, nega.reshape(-1, 1)), dim=1)
+                # model.to('cpu')
+
+            for model in extra_data['prev_locals']:
+                # model.to(device)
+                proj, _ = model.forward_with_projection(inputs)
+                nega = cos(proj_l, proj)
+                logits = torch.cat((logits, nega.reshape(-1, 1)), dim=1)
+                # model.to('cpu')
+
             logits = logits.to(device)
+            logits /= 0.5
 
             mask = torch.zeros(inputs.size(0)).long()
             mask = mask.to(device)
