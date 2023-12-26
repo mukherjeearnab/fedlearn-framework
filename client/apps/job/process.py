@@ -5,7 +5,7 @@ from time import time
 from copy import deepcopy
 import traceback
 from helpers.logging import logger
-from helpers.file import create_dir_struct
+from helpers.file import create_dir_struct, check_OK_file
 from helpers.http import download_file
 from helpers.converters import get_base64_state_dict, set_base64_state_dict, tensor_to_data_loader
 from helpers.torch import get_device, reset_seed
@@ -14,7 +14,7 @@ from helpers.dynamod import load_module
 from apps.client.status import update_client_status
 from apps.model.training import data_preprocessing, init_model, parameter_mixing, train_model
 from apps.server.listeners import listen_to_dataset_download_flag, listen_to_start_training, listen_to_client_stage
-from apps.server.communication import download_global_params, upload_client_params
+from apps.server.communication import download_global_params, upload_client_params, get_dataset_metadata
 from apps.server.listeners import listen_for_param_download_training
 
 
@@ -46,14 +46,34 @@ def job_process(client_id: str, job_id: str, job_manifest: dict, server_url: str
     # 2.1 listen to download dataset flag
     listen_to_dataset_download_flag(job_id, server_url, client_id)
 
+    # 2.1.1 download dataset metadata
+    dataset_timestamp, dataset_path = get_dataset_metadata(job_id, server_url)
+
     # 2.2 create the directory structure for the download
-    file_name = f'{client_id}.tuple'
-    dataset_path = f'./datasets/{job_id}'
+    chunk_id = 0
+    for i, client in enumerate(job_manifest['job_status']['client_info']):
+        if client['client_id'] == client_id:
+            chunk_id = i
+    file_name = 'chunk.tuple'
+    dataset_path = f'./datasets/{dataset_path}/{chunk_id}'
     create_dir_struct(dataset_path)
 
+    download_dataset = False
+    if check_OK_file(dataset_path):
+        with open(f'{dataset_path}/OK', 'r', encoding='utf8') as f:
+            ok_timestamp = f.read()
+
+        if dataset_timestamp != ok_timestamp:
+            download_dataset = True
+    else:
+        download_dataset = True
+
     # 2.3 download dataset to ./datasets/[job_id]/dataset.tuple
-    download_file(f'{server_url}/job_manager/download_dataset?job_id={job_id}&client_id={client_id}',
-                  f'{dataset_path}/{file_name}')
+    if download_dataset:
+        download_file(f'{server_url}/job_manager/download_dataset?job_id={job_id}&client_id={client_id}',
+                      f'{dataset_path}/{file_name}')
+        with open(f'{dataset_path}/OK', 'w', encoding='utf8') as f:
+            f.write(f'{dataset_timestamp}')
 
     # Step 3: Preprocess dataset.
     # 3.1 preprocess dataset

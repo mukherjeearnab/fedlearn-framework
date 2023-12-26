@@ -325,3 +325,37 @@ def download_dataset():
     else:
         status = 404
         return jsonify({'message': f'Dataset File for Client [{client_id}] not found for Job [{job_id}]!'}), status
+
+
+@blueprint.route('/get_dataset_metadata')
+def get_dataset_metadata():
+    '''
+    ROUTE to get dataset version timestamp, based on client_id and job_name
+    '''
+    job_id = request.args['job_id']
+    status = 200
+
+    if job_id in JOBS:
+        CHUNK_DIR_NAME = 'dist'
+
+        if JOBS[job_id][0].hierarchical:
+            client_split_key = 'splits'
+        else:
+            client_split_key = 'clients'
+
+        for chunk in JOBS[job_id][0].client_params['dataset']['distribution'][client_split_key]:
+            CHUNK_DIR_NAME += f'-{chunk}'
+
+        DATASET_PREP_MOD = JOBS[job_id][0].dataset_params['prep']['file']
+        DATASET_DIST_MOD = JOBS[job_id][0].client_params['dataset']['distribution']['distributor']['file']
+        DATASET_CHUNK_PATH = f"../../datasets/deploy/{DATASET_PREP_MOD}/chunks/{DATASET_DIST_MOD}/{CHUNK_DIR_NAME}"
+
+        dataset_path = DATASET_CHUNK_PATH.replace('../../datasets/deploy/', '')
+        file_path = f'./datasets/deploy/{dataset_path}/OK'
+        with open(file_path, 'r', encoding='utf8') as f:
+            content = f.read()
+
+        return jsonify({'timestamp': content, 'path': dataset_path})
+    else:
+        status = 404
+        return jsonify({'message': f'Job not found for Job [{job_id}]!'}), status

@@ -58,3 +58,28 @@ def upload_client_params(params: dict, client_id: str, job_id: str, server_url: 
     except Exception:
         logger.error(
             f'Failed to fetch job status state.\n{traceback.format_exc()}')
+
+
+def get_dataset_metadata(job_id: str, server_url: str):
+    '''
+    Method to download the global parameters for the training job
+    '''
+
+    try:
+        # listen to check if dataset flag is true or false
+        url = f'{server_url}/job_manager/get_dataset_metadata'
+
+        logger.info(
+            f'Downloading Dataset Metadata for [{job_id}] from Server at {url}')
+
+        manifest = get(url, {'job_id': job_id})
+
+        timestamp = manifest['timestamp']
+        path = manifest['path']
+
+        return timestamp, path
+    except Exception:
+        logger.error(
+            f'Failed to fetch dataset metadata.\n{traceback.format_exc()}')
+
+    return None, None

@@ -1,12 +1,21 @@
 '''
 YAML file management module
 '''
+import time
 from typing import Any
 from os.path import exists
 from os import makedirs
 import yaml
 import torch
 from helpers.logging import logger
+
+
+def file_exists(filename: str) -> bool:
+    '''
+    Function to check if a file exists or not
+    '''
+
+    return exists(filename)
 
 
 def read_yaml_file(filename: str) -> dict:
@@ -53,8 +62,10 @@ def set_OK_file(path: str):
     '''
     Sets a Flag file named OK
     '''
+    ok_time = int(time.time())
+
     with open(f'{path}/OK', 'w', encoding='utf8') as f:
-        f.write('OK')
+        f.write(f'{ok_time}')
 
 
 def check_OK_file(path: str) -> bool:
