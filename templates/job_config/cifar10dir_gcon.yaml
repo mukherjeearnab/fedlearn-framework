@@ -1,0 +1,54 @@
+client_params:
+  num_clients: 10
+
+  train_test_split: # train test split config
+    train: 0.8
+    test: 0.2
+
+  dataset: # dataset hyperparameters and configs
+    preprocessor: default
+    distribution:
+      distributor: diritchlet_dist
+      extra_params:
+        diritchlet:
+          alpha: 0.5
+          seed: 0
+
+  model_params: # model and training files and configs
+    model_file: &model_file 10c_mobilenet_wp
+    parameter_mixer: default
+    training_loop_file: cel_gcon
+    test_file: &test_file multi_cel_simple
+
+  train_params: # training parameters
+    learning_rate: 0.01
+    batch_size: 64
+    local_epochs: 5
+
+    extra_params:
+      fed_prox:
+        mu: 0.1
+      gcon:
+        w_con:
+          init: 5.0
+          max: 5.0
+          min: 0.1
+          decay:
+            step: 0.1
+            wait: 3
+
+server_params:
+  aggregator: fed_avg
+  model_file: *model_file
+  test_file: *test_file
+
+  train_params: # training parameters
+    rounds: 100
+
+    extra_params: # extra training parameters
+      fed_rwa:
+        lambda_l: 1.0
+        lambda_g: 0.0
+
+dataset_params:
+  prep: cifar_def
