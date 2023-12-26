@@ -1,5 +1,6 @@
 # perf logs
 projects/
+plots/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
