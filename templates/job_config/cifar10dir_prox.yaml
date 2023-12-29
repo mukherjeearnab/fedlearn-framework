@@ -11,17 +11,17 @@ client_params:
       distributor: diritchlet_dist
       extra_params:
         diritchlet:
-          alpha: 0.5
-          seed: 0
+          alpha: 0.1
+          seed: 10
 
   model_params: # model and training files and configs
-    model_file: &model_file 10c_mobilenet_wp
+    model_file: &model_file cifar10CNN_wp
     parameter_mixer: default
     training_loop_file: cel_fed_prox
     test_file: &test_file multi_cel_simple
 
   train_params: # training parameters
-    learning_rate: 0.01
+    learning_rate: 0.0001
     batch_size: 64
     local_epochs: 5
 
